@@ -12,7 +12,7 @@ Database checked with:
 * uses module `fs/promises` which have to be injected.
 
 ## Demo app
-Simple Express app using HornbeamDB. Install dependencies, run server and paly with eg. Postman.
+Simple Express app using HornbeamDB. Install dependencies, run server with `npm run dev` and play with eg. Postman.
 
 ## Tests
 Performance tests to check if code is efficient. Unit tests to check if code trustworthy.

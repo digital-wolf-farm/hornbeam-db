@@ -4,7 +4,9 @@
 // Version: 0.0.1
 // Date of publishing: 17.09.2021
 
-export default function hornbeamDB(fs) {
+export default function hornbeamDB(fs, logger) {
+
+    logger.info('Initialized');
 
     // 1. Configuration of database
 
@@ -52,36 +54,38 @@ export default function hornbeamDB(fs) {
     async function readDbFile(path) {
         let fileStats;
 
+        logger.info(`Reading file - ${path}`);
+
         try {
             fileStats = await fs.stat(path);
         } catch (e) {
-            if (e.code === 'ENOENT') {
-                throw 'FILE_NOT_FOUND';
-            } else {
-                throw 'FILE_SIZE_VERIFICATION_ERROR';
-            }
+            logger.error(`Error while attempt to get file ${path} stats`, e);
+            throw e.code === 'ENOENT' ? 'FILE_NOT_FOUND' : 'FILE_SIZE_VERIFICATION_ERROR';
         }
 
-        if (fileStats.size > configuration['fileSize'] * 1024 * 1024) {
+        if (fileStats.size > configuration['fileSizeLimitInMB'] * 1024 * 1024) {
+            logger.error(`File ${path} size verification error - ${(fileStats.size / (1024 * 1024)).toFixed(2)}MB greater than limit`);
             throw 'FILE_SIZE_EXCEEDED';
         }
 
         try {
             const rawData = await fs.readFile(path, { encoding: 'utf-8' });
+            logger.info(`File - ${path} read successfully`);
+
             return JSON.parse(rawData);
         } catch (e) {
-            if (e.code === 'ENOENT') {
-                throw 'FILE_NOT_FOUND';
-            } else {
-                throw 'READ_FILE_ERROR';
-            }
+            logger.error(`Error while reading file ${path}`, e);
+            throw e.code === 'ENOENT' ? 'FILE_NOT_FOUND' : 'READ_FILE_ERROR';
         }
     }
 
     async function writeDbFile(path, data) {
+        logger.info(`Writing file - ${path}`);
+
         const dataSize = Buffer.byteLength(JSON.stringify(data));
 
         if (dataSize > configuration['fileSizeLimitInMB'] * 1024 * 1024) {
+            logger.error(`Data size verification error - ${(dataSize / (1024 * 1024)).toFixed(2)}MB greater than limit`);
             throw 'DATA_SIZE_EXCEEDED';
         }
 
@@ -95,12 +99,15 @@ export default function hornbeamDB(fs) {
                 }
             }
         } catch (e) {
+            logger.error(`Error while creating directories for file ${path}`, e);
             throw 'DIRECTORY_VERIFICATION_ERROR';
         }
 
         try {
             await fs.writeFile(path, JSON.stringify(data, null, 4), { encoding: 'utf-8' });
+            logger.info(`File - ${path} written successfully`);
         } catch (e) {
+            logger.error(`Error while writing file ${path}`, e);
             throw 'WRITE_FILE_ERROR';
         }
     }

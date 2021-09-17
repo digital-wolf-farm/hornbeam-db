@@ -1,20 +1,18 @@
 import { promises as fs } from 'fs';
 
+import loggerService from './logger.js';
 import hornbeamDB from '../../src/hornbeam-db.js';
 
 export default function odmService() {
-    let db;
 
-    try {
-        db = hornbeamDB(fs);
-    } catch (e) {
-        console.error('Error during configuring db: ', e);
-        throw 'Cannot create database';
-    }
+    // Initializing logger for database and database
+    const dbLogger = loggerService('Database');
+    const db = hornbeamDB(fs, dbLogger);
 
+    // Functions to be called in server's services
     async function getAuthors() {
         try {
-            await db.open('./src/files/default', 'books');
+            await db.open('./demo/db-files', 'books');
             const queries = [{
                 type: 'eq',
                 field: 'name',

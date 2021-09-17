@@ -1,6 +1,10 @@
 import express from 'express';
 
+import loggerService from './src/logger.js';
 import odmService from './src/odm.js';
+
+const logger = loggerService('Server');
+logger.info('Starting');
 
 const app = express();
 const port = 3000;
@@ -73,5 +77,5 @@ app.get('/getBooks', async (req, res) => {
 });
 
 app.listen(port, process.env.SERVER_HOSTNAME, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+    logger.info(`Example app listening at http://localhost:${port}`)
 });

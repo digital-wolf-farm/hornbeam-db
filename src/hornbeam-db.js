@@ -106,6 +106,8 @@ export default function hornbeamDB(fs, logger) {
         try {
             await fs.writeFile(path, JSON.stringify(data, null, 4), { encoding: 'utf-8' });
             logger.info(`File - ${path} written successfully`);
+
+            // return info about used size of file in percent
         } catch (e) {
             logger.error(`Error while writing file ${path}`, e);
             throw 'WRITE_FILE_ERROR';

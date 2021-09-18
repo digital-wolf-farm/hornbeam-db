@@ -28,7 +28,9 @@ Requirements:
 Installation:
 * To check required API of logger - go to `./demo/src/logger.js` and implement similar functionality in your app,
 * Copy database source code into your project (it only one file),
+* Adjust configuration to your project needs,
 * Create new instance of database with injected `fs/promises` module and logger like it is done in `./demo/src/odm.js` file,
+* Learn simple API,
 * Enjoy your local database.
 
 ## Performance

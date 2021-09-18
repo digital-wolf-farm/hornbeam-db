@@ -23,7 +23,9 @@ Why database has such restrictions? Go to `tests` directory and check performanc
 Requirements:
 * `NodeJS` (checked with versions > `12.18.2`),
 * `fs/promises` module injected into database,
-* any logger handling `info(msg)`, `warn(msg)` and `error(msg, error)` functions injected into database .
+* any logger handling `info(msg)`, `warn(msg)` and `error(msg, error)` functions injected into database.
+
+Important! Database is writtne as `ES2015` module.
 
 Installation:
 * To check required API of logger - go to `./demo/src/logger.js` and implement similar functionality in your app,

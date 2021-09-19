@@ -50,33 +50,39 @@ export default function hornbeamDB(fs, logger) {
     // 4. Private methods
 
     // 4.1. File read/write methods
+    function verifyDataFormat(data) {
+        // TODO: verify if data is JSON in required format
+    }
+
+    function verifyDataSize(data) {
+        const dataSize = (Buffer.byteLength(data) / (1024 * 1024)).toFixed(2);
+
+        if (dataSize > configuration['fileSizeLimitInMB']) {
+            logger.error(`Data size verification error - ${dataSize}MB greater than limit`);
+            throw 'DATA_SIZE_EXCEEDED';
+        }
+
+        return (dataSize / configuration['fileSizeLimitInMB']).toFixed(2);
+    }
 
     async function readDbFile(path) {
-        let fileStats;
-
         logger.info(`Reading file - ${path}`);
 
-        try {
-            fileStats = await fs.stat(path);
-        } catch (e) {
-            logger.error(`Error while attempt to get file ${path} stats`, e);
-            throw e.code === 'ENOENT' ? 'FILE_NOT_FOUND' : 'FILE_SIZE_VERIFICATION_ERROR';
-        }
-
-        if (fileStats.size > configuration['fileSizeLimitInMB'] * 1024 * 1024) {
-            logger.error(`File ${path} size verification error - ${(fileStats.size / (1024 * 1024)).toFixed(2)}MB greater than limit`);
-            throw 'FILE_SIZE_EXCEEDED';
-        }
+        let rawData;
 
         try {
-            const rawData = await fs.readFile(path, { encoding: 'utf-8' });
-            logger.info(`File - ${path} read successfully`);
-
-            return JSON.parse(rawData);
+            rawData = await fs.readFile(path, { encoding: 'utf-8' });
+            logger.info(`Content of file - ${path} read successfully`);
         } catch (e) {
             logger.error(`Error while reading file ${path}`, e);
             throw e.code === 'ENOENT' ? 'FILE_NOT_FOUND' : 'READ_FILE_ERROR';
         }
+
+        const usedSpace = verifyDataSize(rawData);
+        const data = JSON.parse(rawData);
+        verifyDataFormat(data);
+
+        return { data, metadata: { usedSpace } };
     }
 
     async function writeDbFile(path, data) {
@@ -169,7 +175,7 @@ export default function hornbeamDB(fs, logger) {
 
         return;
     }
-    
+
     function verifyAddedDataOptions(options) {
         if (typeof options !== 'object' || options === null) {
             throw 'ADDED_DATA_OPTIONS_WRONG_FORMAT';
@@ -302,7 +308,7 @@ export default function hornbeamDB(fs, logger) {
 
             let results;
             let data;
-            
+
             if (backupDb) {
                 data = backupDb[collection] ? [...backupDb[collection]] : [];
             } else {

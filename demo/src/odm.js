@@ -12,11 +12,11 @@ export default function odmService() {
     // Functions to be called in server's services
     async function getAuthors() {
         try {
-            await db.open('./demo/db-files', 'books');
+            await db.openDatabase('./demo/db-files', 'books');
             const queries = [{
                 type: 'eq',
-                field: 'name',
-                value: 'James Bond'
+                field: 'country',
+                value: 'pl'
             }];
             const options = {
                 // pagination: {
@@ -31,7 +31,9 @@ export default function odmService() {
                     order: 'desc'
                 }]
             };
-            return db.findEntries('series', queries);
+            const results = db.findEntries('authors', queries);
+            db.closeDatabase();
+            return results;
         } catch (e) {
             console.log('get authors error', e);
             throw e;
@@ -40,7 +42,7 @@ export default function odmService() {
 
     async function addAuthor(author) {
         try {
-            await db.open('./src/files/default', 'books');
+            await db.openDatabase('./src/files/default', 'books');
             db.addEntry('authors', author);
             await db.save();
         } catch (e) {
@@ -51,7 +53,7 @@ export default function odmService() {
 
     async function addPublisher(publisher) {
         try {
-            await db.open('./files/default', 'books');
+            await db.openDatabase('./files/default', 'books');
             db.openTransaction();
             db.add('publishers', publisher);
             await db.closeTransaction();
@@ -63,7 +65,7 @@ export default function odmService() {
 
     async function addSeries(series) {
         try {
-            await db.open('./files/default', 'books');
+            await db.openDatabase('./files/default', 'books');
             db.openTransaction();
             db.add('series', series);
             await db.closeTransaction();
@@ -81,7 +83,7 @@ export default function odmService() {
                 value: data.id
             }];
 
-            await db.open('./files/default', 'books');
+            await db.openDatabase('./files/default', 'books');
             db.openTransaction();
             db.remove('series', queries);
             await db.closeTransaction();
@@ -99,7 +101,7 @@ export default function odmService() {
                 value: data.id
             }];
 
-            await db.open('./files/default', 'books');
+            await db.openDatabase('./files/default', 'books');
             db.openTransaction();
             db.replace('series', queries, data.data);
             await db.closeTransaction();
@@ -111,7 +113,7 @@ export default function odmService() {
 
     async function getBooks() {
         try {
-            await db.open('./files/default', 'books');
+            await db.openDatabase('./files/default', 'books');
             db.openTransaction();
             const authors = db.read('authors', {}, {});
             const books = db.read('books', {}, {});

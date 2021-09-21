@@ -42,9 +42,9 @@ export default function odmService() {
 
     async function addAuthor(author) {
         try {
-            await db.openDatabase('./src/files/default', 'books');
-            db.addEntry('authors', author);
-            await db.save();
+            await db.openDatabase('./demo/db-files', 'books');
+            db.addEntry('authors', author, { unique: ['name'] });
+            await db.saveDatabase();
         } catch (e) {
             console.log('add authors error', e);
             throw e;
@@ -53,7 +53,7 @@ export default function odmService() {
 
     async function addPublisher(publisher) {
         try {
-            await db.openDatabase('./files/default', 'books');
+            await db.openDatabase('./demo/db-files', 'books');
             db.openTransaction();
             db.add('publishers', publisher);
             await db.closeTransaction();
@@ -65,7 +65,7 @@ export default function odmService() {
 
     async function addSeries(series) {
         try {
-            await db.openDatabase('./files/default', 'books');
+            await db.openDatabase('./demo/db-files', 'books');
             db.openTransaction();
             db.add('series', series);
             await db.closeTransaction();
@@ -83,7 +83,7 @@ export default function odmService() {
                 value: data.id
             }];
 
-            await db.openDatabase('./files/default', 'books');
+            await db.openDatabase('./demo/db-files', 'books');
             db.openTransaction();
             db.remove('series', queries);
             await db.closeTransaction();
@@ -101,7 +101,7 @@ export default function odmService() {
                 value: data.id
             }];
 
-            await db.openDatabase('./files/default', 'books');
+            await db.openDatabase('./demo/db-files', 'books');
             db.openTransaction();
             db.replace('series', queries, data.data);
             await db.closeTransaction();
@@ -113,7 +113,7 @@ export default function odmService() {
 
     async function getBooks() {
         try {
-            await db.openDatabase('./files/default', 'books');
+            await db.openDatabase('./demo/db-files', 'books');
             db.openTransaction();
             const authors = db.read('authors', {}, {});
             const books = db.read('books', {}, {});

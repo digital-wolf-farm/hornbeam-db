@@ -8,18 +8,21 @@ export default function hornbeamDB(fs, logger) {
 
     logger.info('Initialized');
 
-    // 1. Configuration of database
+    // 1. Database data
+
+    let database;
+    let databaseFilePath;
+    let databaseUsage;
+
+    // 2. Configuration
 
     const configuration = {
-        fileSizeLimitInMB: 10,
-        collectionsNumberLimit: 20,
+        dbSizeLimitInMB: 10,
         collectionNameMinLength: 4,
         collectionNameMaxLength: 64,
-        entriesNumberLimit: 10000,
-        entrySizeLimitInKB: 100
     };
 
-    // 2. Utils
+    // 3. Utils
 
     const filters = {
         contains: (item, text) => item.toLowerCase().includes(text.toLowerCase()),
@@ -39,13 +42,13 @@ export default function hornbeamDB(fs, logger) {
         // add diferent version of filters for strings (with lowercase) and for numbers, bigint and booleans or add sth like $text from MongoDB
     };
 
-    // 3. Variables
+    const errors = Object.freeze({
+        // TODO: Create list of errors
+    });
 
-    let database;
-    let databaseFilePath;
-    let databaseUsage;
+    // 4. Verifiers
 
-    // 4. Helper functions
+    // 5. Other private functions
 
     function clearTemporaryData() {
         database = undefined;
@@ -82,14 +85,20 @@ export default function hornbeamDB(fs, logger) {
     }
 
     function verifyDataSize(data) {
-        const dataSize = (Buffer.byteLength(data) / (1024 * 1024)).toFixed(2);
+        let dataSize;
 
-        if (dataSize > configuration['fileSizeLimitInMB']) {
+        if (typeof data !== 'string') {
+            dataSize = (Buffer.byteLength(JSON.stringify(data)) / (1024 * 1024)).toFixed(2);
+        } else {
+            dataSize = (Buffer.byteLength(data) / (1024 * 1024)).toFixed(2);
+        }
+
+        if (dataSize > configuration['dbSizeLimitInMB']) {
             logger.error(`Data size verification error - ${dataSize}MB greater than limit`);
             throw 'DATA_SIZE_EXCEEDED';
         }
 
-        return (dataSize / configuration['fileSizeLimitInMB']).toFixed(2);
+        return (dataSize / configuration['dbSizeLimitInMB']).toFixed(2);
     }
 
     async function readDbFile(path) {
@@ -127,21 +136,19 @@ export default function hornbeamDB(fs, logger) {
     // 5.2. In-memory-db methods
 
     function createId(collection) {
-        if (backupDb[collection].length === 0) { // No backupDB
+        if (database[collection].length === 0) {
             return 1;
         }
 
-        let index = 1;
+        let index = 0;
 
-        for (let entry of backupDb[collection]) { // No backupDB
+        for (let entry of database[collection]) {
             if (entry['_id'] > index) {
                 index = entry['_id'];
             }
         };
 
-        index += 1;
-
-        return index;
+        return ++index;
     }
 
     function verifyCollectionName(collectionName) {
@@ -149,7 +156,8 @@ export default function hornbeamDB(fs, logger) {
             throw 'COLLECTION_NAME_WRONG_FORMAT';
         }
 
-        const collectionNameRegex = new RegExp(`^([\w-]{${configuration['collectionNameMinLength']},${configuration['collectionNameMaxLength']}})$`, 'g');
+        const regexString = `^([\\w-]{${configuration['collectionNameMinLength']},${configuration['collectionNameMaxLength']}})$`;
+        const collectionNameRegex = new RegExp(regexString, 'g');
 
         if (!collectionNameRegex.test(collectionName)) {
             throw 'COLLECTION_NAME_MISMATCH';
@@ -159,12 +167,6 @@ export default function hornbeamDB(fs, logger) {
     function verifyAddedData(data) {
         isDataObject(data);
 
-        const dataSize = Buffer.byteLength(JSON.stringify(data));
-
-        if (dataSize > configuration['entrySizeLimitInKB'] * 1024) {
-            throw 'ADDED_DATA_SIZE_EXCEEDED';
-        }
-
         if (data['_id'] || data['_createdAt'] || data['_modifiedAt']) {
             throw 'ADDED_DATA_CONTAINS_RESERVED_FIELD(S)';
         }
@@ -173,6 +175,10 @@ export default function hornbeamDB(fs, logger) {
     }
 
     function verifyAddedDataOptions(options) {
+        if (options === undefined) {
+            return;
+        }
+
         if (typeof options !== 'object' || options === null) {
             throw 'ADDED_DATA_OPTIONS_WRONG_FORMAT';
         }
@@ -184,21 +190,27 @@ export default function hornbeamDB(fs, logger) {
 
     function verifyDatabase() {
         if (!database) {
-            throw 'DATABASE_NOT_LOADED';
+            throw 'NO_OPEN_DATABASE';
         }
 
         return;
     }
 
     function verifyValuesUniqueness(collection, data, options) {
-        if (!backupDb[collection] || backupDb[collection].length === 0) { // No backupDB
+        // TODO: Add case insensivity for strings
+        // TODO: Limit unique values to strings, numbers, bigint and dates
+        if (options === undefined || !options['unique']) {
             return;
         }
 
-        backupDb[collection].forEach((entry) => { // No backupDB
+        if (!database[collection] || database[collection].length === 0) {
+            return;
+        }
+
+        database[collection].forEach((entry) => {
             options['unique'].forEach((uniqueKey) => {
                 if (entry[uniqueKey] && data[uniqueKey] === entry[uniqueKey]) {
-                    throw 'DATABASE_NOT_LOADED';
+                    throw 'NOT_UNIQUE_VALUE';
                 }
             });
         });
@@ -212,6 +224,10 @@ export default function hornbeamDB(fs, logger) {
 
     async function openDatabase(path, name) {
         logger.info(`Opening database - ${name}`);
+
+        if (database) {
+            logger.warn('Database not closed after last operation.');
+        }
 
         if (typeof path !== 'string' || typeof name !== 'string') {
             logger.error('openDatabase() argument(s) type error');
@@ -231,7 +247,7 @@ export default function hornbeamDB(fs, logger) {
             database = JSON.parse(rawData);
             rawData = undefined;
             verifyDataFormat(database);
-            
+
             logger.info(`Database opened successfully. Current usage - ${databaseUsage}%`);
         } catch (e) {
             if (e === 'FILE_NOT_FOUND') {
@@ -241,9 +257,8 @@ export default function hornbeamDB(fs, logger) {
             } else {
                 logger.error('Opening database error.');
                 clearTemporaryData();
+                throw 'DATABASE_OPENING_ERROR';
             }
-
-            throw 'DATABASE_OPENING_ERROR';
         }
     }
 
@@ -264,15 +279,16 @@ export default function hornbeamDB(fs, logger) {
             await writeDbFile(`${databaseFilePath}`, database);
 
             logger.info(`Database file saved successfully. Clearing temporary data.`);
-            clearTemporaryData();
         } catch (e) {
-            logger.error('Saving database error.');
+            logger.error('Saving database error');
             throw 'DATABASE_SAVING_ERROR';
+        } finally {
+            clearTemporaryData();
         }
     }
 
     function closeDatabase() {
-        logger.info(`Clearing database temporary data.`);
+        logger.info(`Closing database without saving changes.`);
         clearTemporaryData();
     }
 
@@ -283,13 +299,14 @@ export default function hornbeamDB(fs, logger) {
             verifyDatabase();
             verifyCollectionName(collection);
             verifyAddedData(data);
-            verifyAddedDataOptions(options);
 
-            if (!backupDb[collection]) { // No backupDB
-                backupDb[collection] = []; // No backupDB
+            verifyAddedDataOptions(options); // TODO: Fix function
+
+            if (!database[collection]) {
+                database[collection] = [];
             }
 
-            verifyValuesUniqueness(collection, data, options);
+            verifyValuesUniqueness(collection, data, options); // TODO: Verify function
 
             const index = createId(collection);
             const entry = { ...data };
@@ -298,10 +315,10 @@ export default function hornbeamDB(fs, logger) {
             entry['_createdAt'] = new Date();
             entry['_modifiedAt'] = '';
 
-
-            backupDb[collection].push(entry); // No backupDB
+            database[collection].push(entry);
+            verifyDataSize(database);
         } catch (e) {
-            // TODO: When error clear temp db
+            clearTemporaryData();
             throw e;
         }
     }
@@ -326,7 +343,7 @@ export default function hornbeamDB(fs, logger) {
             }
 
             if (options && options.sorting && options.sorting.length >= 1) {
-                // add validation of configuration, add asc/desc working, add other data types than strings
+                // TODO: add validation of configuration, add asc/desc working, add other data types than strings
                 if (options.sorting.length === 1) {
                     data.sort((a, b) => {
                         return a[options.sorting[0].field].localeCompare(b[options.sorting[0].field]);
@@ -355,9 +372,8 @@ export default function hornbeamDB(fs, logger) {
 
             return results;
         } catch (e) {
-            console.error(`Error reading database`, e);
+            clearTemporaryData();
             throw e;
-            // TODO: When error clear temp db
         }
     }
 
@@ -384,9 +400,8 @@ export default function hornbeamDB(fs, logger) {
                 throw 'No entry for provided queries found.';
             }
         } catch (e) {
-            console.error(`Error reading database`, e);
+            clearTemporaryData();
             throw e;
-            // TODO: When error clear temp db
         }
     }
 
@@ -419,8 +434,8 @@ export default function hornbeamDB(fs, logger) {
                 throw 'No entry for provided queries found.';
             }
         } catch (e) {
-            console.error(`Error reading database`, e);
-            // TODO: When error clear temp db
+            clearTemporaryData();
+            throw e;
         }
     }
 

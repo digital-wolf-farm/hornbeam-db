@@ -2,6 +2,18 @@ import chalk from 'chalk';
 
 export default function loggerService(module) {
 
+    function debug(message, details) {
+        let log;
+
+        if (details) {
+            log = `${getUserFriendlyTime()} [debug] [${module}] - ${message}. Details: ${JSON.stringify(details)}`;
+        } else {
+            log = `${getUserFriendlyTime()} [debug] [${module}] - ${message}.`;
+        }
+
+        console.log(chalk.blue(log));
+    }
+
     function info(message) {
         const log = `${getUserFriendlyTime()} [info] [${module}] - ${message}`;
 
@@ -37,5 +49,5 @@ export default function loggerService(module) {
         return `${hour}:${minutes}:${seconds}.${miliseconds}`;
     }
 
-    return { info, warn, error };
+    return { debug, info, warn, error };
 }

@@ -7,7 +7,7 @@ export default function odmService() {
 
     // Initializing logger for database and database
     const dbLogger = loggerService('Database');
-    const db = hornbeamDB(fs, dbLogger);
+    const db = hornbeamDB(fs, dbLogger, 'Books');
 
     // Functions to be called in server's services
     async function getAuthors() {

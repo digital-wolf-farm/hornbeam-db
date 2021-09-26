@@ -42,37 +42,78 @@ export default function hornbeamDB(fs, logger, moduleName) {
         // add diferent version of filters for strings (with lowercase) and for numbers, bigint and booleans or add sth like $text from MongoDB
     };
 
-    const errorsList = Object.freeze({
-        argsTypeMismatch: 'ARGS_TYPE_MISMATCH',
-        databaseFormatMismatch: 'DATABASE_FORMAT_MISMATCH',
-        databaseOpeningError: 'DATABASE_OPENING_ERROR',
-        dataFormatMismatch: 'DATA_FORMAT_MISMATCH',
-        dataSizeExceeded: 'DATA_SIZE_EXCEEDED',
-        directoryCreateError: 'DIRECTORY_CREATE_ERROR',
-        fileNotFound: 'FILE_NOT_FOUND',
-        fileReadError: 'FILE_READ_ERROR',
-        fileWriteError: 'FILE_WRITE_ERROR'
+    const operationsList = Object.freeze({
+        openDb: 'OPEN_DATABASE',
+        saveDb: 'SAVE_DATABASE',
+        closeDb: 'CLOSE_DATABASE',
+        addEntry: 'ADD_ENTRY',
+        readEntry: 'READ_ENTRY',
+        updateEntry: 'UPDATE_ENTRY',
+        deleteEntry: 'DELETE_ENTRY'
     });
 
-    function DbException(name, message) {
-        this.name = name;
-        this.message = message;
+    const errorsList = Object.freeze({
+        argsTypeMismatch: 'ARGS_TYPE_MISMATCH',
+        collectionFormatMismatch: 'COLLECTION_FORMAT_MISMATCH',
+        databaseFormatMismatch: 'DATABASE_FORMAT_MISMATCH',
+        dataSizeExceeded: 'DATA_SIZE_EXCEEDED',
+        directoryCreateError: 'DIRECTORY_CREATE_ERROR',
+        entryFormatMismatch: 'ENTRY_FORMAT_MISMATCH',
+        fileNotFound: 'FILE_NOT_FOUND',
+        fileReadError: 'FILE_READ_ERROR',
+        fileWriteError: 'FILE_WRITE_ERROR',
+        objectTypeMismatch: 'OBJECT_TYPE_MISMATCH'
+    });
+
+    function OperationException(operation, error, message) {
+        this.operation = operation;
+        this.error = error;
+        this.message = message || 'No message';
+    }
+
+    function TaskException(error, message) {
+        this.error = error;
+        this.message = message || 'No message';
     }
 
     // 4. Verifiers
 
-    function verifyDatabaseFormat(data) {
-        verifyIfObject(data);
+    function verifyArgumentsForOpenDb(path, name) {
+        if (typeof path !== 'string' || typeof name !== 'string') {
+            const msg = 'Function openDatabase() accepts only strings as arguments';
+            logger.debug(msg);
 
-        for (let property in data) {
-            if (data.hasOwnProperty(property)) {
-                if (!Array.isArray(data[property])) {
-                    logger.debug(`Provided object property ${property} is not an array`);
-                    throw new DbException(errorsList.databaseFormatMismatch);
+            throw new TaskException(errorsList.argsTypeMismatch, msg);
+        }
+    }
+
+    function verifyDatabaseScheme() {
+        try {
+            verifyIfObject(database);
+        } catch (e) {
+            const msg = `Database: ${databaseFilePath} is not an object`;
+            logger.debug(msg);
+            
+            throw new TaskException(errorsList.databaseFormatMismatch, msg);
+        }
+
+        for (let property in database) {
+            if (database.hasOwnProperty(property)) {
+                if (!Array.isArray(database[property])) {
+                    const msg = `Collection ${property} is not an array`;
+                    logger.debug(msg);
+                    throw new TaskException(errorsList.collectionFormatMismatch, msg);
                 }
 
-                for (let entry of data[property]) {
-                    verifyIfObject(entry);
+                for (let entry of database[property]) {
+                    try {
+                        verifyIfObject(entry);
+                    } catch (e) {
+                        const msg = `Entry: ${JSON.stringify(entry)} is not an object`;
+                        logger.debug(msg);
+                        
+                        throw new TaskException(errorsList.entryFormatMismatch, msg);
+                    }
                 }
             }
         }
@@ -89,8 +130,9 @@ export default function hornbeamDB(fs, logger, moduleName) {
 
         if (dataSize > configuration['dbSizeLimitInMB']) {
             const msg = `Provided database file weights ${dataSize}MB (limit is ${configuration['dbSizeLimitInMB']}MB)`;
-            logger.debug(`Data size verification for file: ${databaseFilePath} failed`, msg);
-            throw new DbException(errorsList.dataSizeExceeded, msg);
+            logger.debug(`Data size verification for file: ${databaseFilePath} failed - file weighs: ${dataSize}MB`);
+
+            throw new TaskException(errorsList.dataSizeExceeded, msg);
         }
 
         return (dataSize / configuration['dbSizeLimitInMB']).toFixed(2);
@@ -98,8 +140,8 @@ export default function hornbeamDB(fs, logger, moduleName) {
 
     function verifyIfObject(data) {
         if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-            logger.debug(`Provided value is not an object`);
-            throw new DbException(errorsList.dataFormatMismatch);
+
+            throw new TaskException(errorsList.objectTypeMismatch);
         }
     }
 
@@ -110,7 +152,8 @@ export default function hornbeamDB(fs, logger, moduleName) {
             return await fs.readFile(path, { encoding: 'utf-8' });
         } catch (e) {
             logger.debug(`Error while reading file: ${path}`, e);
-            throw new DbException(e.code === 'ENOENT' ? errorsList.fileNotFound : errorsList.fileReadError, e);
+
+            throw new TaskException(e.code === 'ENOENT' ? errorsList.fileNotFound : errorsList.fileReadError, e);
         }
     }
 
@@ -126,14 +169,14 @@ export default function hornbeamDB(fs, logger, moduleName) {
             }
         } catch (e) {
             logger.debug(`Error while creating directories for file: ${path}`, e);
-            throw new DbException(errorsList.directoryCreateError, e);
+            throw new TaskException(errorsList.directoryCreateError, e);
         }
 
         try {
             await fs.writeFile(path, JSON.stringify(data, null, 4), { encoding: 'utf-8' });
         } catch (e) {
             logger.debug(`Error while writing file: ${path}`, e);
-            throw new DbException(errorsList.fileWriteError, e);
+            throw new TaskException(errorsList.fileWriteError, e);
         }
     }
 
@@ -178,7 +221,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
     }
 
     function verifyAddedData(data) {
-        verifyIfObject(data);
+        verifyIfObject(data); // TODO: Adjust to new function logic
 
         if (data['_id'] || data['_createdAt'] || data['_modifiedAt']) {
             throw 'ADDED_DATA_CONTAINS_RESERVED_FIELD(S)';
@@ -236,38 +279,33 @@ export default function hornbeamDB(fs, logger, moduleName) {
     // 6.1. Database methods
 
     async function openDatabase(path, name) {
-        logger.debug(`Opening database - ${name}`);
-
-        if (database) {
-            logger.debug('Clearing previous database cache');
-        }
-
-        if (typeof path !== 'string' || typeof name !== 'string') {
-            const msg = 'Function openDatabase() accepts only strings as arguments';
-            logger.debug('Opening database error', msg);
-            throw new DbException(errorsList.argsTypeMismatch, msg);
-        }
-
         databaseFilePath = `${path}/${name}.json`;
 
-        try {
-            logger.debug(`Reading database file - ${databaseFilePath}`);
-            const rawData = await readDbFile(`${databaseFilePath}`);
+        logger.debug(`Opening database from path - ${databaseFilePath}`);
 
-            logger.debug(`File read successfully. Verifing data`);
-            const databaseUsage = verifyDataSize(rawData);
-            database = JSON.parse(rawData);
-            verifyDatabaseFormat(database);
+        if (database) {
+            logger.debug('Clearing previous database');
+            database = undefined;
+        }
+
+        try {
+            verifyArgumentsForOpenDb(path, name);
+            const fileContent = await readDbFile(`${databaseFilePath}`);
+            const databaseUsage = verifyDataSize(fileContent);
+            database = JSON.parse(fileContent);
+            verifyDatabaseScheme();
 
             logger.debug(`Database opened successfully. Current usage - ${databaseUsage}%`);
         } catch (e) {
             if (e.name === errorsList.fileNotFound) {
                 logger.debug(`Could not find database file. Creating new database`);
+
                 database = {};
             } else {
                 logger.debug('Opening database error', e.message);
                 clearTemporaryData();
-                throw new DbException(errorsList.databaseOpeningError, e.message);
+
+                throw new OperationException(operationsList.openDatabase, e.error, e.message);
             }
         }
     }
@@ -283,7 +321,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
         try {
             logger.debug(`Verifing data before saving database file.`);
             const databaseUsage = verifyDataSize(database);
-            verifyDatabaseFormat(database);
+            verifyDatabaseScheme();
 
             logger.debug(`Data verified successfully. Saving file.`);
             await writeDbFile(`${databaseFilePath}`, database);

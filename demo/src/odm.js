@@ -15,8 +15,8 @@ export default function odmService() {
             await db.openDatabase('./demo/db-files', 'books');
             const queries = [{
                 type: 'eq',
-                field: 'country',
-                value: 'pl'
+                field: 'footSize',
+                value: 43
             }];
             const options = {
                 // pagination: {

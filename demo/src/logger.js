@@ -6,22 +6,22 @@ export default function loggerService(module) {
         let log;
 
         if (details) {
-            log = `${getUserFriendlyTime()} [debug] [${module}] - ${message}. Details: ${JSON.stringify(details)}`;
+            log = `${getUserFriendlyTime()} [deb] [${module}] - ${message}. Details: ${JSON.stringify(details)}`;
         } else {
-            log = `${getUserFriendlyTime()} [debug] [${module}] - ${message}.`;
+            log = `${getUserFriendlyTime()} [deb] [${module}] - ${message}.`;
         }
 
         console.log(chalk.blue(log));
     }
 
     function info(message) {
-        const log = `${getUserFriendlyTime()} [info] [${module}] - ${message}`;
+        const log = `${getUserFriendlyTime()} [inf] [${module}] - ${message}`;
 
         console.log(chalk.white(log));
     }
 
     function warn(message) {
-        const log = `${getUserFriendlyTime()} [warn] [${module}] - ${message}`;
+        const log = `${getUserFriendlyTime()} [wrn] [${module}] - ${message}`;
 
         console.log(chalk.yellow(log));
     }
@@ -30,9 +30,9 @@ export default function loggerService(module) {
         let log;
 
         if (error) {
-            log = `${getUserFriendlyTime()} [error] [${module}] - ${message}. Error - ${JSON.stringify(error)}`;
+            log = `${getUserFriendlyTime()} [err] [${module}] - ${message}. Error - ${JSON.stringify(error)}`;
         } else {
-            log = `${getUserFriendlyTime()} [error] [${module}] - ${message}.`;
+            log = `${getUserFriendlyTime()} [err] [${module}] - ${message}.`;
         }
 
         console.log(chalk.red(log));

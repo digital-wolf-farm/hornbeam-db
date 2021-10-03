@@ -56,12 +56,14 @@ export default function hornbeamDB(fs, logger, moduleName) {
         collectionFormatMismatch: 'COLLECTION_FORMAT_MISMATCH',
         collectionNameTypeMismatch: 'COLLECTION_NAME_TYPE_MISMATCH',
         collectionNamePatternMismatch: 'COLLECTION_NAME_PATTERN_MISMATCH',
+        collectionNotFound: 'COLLECTION_NOT_FOUND',
         databaseFormatMismatch: 'DATABASE_FORMAT_MISMATCH',
         databaseNotOpen: 'DATABASE_NOT_OPEN',
         dataSizeExceeded: 'DATA_SIZE_EXCEEDED',
         directoryCreateError: 'DIRECTORY_CREATE_ERROR',
         entryContainsReservedProperties: 'ENTRY_CONTAINS_RESERVED_PROPERTIES',
         entryFormatMismatch: 'ENTRY_FORMAT_MISMATCH',
+        entryNotFound: 'ENTRY_NOT_FOUND',
         entryValueNotUnique: 'ENTRY_VALUE_NOT_UNIQUE',
         entrySizeExceeded: 'ENTRY_SIZE_EXCEEDED',
         fileNotFound: 'FILE_NOT_FOUND',
@@ -93,6 +95,15 @@ export default function hornbeamDB(fs, logger, moduleName) {
         }
     }
 
+    function verifyCollection(collectionName) {
+        if (!database[collectionName]) {
+            const msg = `Collection: ${collectionName} not found`;
+            logger.debug(msg);
+
+            throw new TaskException(errorsList.collectionNotFound, msg);
+        }
+    }
+
     function verifyCollectionName(collectionName) {
         if (typeof collectionName !== 'string') {
             const msg = 'Collection name validation error - name must be a string';
@@ -116,7 +127,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
         if (!database || !databaseFilePath) {
             const msg = 'Cannot find open database';
             logger.debug(msg);
-            
+
             throw new TaskException(errorsList.databaseNotOpen, msg);
         }
     }
@@ -127,7 +138,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
         } catch (e) {
             const msg = `Database: ${databaseFilePath} is not an object`;
             logger.debug(msg);
-            
+
             throw new TaskException(errorsList.databaseFormatMismatch, msg);
         }
 
@@ -145,7 +156,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
                     } catch (e) {
                         const msg = `Entry: ${JSON.stringify(entry)} is not an object`;
                         logger.debug(msg);
-                        
+
                         throw new TaskException(errorsList.entryFormatMismatch, msg);
                     }
                 }
@@ -183,6 +194,15 @@ export default function hornbeamDB(fs, logger, moduleName) {
         }
     }
 
+    function verifyFoundEntry(entryIndex) {
+        if (entryIndex === -1) {
+            const msg = 'Cannot find entry';
+            logger.debug(msg);
+
+            throw new TaskException(errorsList.entryNotFound, msg);
+        }
+    }
+
     function verifyIfObject(data) {
         if (typeof data !== 'object' || data === null || Array.isArray(data)) {
 
@@ -196,14 +216,14 @@ export default function hornbeamDB(fs, logger, moduleName) {
         } catch (e) {
             const msg = `Added entry is not an object`;
             logger.debug(msg);
-            
+
             throw new TaskException(errorsList.entryFormatMismatch, msg);
         }
 
         if (entry['_id'] || entry['_createdAt'] || entry['_modifiedAt']) {
             const msg = 'Added entry cannot contain any of properties: "_id", "_createdAt", "_modifiedAt"';
             logger.debug(msg);
-            
+
             throw new TaskException(errorsList.entryContainsReservedProperties, msg);
         }
     }
@@ -341,7 +361,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
             return databaseUsage;
         } catch (e) {
             logger.debug('Saving database error', e.message);
-            
+
             throw new OperationException(operationsList.saveDb, e.error, e.message);
         } finally {
             clearTemporaryData();
@@ -435,7 +455,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
             return results;
         } catch (e) {
             clearTemporaryData();
-            
+
             throw new OperationException(operationsList.findEntries, e.error, e.message);
         }
     }
@@ -444,61 +464,48 @@ export default function hornbeamDB(fs, logger, moduleName) {
         try {
             verifyDatabase();
             verifyCollectionName(collection);
-            // TODO: Add queries validation
+            // TODO: Add queries validation (must be at least one item in array)
 
-            if (!database[collection]) {
-                throw 'No collection found.';
-            }
-
-            if (queries.length === 0) {
-                throw 'No filter condition found.';
-            }
+            verifyCollection(collection);
 
             const entryIndex = database[collection].findIndex((entry) => queries.every((query) => filters[query.type](entry[query.field], query.value)));
 
-            if (entryIndex > -1) {
-                database[collection].splice(entryIndex, 1);
-            } else {
-                throw 'No entry for provided queries found.';
-            }
+            verifyFoundEntry(entryIndex);
+
+            database[collection].splice(entryIndex, 1);
         } catch (e) {
             clearTemporaryData();
-            
+
             throw new OperationException(operationsList.deleteEntry, e.error, e.message);
         }
     }
 
     async function replaceEntry(collection, queries, data) {
-        // TODO: Add queries and data validation
-
         try {
             verifyDatabase();
             verifyCollectionName(collection);
+            // TODO: Add queries validation (must be at least one item in array)
+            // TODO: Add data validation
 
-            if (!backupDb[collection]) { // No backupDB
-                throw 'No collection found.';
-            }
+            verifyCollection(collection);
 
-            if (queries.length === 0) {
-                throw 'No filter condition found.';
-            }
+            const entryIndex = database[collection].findIndex((entry) => queries.every((query) => filters[query.type](entry[query.field], query.value)));
 
-            const entryIndex = backupDb[collection].findIndex((entry) => queries.every((query) => filters[query.type](entry[query.field], query.value))); // No backupDB
+            verifyFoundEntry(entryIndex);
 
-            if (entryIndex > -1) {
-                const storedEntry = { ...backupDb[collection][entryIndex] }; // No backupDB
-                const newEntry = { ...data };
-                newEntry['_id'] = storedEntry['_id'];
-                newEntry['_createdAt'] = storedEntry['_createdAt'];
-                newEntry['_modifiedAt'] = new Date();
+            database[collection].splice(entryIndex, 1);
 
-                backupDb[collection][entryIndex] = newEntry; // No backupDB
-            } else {
-                throw 'No entry for provided queries found.';
-            }
+            const storedEntry = { ...database[collection][entryIndex] };
+            const newEntry = { ...data };
+            newEntry['_id'] = storedEntry['_id'];
+            newEntry['_createdAt'] = storedEntry['_createdAt'];
+            newEntry['_modifiedAt'] = new Date();
+
+            database[collection][entryIndex] = newEntry;
         } catch (e) {
             clearTemporaryData();
-            throw e;
+
+            throw new OperationException(operationsList.replaceEntry, e.error, e.message);
         }
     }
 

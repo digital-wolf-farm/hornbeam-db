@@ -4,9 +4,7 @@
 // Version: 0.0.1
 // Date of publishing: 17.09.2021
 
-export default function hornbeamDB(fs, logger, moduleName) {
-
-    logger.debug(moduleName ? `Initialized for module - ${moduleName}` : 'Initialized');
+export default function hornbeamDB(fs) {
 
     // 1. Database data
 
@@ -53,6 +51,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
 
     const errorsList = Object.freeze({
         argsTypeMismatch: 'ARGS_TYPE_MISMATCH',
+        arraysNotEqual: 'ARRAYS_NOT_EQUAL',
         collectionFormatMismatch: 'COLLECTION_FORMAT_MISMATCH',
         collectionNameTypeMismatch: 'COLLECTION_NAME_TYPE_MISMATCH',
         collectionNamePatternMismatch: 'COLLECTION_NAME_PATTERN_MISMATCH',
@@ -86,78 +85,109 @@ export default function hornbeamDB(fs, logger, moduleName) {
 
     // 4. Verifiers
 
+    function verifyAddOptions(options) {
+        // {
+        //     unique: ['property1', 'property2']
+        // }
+
+        if (options === undefined) {
+            return;
+        }
+
+        const allowedProperties = ['unique'];
+
+        try {
+            verifyObject(options);
+            verifyObjectNotEmpty(options);
+            verifyArrayEquality(allowedProperties, Object.keys(options)); // TODO: every property is optional
+            verifyArray(options['unique']);
+            verifyArrayElementsType(options['unique'], 'string', 1);
+        } catch (e) {
+            throw new TaskException(errorsList.databaseFormatMismatch, 'Options argument must be object');
+        }
+    }
+
+    function verifyArray(array) {
+        if (!Array.isArray(array)) {
+            throw 'Provided value is not array';
+        }
+    }
+
+    function verifyArrayElementsType(array, elemsType, minLength) {
+        if (array.length < minLength) {
+            throw 'Array length is shorter than minimum';
+        }
+
+        for (let elem of array) {
+            if (typeof elem !== elemsType) {
+                throw 'Array elements type mismatch';
+            }
+        }
+    }
+
+    function verifyArrayEquality(referenceArray, verifiedArray) {
+        const isEqual = (referenceArray.length === verifiedArray.length) && verifiedArray.every((element, index) => {
+            return element === referenceArray[index]; 
+        });
+
+        if (!isEqual) {
+            throw 'Provided arrays are not equal';
+        }
+    }
+
+    function verifyEditOptions(options) {
+        // TODO: Add logic
+    }
+
     function verifyArgumentsForOpenDb(path, name) {
         if (typeof path !== 'string' || typeof name !== 'string') {
-            const msg = 'Function openDatabase() accepts only strings as arguments';
-            logger.debug(msg);
-
-            throw new TaskException(errorsList.argsTypeMismatch, msg);
+            throw new TaskException(errorsList.argsTypeMismatch, 'Function openDatabase() accepts only strings as arguments');
         }
     }
 
     function verifyCollection(collectionName) {
         if (!database[collectionName]) {
-            const msg = `Collection: ${collectionName} not found`;
-            logger.debug(msg);
-
-            throw new TaskException(errorsList.collectionNotFound, msg);
+            throw new TaskException(errorsList.collectionNotFound, `Collection: ${collectionName} not found`);
         }
     }
 
     function verifyCollectionName(collectionName) {
         if (typeof collectionName !== 'string') {
-            const msg = 'Collection name validation error - name must be a string';
-            logger.debug(msg);
-
-            throw new TaskException(errorsList.collectionNameTypeMismatch, msg);
+            throw new TaskException(errorsList.collectionNameTypeMismatch, 'Collection name must be a string');
         }
 
         const regexString = `^([\\w-]{${configuration['collectionNameMinLength']},${configuration['collectionNameMaxLength']}})$`;
         const collectionNameRegex = new RegExp(regexString, 'g');
 
         if (!collectionNameRegex.test(collectionName)) {
-            const msg = 'Collection name validation error - name could contain only letters, numbers, hyphens and underscores';
-            logger.debug(msg);
-
-            throw new TaskException(errorsList.collectionNamePatternMismatch, msg);
+            throw new TaskException(errorsList.collectionNamePatternMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores');
         }
     }
 
     function verifyDatabase() {
         if (!database || !databaseFilePath) {
-            const msg = 'Cannot find open database';
-            logger.debug(msg);
-
-            throw new TaskException(errorsList.databaseNotOpen, msg);
+            throw new TaskException(errorsList.databaseNotOpen, 'Cannot find open database');
         }
     }
 
     function verifyDatabaseScheme() {
         try {
-            verifyIfObject(database);
+            verifyObject(database);
         } catch (e) {
-            const msg = `Database: ${databaseFilePath} is not an object`;
-            logger.debug(msg);
-
-            throw new TaskException(errorsList.databaseFormatMismatch, msg);
+            throw new TaskException(errorsList.databaseFormatMismatch, `Database: ${databaseFilePath} is not an object`);
         }
 
         for (let property in database) {
             if (database.hasOwnProperty(property)) {
                 if (!Array.isArray(database[property])) {
-                    const msg = `Collection ${property} is not an array`;
-                    logger.debug(msg);
-                    throw new TaskException(errorsList.collectionFormatMismatch, msg);
+                    throw new TaskException(errorsList.collectionFormatMismatch, `Collection ${property} is not an array`);
                 }
 
                 for (let entry of database[property]) {
                     try {
-                        verifyIfObject(entry);
+                        verifyObject(entry);
                     } catch (e) {
-                        const msg = `Entry: ${JSON.stringify(entry)} is not an object`;
-                        logger.debug(msg);
-
-                        throw new TaskException(errorsList.entryFormatMismatch, msg);
+                        throw new TaskException(errorsList.entryFormatMismatch, `Entry: ${JSON.stringify(entry)} is not an object`);
                     }
                 }
             }
@@ -174,10 +204,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
         }
 
         if (dataSize > configuration['dbSizeLimitInMB']) {
-            const msg = `Provided database file weights ${dataSize}MB (limit is ${configuration['dbSizeLimitInMB']}MB)`;
-            logger.debug(`Data size verification for file: ${databaseFilePath} failed - file weights: ${dataSize}MB`);
-
-            throw new TaskException(errorsList.dataSizeExceeded, msg);
+            throw new TaskException(errorsList.dataSizeExceeded, `Provided database file weights ${dataSize}MB (limit is ${configuration['dbSizeLimitInMB']}MB)`);
         }
 
         return (dataSize / configuration['dbSizeLimitInMB']).toFixed(2);
@@ -187,45 +214,44 @@ export default function hornbeamDB(fs, logger, moduleName) {
         const entrySize = (Buffer.byteLength(JSON.stringify(entry)) / (1024 * 1024)).toFixed(2);
 
         if (entrySize > configuration['entrySizeLimitInMB']) {
-            const msg = `Added entry weights ${dataSize}MB (limit is ${configuration['entrySizeLimitInMB']}MB)`;
-            logger.debug(`Data size verification failed - entry weights: ${dataSize}MB`);
-
-            throw new TaskException(errorsList.entrySizeExceeded, msg);
+            throw new TaskException(errorsList.entrySizeExceeded, `Added entry weights ${dataSize}MB (limit is ${configuration['entrySizeLimitInMB']}MB)`);
         }
     }
 
     function verifyFoundEntry(entryIndex) {
         if (entryIndex === -1) {
-            const msg = 'Cannot find entry';
-            logger.debug(msg);
-
-            throw new TaskException(errorsList.entryNotFound, msg);
+            throw new TaskException(errorsList.entryNotFound, 'Cannot find entry');
         }
     }
 
-    function verifyIfObject(data) {
+    function verifyObject(data) {
         if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-
             throw new TaskException(errorsList.objectTypeMismatch);
         }
     }
 
-    function verifyNewEntry(entry) {
+    function verifyEntryData(entry, newEntry) {
         try {
-            verifyIfObject(database);
+            verifyObject(database);
         } catch (e) {
-            const msg = `Added entry is not an object`;
-            logger.debug(msg);
-
-            throw new TaskException(errorsList.entryFormatMismatch, msg);
+            throw new TaskException(errorsList.entryFormatMismatch, `Added entry is not an object`);
         }
 
-        if (entry['_id'] || entry['_createdAt'] || entry['_modifiedAt']) {
-            const msg = 'Added entry cannot contain any of properties: "_id", "_createdAt", "_modifiedAt"';
-            logger.debug(msg);
-
-            throw new TaskException(errorsList.entryContainsReservedProperties, msg);
+        if (newEntry) {
+            if (entry['_id'] || entry['_createdAt'] || entry['_modifiedAt']) {
+                throw new TaskException(errorsList.entryContainsReservedProperties, 'Added entry cannot contain any of properties: "_id", "_createdAt", "_modifiedAt"');
+            }
         }
+    }
+
+    function verifyObjectNotEmpty(options) {
+        if (Object.keys(options) === 0) {
+            throw 'Object cannot be empty';
+        }
+    }
+
+    function verifyQueries(queries, isQueryRequired) {
+        // TODO: Add logic
     }
 
     function verifyValuesUniqueness(collection, data, options) {
@@ -243,10 +269,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
         database[collection].forEach((entry) => {
             options['unique'].forEach((uniqueKey) => {
                 if (entry[uniqueKey] && data[uniqueKey] === entry[uniqueKey]) {
-                    const msg = `Added entry must contain unique value for field: ${uniqueKey}`;
-                    logger.debug(msg);
-
-                    throw new TaskException(errorsList.valueNotUnique, msg);
+                    throw new TaskException(errorsList.valueNotUnique, `Added entry must contain unique value for field: ${uniqueKey}`);
                 }
             });
         });
@@ -258,8 +281,6 @@ export default function hornbeamDB(fs, logger, moduleName) {
         try {
             return await fs.readFile(path, { encoding: 'utf-8' });
         } catch (e) {
-            logger.debug(`Error while reading file: ${path}`, e);
-
             throw new TaskException(e.code === 'ENOENT' ? errorsList.fileNotFound : errorsList.fileReadError, e);
         }
     }
@@ -275,14 +296,12 @@ export default function hornbeamDB(fs, logger, moduleName) {
                 }
             }
         } catch (e) {
-            logger.debug(`Error while creating directories for file: ${path}`, e);
             throw new TaskException(errorsList.directoryCreateError, e);
         }
 
         try {
             await fs.writeFile(path, JSON.stringify(data, null, 4), { encoding: 'utf-8' });
         } catch (e) {
-            logger.debug(`Error while writing file: ${path}`, e);
             throw new TaskException(errorsList.fileWriteError, e);
         }
     }
@@ -310,15 +329,16 @@ export default function hornbeamDB(fs, logger, moduleName) {
         return ++index;
     }
 
+    function findEntryIndex(collection, queries) {
+        return database[collection].findIndex((entry) => queries.every((query) => filters[query.type](entry[query.field], query.value)));
+    }
+
     // 7. Database API
 
     async function openDatabase(path, name) {
         databaseFilePath = `${path}/${name}.json`;
 
-        logger.debug(`Opening database from path - ${databaseFilePath}`);
-
         if (database) {
-            logger.debug('Clearing previous database');
             database = undefined;
         }
 
@@ -329,17 +349,13 @@ export default function hornbeamDB(fs, logger, moduleName) {
             database = JSON.parse(fileContent);
             verifyDatabaseScheme();
 
-            logger.debug(`Database opened successfully. Current usage - ${databaseUsage}%`);
-
             return databaseUsage;
         } catch (e) {
             if (e.name === errorsList.fileNotFound) {
-                logger.debug(`Could not find database file. Creating new database`);
                 database = {};
 
                 return '0.00';
             } else {
-                logger.debug('Opening database error', e.message);
                 clearTemporaryData();
 
                 throw new OperationException(operationsList.openDb, e.error, e.message);
@@ -348,20 +364,14 @@ export default function hornbeamDB(fs, logger, moduleName) {
     }
 
     async function saveDatabase() {
-        logger.debug(`Saving database file - ${databaseFilePath}`);
-
         try {
             verifyDatabase();
             const databaseUsage = verifyDataSize(database);
             verifyDatabaseScheme();
             await writeDbFile(`${databaseFilePath}`, database);
 
-            logger.debug(`Database file saved successfully. Clearing temporary data.`);
-
             return databaseUsage;
         } catch (e) {
-            logger.debug('Saving database error', e.message);
-
             throw new OperationException(operationsList.saveDb, e.error, e.message);
         } finally {
             clearTemporaryData();
@@ -369,18 +379,16 @@ export default function hornbeamDB(fs, logger, moduleName) {
     }
 
     function closeDatabase() {
-        logger.debug(`Closing database without saving changes.`);
         clearTemporaryData();
     }
 
     function addEntry(collection, data, options) {
         try {
+            verifyAddOptions(options);
             verifyDatabase();
             verifyCollectionName(collection);
-            verifyNewEntry(data);
+            verifyEntryData(data, true);
             verifyEntrySize(data);
-
-            // TODO: Add verifier for options object
 
             if (!database[collection]) {
                 database[collection] = [];
@@ -397,7 +405,7 @@ export default function hornbeamDB(fs, logger, moduleName) {
 
             database[collection].push(entry);
 
-            return entry;
+            return database[collection][length - 1];
         } catch (e) {
             clearTemporaryData();
 
@@ -407,10 +415,10 @@ export default function hornbeamDB(fs, logger, moduleName) {
 
     function findEntries(collection, queries, options) {
         try {
+            verifyQueries(queries, false);
+            verifyEditOptions(options);
             verifyDatabase();
             verifyCollectionName(collection);
-            // TODO: add queries validation
-            // TODO: add options validation
 
             let results;
 
@@ -462,17 +470,15 @@ export default function hornbeamDB(fs, logger, moduleName) {
 
     function removeEntry(collection, queries) {
         try {
+            verifyQueries(queries, true);
             verifyDatabase();
-            verifyCollectionName(collection);
-            // TODO: Add queries validation (must be at least one item in array)
-
             verifyCollection(collection);
+            verifyCollectionName(collection);
 
-            const entryIndex = database[collection].findIndex((entry) => queries.every((query) => filters[query.type](entry[query.field], query.value)));
-
+            const entryIndex = findEntryIndex(collection, queries);
             verifyFoundEntry(entryIndex);
 
-            database[collection].splice(entryIndex, 1);
+            return database[collection].splice(entryIndex, 1);
         } catch (e) {
             clearTemporaryData();
 
@@ -482,18 +488,17 @@ export default function hornbeamDB(fs, logger, moduleName) {
 
     async function replaceEntry(collection, queries, data) {
         try {
+            verifyQueries(queries, true);
             verifyDatabase();
-            verifyCollectionName(collection);
-            // TODO: Add queries validation (must be at least one item in array)
-            // TODO: Add data validation
-
             verifyCollection(collection);
+            verifyCollectionName(collection);
+            verifyEntryData(data, false);
+            verifyEntrySize(data);
 
-            const entryIndex = database[collection].findIndex((entry) => queries.every((query) => filters[query.type](entry[query.field], query.value)));
-
+            const entryIndex = findEntryIndex(collection, queries);
             verifyFoundEntry(entryIndex);
 
-            database[collection].splice(entryIndex, 1);
+            database[collection].splice(entryIndex, 1); // TODO: Verify if it is neccessary
 
             const storedEntry = { ...database[collection][entryIndex] };
             const newEntry = { ...data };
@@ -502,6 +507,8 @@ export default function hornbeamDB(fs, logger, moduleName) {
             newEntry['_modifiedAt'] = new Date();
 
             database[collection][entryIndex] = newEntry;
+
+            return database[collection][entryIndex];
         } catch (e) {
             clearTemporaryData();
 

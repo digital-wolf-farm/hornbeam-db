@@ -1,9 +1,11 @@
 # Dependency directories
 node_modules/
-jspm_packages/
+
+# Compiled library files
+dist/lib/
 
 # Example files created by demo app
-demo/**/*.json
+demo-app/**/*.json
 
 # Example files created by tests
 tests/**/*.json

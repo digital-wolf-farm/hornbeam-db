@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "ES5",
+        "declaration": true,
+        "outDir": "./dist/lib/cjs",
+        "moduleResolution": "node",
+        "lib": [
+            "ES2020",
+            "DOM"
+        ]
+    },
+    "include": [
+        "src/**/*"
+    ]
+}

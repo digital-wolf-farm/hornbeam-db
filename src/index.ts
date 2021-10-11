@@ -1,303 +1,24 @@
-export default function hornbeamDB(fs) {
+import { Buffer } from 'buffer';
 
-    // 1. Database data
+import { DBConfig } from './utils/db-config';
+import { DB } from './interfaces/db';
+import { filters } from './lib/filters';
+import { DBMethod } from './enums/db-method';
+import { BDTaskError } from './enums/db-task-error';
+import { MethodError, TaskError } from './utils/errors';
 
-    let database;
-    let databaseFilePath;
+export default DBConfig;
 
-    // 2. Configuration
+export function hornbeamDB(configuration: DBConfig) {
 
-    const configuration = {
-        dbSizeLimitInMB: 10,
-        entrySizeLimitInMB: 1,
-        collectionNameMinLength: 4,
-        collectionNameMaxLength: 64,
-    };
+    let database: DB;
+    let databaseFilePath: string;
+    let config: DBConfig;
 
-    // 3. Utils
-
-    const filters = {
-        contains: (item, text) => item.toLowerCase().includes(text.toLowerCase()),
-        eq: (item, value) => item === value,
-        gt: (item, value) => item > value,
-        gte: (item, value) => item > value,
-        in: (item, arr) => arr.some((elem) => elem === item),
-        lt: (item, value) => item < value,
-        lte: (item, value) => item <= value,
-        ne: (item, value) => item !== value,
-        nin: (item, arr) => arr.every((elem) => elem !== item)
-        // find by regex
-        // find by defined / undefined value
-        // dates comparison - check if gt, lt eq is working
-        // find by geospatial data
-        // find by any of this filter inside array - MongoDB - $elemMatch + array size
-        // add diferent version of filters for strings (with lowercase) and for numbers, bigint and booleans or add sth like $text from MongoDB
-    };
-
-    const operationsList = Object.freeze({
-        openDb: 'OPEN_DATABASE',
-        saveDb: 'SAVE_DATABASE',
-        addEntry: 'ADD_ENTRY',
-        findEntries: 'FIND_ENTRIES',
-        updateEntry: 'UPDATE_ENTRY',
-        deleteEntry: 'DELETE_ENTRY'
-    });
-
-    const errorsList = Object.freeze({
-        argsTypeMismatch: 'ARGS_TYPE_MISMATCH',
-        arraysNotEqual: 'ARRAYS_NOT_EQUAL',
-        collectionFormatMismatch: 'COLLECTION_FORMAT_MISMATCH',
-        collectionNameTypeMismatch: 'COLLECTION_NAME_TYPE_MISMATCH',
-        collectionNamePatternMismatch: 'COLLECTION_NAME_PATTERN_MISMATCH',
-        collectionNotFound: 'COLLECTION_NOT_FOUND',
-        databaseFormatMismatch: 'DATABASE_FORMAT_MISMATCH',
-        databaseNotOpen: 'DATABASE_NOT_OPEN',
-        dataSizeExceeded: 'DATA_SIZE_EXCEEDED',
-        directoryCreateError: 'DIRECTORY_CREATE_ERROR',
-        entryContainsReservedProperties: 'ENTRY_CONTAINS_RESERVED_PROPERTIES',
-        entryFormatMismatch: 'ENTRY_FORMAT_MISMATCH',
-        entryNotFound: 'ENTRY_NOT_FOUND',
-        entryValueNotUnique: 'ENTRY_VALUE_NOT_UNIQUE',
-        entrySizeExceeded: 'ENTRY_SIZE_EXCEEDED',
-        fileNotFound: 'FILE_NOT_FOUND',
-        fileReadError: 'FILE_READ_ERROR',
-        fileWriteError: 'FILE_WRITE_ERROR',
-        objectTypeMismatch: 'OBJECT_TYPE_MISMATCH',
-        valueNotUnique: 'VALUE_NOT_UNIQUE'
-    });
-
-    function OperationException(operation, error, message) {
-        this.operation = operation;
-        this.error = error;
-        this.message = message || 'No message';
-    }
-
-    function TaskException(error, message) {
-        this.error = error;
-        this.message = message || 'No message';
-    }
-
-    // 4. Verifiers
-
-    function verifyAddOptions(options) {
-        // {
-        //     unique: ['property1', 'property2']
-        // }
-
-        if (options === undefined) {
-            return;
-        }
-
-        const allowedProperties = ['unique'];
-
-        try {
-            verifyObject(options);
-            verifyObjectNotEmpty(options);
-            verifyArrayEquality(allowedProperties, Object.keys(options)); // TODO: every property is optional
-            verifyArray(options['unique']);
-            verifyArrayElementsType(options['unique'], 'string', 1);
-        } catch (e) {
-            throw new TaskException(errorsList.databaseFormatMismatch, 'Options argument must be object');
-        }
-    }
-
-    function verifyArray(array) {
-        if (!Array.isArray(array)) {
-            throw 'Provided value is not array';
-        }
-    }
-
-    function verifyArrayElementsType(array, elemsType, minLength) {
-        if (array.length < minLength) {
-            throw 'Array length is shorter than minimum';
-        }
-
-        for (let elem of array) {
-            if (typeof elem !== elemsType) {
-                throw 'Array elements type mismatch';
-            }
-        }
-    }
-
-    function verifyArrayEquality(referenceArray, verifiedArray) {
-        const isEqual = (referenceArray.length === verifiedArray.length) && verifiedArray.every((element, index) => {
-            return element === referenceArray[index]; 
-        });
-
-        if (!isEqual) {
-            throw 'Provided arrays are not equal';
-        }
-    }
-
-    function verifyEditOptions(options) {
-        // TODO: Add logic
-    }
-
-    function verifyArgumentsForOpenDb(path, name) {
-        if (typeof path !== 'string' || typeof name !== 'string') {
-            throw new TaskException(errorsList.argsTypeMismatch, 'Function openDatabase() accepts only strings as arguments');
-        }
-    }
-
-    function verifyCollection(collectionName) {
-        if (!database[collectionName]) {
-            throw new TaskException(errorsList.collectionNotFound, `Collection: ${collectionName} not found`);
-        }
-    }
-
-    function verifyCollectionName(collectionName) {
-        if (typeof collectionName !== 'string') {
-            throw new TaskException(errorsList.collectionNameTypeMismatch, 'Collection name must be a string');
-        }
-
-        const regexString = `^([\\w-]{${configuration['collectionNameMinLength']},${configuration['collectionNameMaxLength']}})$`;
-        const collectionNameRegex = new RegExp(regexString, 'g');
-
-        if (!collectionNameRegex.test(collectionName)) {
-            throw new TaskException(errorsList.collectionNamePatternMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores');
-        }
-    }
-
-    function verifyDatabase() {
-        if (!database || !databaseFilePath) {
-            throw new TaskException(errorsList.databaseNotOpen, 'Cannot find open database');
-        }
-    }
-
-    function verifyDatabaseScheme() {
-        try {
-            verifyObject(database);
-        } catch (e) {
-            throw new TaskException(errorsList.databaseFormatMismatch, `Database: ${databaseFilePath} is not an object`);
-        }
-
-        for (let property in database) {
-            if (database.hasOwnProperty(property)) {
-                if (!Array.isArray(database[property])) {
-                    throw new TaskException(errorsList.collectionFormatMismatch, `Collection ${property} is not an array`);
-                }
-
-                for (let entry of database[property]) {
-                    try {
-                        verifyObject(entry);
-                    } catch (e) {
-                        throw new TaskException(errorsList.entryFormatMismatch, `Entry: ${JSON.stringify(entry)} is not an object`);
-                    }
-                }
-            }
-        }
-    }
-
-    function verifyDataSize(data) {
-        let dataSize;
-
-        if (typeof data !== 'string') {
-            dataSize = (Buffer.byteLength(JSON.stringify(data)) / (1024 * 1024)).toFixed(2);
-        } else {
-            dataSize = (Buffer.byteLength(data) / (1024 * 1024)).toFixed(2);
-        }
-
-        if (dataSize > configuration['dbSizeLimitInMB']) {
-            throw new TaskException(errorsList.dataSizeExceeded, `Provided database file weights ${dataSize}MB (limit is ${configuration['dbSizeLimitInMB']}MB)`);
-        }
-
-        return (dataSize / configuration['dbSizeLimitInMB']).toFixed(2);
-    }
-
-    function verifyEntrySize(entry) {
-        const entrySize = (Buffer.byteLength(JSON.stringify(entry)) / (1024 * 1024));
-
-        if (entrySize > configuration['entrySizeLimitInMB']) {
-            throw new TaskException(errorsList.entrySizeExceeded, `Added entry weights ${entrySize.toFixed(2)}MB (limit is ${configuration['entrySizeLimitInMB']}MB)`);
-        }
-    }
-
-    function verifyFoundEntry(entryIndex) {
-        if (entryIndex === -1) {
-            throw new TaskException(errorsList.entryNotFound, 'Cannot find entry');
-        }
-    }
-
-    function verifyObject(data) {
-        if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-            throw new TaskException(errorsList.objectTypeMismatch, '');
-        }
-    }
-
-    function verifyEntryData(entry, newEntry) {
-        try {
-            verifyObject(database);
-        } catch (e) {
-            throw new TaskException(errorsList.entryFormatMismatch, `Added entry is not an object`);
-        }
-
-        if (newEntry) {
-            if (entry['_id'] || entry['_createdAt'] || entry['_modifiedAt']) {
-                throw new TaskException(errorsList.entryContainsReservedProperties, 'Added entry cannot contain any of properties: "_id", "_createdAt", "_modifiedAt"');
-            }
-        }
-    }
-
-    function verifyObjectNotEmpty(options) {
-        if (Object.keys(options).length === 0) {
-            throw 'Object cannot be empty';
-        }
-    }
-
-    function verifyQueries(queries, isQueryRequired) {
-        // TODO: Add logic
-    }
-
-    function verifyValuesUniqueness(collection, data, options) {
-        // TODO: Add case insensivity for strings
-        // TODO: Limit unique values to strings, numbers, bigints and dates
-
-        if (options === undefined || !options['unique']) {
-            return;
-        }
-
-        if (!database[collection] || database[collection].length === 0) {
-            return;
-        }
-
-        database[collection].forEach((entry) => {
-            options['unique'].forEach((uniqueKey) => {
-                if (entry[uniqueKey] && data[uniqueKey] === entry[uniqueKey]) {
-                    throw new TaskException(errorsList.valueNotUnique, `Added entry must contain unique value for field: ${uniqueKey}`);
-                }
-            });
-        });
-    }
-
-    // 5. Files operation functions
-
-    async function readDbFile(path) {
-        try {
-            return await fs.readFile(path, { encoding: 'utf-8' });
-        } catch (e) {
-            throw new TaskException(e.code === 'ENOENT' ? errorsList.fileNotFound : errorsList.fileReadError, e);
-        }
-    }
-
-    async function writeDbFile(path, data) {
-        try {
-            const pathArray = path.split('/');
-
-            for (const [index, value] of pathArray.entries()) {
-                if (value !== '.' && value !== '..' && !value.includes('.json')) {
-                    const subPath = pathArray.slice(0, index + 1).join('/');
-                    await fs.mkdir(subPath, { recursive: true });
-                }
-            }
-        } catch (e) {
-            throw new TaskException(errorsList.directoryCreateError, e);
-        }
-
-        try {
-            await fs.writeFile(path, JSON.stringify(data, null, 4), { encoding: 'utf-8' });
-        } catch (e) {
-            throw new TaskException(errorsList.fileWriteError, e);
-        }
+    if (configuration instanceof DBConfig) {
+        config = configuration;
+    } else {
+        config = new DBConfig();
     }
 
     // 6. Other private functions
@@ -345,14 +66,14 @@ export default function hornbeamDB(fs) {
 
             return databaseUsage;
         } catch (e) {
-            if (e.name === errorsList.fileNotFound) {
+            if (e.name === BDTaskError.fileNotFound) {
                 database = {};
 
                 return '0.00';
             } else {
                 clearTemporaryData();
 
-                throw new OperationException(operationsList.openDb, e.error, e.message);
+                throw new MethodError(DBMethod.OpenDB, e.error, e.message);
             }
         }
     }
@@ -366,7 +87,7 @@ export default function hornbeamDB(fs) {
 
             return databaseUsage;
         } catch (e) {
-            throw new OperationException(operationsList.saveDb, e.error, e.message);
+            throw new MethodError(DBMethod.SaveDB, e.error, e.message);
         } finally {
             clearTemporaryData();
         }
@@ -399,11 +120,11 @@ export default function hornbeamDB(fs) {
 
             database[collection].push(entry);
 
-            return database[collection][length - 1];
+            return database[collection][database[collection].length - 1];
         } catch (e) {
             clearTemporaryData();
 
-            throw new OperationException(operationsList.addEntry, e.error, e.message);
+            throw new MethodError(DBMethod.AddEntry, e.error, e.message);
         }
     }
 
@@ -458,7 +179,7 @@ export default function hornbeamDB(fs) {
         } catch (e) {
             clearTemporaryData();
 
-            throw new OperationException(operationsList.findEntries, e.error, e.message);
+            throw new MethodError(DBMethod.FindEntries, e.error, e.message);
         }
     }
 
@@ -476,7 +197,7 @@ export default function hornbeamDB(fs) {
         } catch (e) {
             clearTemporaryData();
 
-            throw new OperationException(operationsList.deleteEntry, e.error, e.message);
+            throw new MethodError(DBMethod.DeleteEntry, e.error, e.message);
         }
     }
 
@@ -506,7 +227,7 @@ export default function hornbeamDB(fs) {
         } catch (e) {
             clearTemporaryData();
 
-            throw new OperationException(operationsList.updateEntry, e.error, e.message);
+            throw new MethodError(DBMethod.UpdateEntry, e.error, e.message);
         }
     }
 

@@ -11,27 +11,21 @@ Write own database storing data directly in JSON:
 * easy to backup - just copy file on backup drive to store in safe place and copy to proper directory to "import" data after fresh install,
 * fast - requires performance tests and tweaking code,
 * wide range of application - allows to store users data in separate files, every module could have own file, too,
-* easy to implement - no NPM, no hidden code, just single file to copy into any project with simple configuration (see: Requirements and installation),
 * light - only useful functionality,
 * as little as possible read/write file operation - speed up operations.
 
 ## Database
 Something is not clear? Go to `demo` directory and check how does it work in simple Express app.  
-Why database has such restrictions? Go to `tests` directory and check performance tests. Still would like to change something? Clone repo, perform tests with your config and apply new settings to your instance of database.
+Why database has such restrictions? Go to `tests` directory and check performance tests. Still would like to change something? Pass your own configuration.
 
 ## Requirements and installation
 Requirements:
 * `NodeJS` (checked with versions > `12.18.2`),
-* `fs/promises` module injected into database,
-* any logger handling `info(msg)`, `warn(msg)` and `error(msg, error)` functions injected into database.
-
-Important! Database is writtne as `ES2015` module.
+* uses modules: `fs/promises` and `Buffer`.
 
 Installation:
-* To check required API of logger - go to `./demo/src/logger.js` and implement similar functionality in your app,
-* Copy database source code into your project (it only one file),
-* Adjust configuration to your project needs,
-* Create new instance of database with injected `fs/promises` module and logger like it is done in `./demo/src/odm.js` file,
+* Install NPM package
+* Create new instance of database with optional configuration,
 * Learn simple API,
 * Enjoy your local database.
 
@@ -51,9 +45,6 @@ Performance on HDD:
 
 ## Demo app
 Simple Express app using HornbeamDB. Install dependencies, run server with `npm run dev` and play with eg. Postman.
- 
-## Current version
-Current version is always on `main` branch. Official versions (patches versions are skipped) are stored on their branches. When you see newer version check changelog and copy newer version.
 
 ## Changelog
 

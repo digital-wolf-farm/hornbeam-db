@@ -1,10 +1,10 @@
 import { DBMethod } from '../enums/db-method';
-import { BDTaskError } from '../enums/db-task-error';
+import { DBTaskError } from '../enums/db-task-error';
 
 export class TaskError extends Error {
-    public readonly error: BDTaskError;
+    public readonly error: DBTaskError;
 
-    public constructor(error: BDTaskError, message: string = 'No message') {
+    public constructor(error: DBTaskError, message: string = 'No message') {
         super(message);
 
         this.error = error;
@@ -14,10 +14,10 @@ export class TaskError extends Error {
 }
 
 export class MethodError extends Error {
-    public readonly error: BDTaskError;
+    public readonly error: DBTaskError;
     public readonly method: DBMethod;
 
-    public constructor(method: DBMethod, error: BDTaskError, message: string = 'No message') {
+    public constructor(method: DBMethod, error: DBTaskError, message: string = 'No message') {
         super(message);
 
         this.error = error;

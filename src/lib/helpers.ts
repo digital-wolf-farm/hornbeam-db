@@ -1,5 +1,5 @@
 // TODO: Add type for non string data argument
-function calculateDatabaseUsage(data: string, limit: number): string {
+function calculateDatabaseUsage(data: string | object, limit: number): string {
     let dataSize: number;
 
     if (typeof data !== 'string') {

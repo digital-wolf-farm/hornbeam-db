@@ -1,39 +1,37 @@
-import { promises as fs } from 'fs';
-
-import loggerService from './logger.js';
-import hornbeamDB from '../../src/hornbeam-db.js';
+import hornbeamDB from '../../dist/lib/es6/index.js';
 
 export default function odmService() {
 
     // Initializing logger for database and database
-    const dbLogger = loggerService('Database');
-    const db = hornbeamDB(fs);
+    const db = hornbeamDB();
 
     // Functions to be called in server's services
     async function getAuthors() {
         try {
-            await db.openDatabase('./demo/db-files', 'books');
-            const queries = [{
-                type: 'eq',
-                field: 'footSize',
-                value: 43
-            }];
-            const options = {
-                // pagination: {
-                //     pageSize: 3,
-                //     currentPage: 1
-                // },
-                sorting: [{
-                    field: 'country',
-                    order: 'asc'
-                }, {
-                    field: 'surname',
-                    order: 'desc'
-                }]
-            };
-            const results = db.findEntries('authors', queries);
-            db.closeDatabase();
-            return results;
+            await db.open('./demo-app/db-files/books');
+            console.log('stats', db.stat());
+            await db.save();
+            // const queries = [{
+            //     type: 'eq',
+            //     field: 'footSize',
+            //     value: 43
+            // }];
+            // const options = {
+            //     // pagination: {
+            //     //     pageSize: 3,
+            //     //     currentPage: 1
+            //     // },
+            //     sorting: [{
+            //         field: 'country',
+            //         order: 'asc'
+            //     }, {
+            //         field: 'surname',
+            //         order: 'desc'
+            //     }]
+            // };
+            // const results = db.findEntries('authors', queries);
+            // db.closeDatabase();
+            // return results;
         } catch (e) {
             console.log('get authors error', e);
             throw e;

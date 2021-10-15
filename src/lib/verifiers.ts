@@ -1,25 +1,31 @@
-// TODO: Added detailed info about failing reason instead of only boolean
-function isFileContentValid(parsedContent: any): boolean {
+import { DBTaskError } from '../enums/db-task-error';
+import { DB } from '../interfaces/db';
+import { TaskError } from '../utils/errors';
 
+function isDatabaseOpen(database: DB): void {
+    if (!database) {
+        throw new TaskError(DBTaskError.DatabaseNotOpen, 'Database must be open before this operation');
+    }
+}
+
+function isDatabaseSchemaValid(parsedContent: any): void {
     if (!isObject(parsedContent)) {
-        return false;
+        throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Database must be an object');
     }
 
     for (let property in parsedContent) {
         if (parsedContent.hasOwnProperty(property)) {
             if (!Array.isArray(parsedContent[property])) {
-                return false;
+                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Collection must be an array');
             }
 
             for (let entry of parsedContent[property]) {
                 if (!isObject(entry)) {
-                    return false;
+                    throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must be an object');
                 }
             }
         }
     }
-
-    return true;
 }
 
 function isObject(data: any): boolean {
@@ -30,6 +36,18 @@ function isObject(data: any): boolean {
     return true;
 }
 
+function isPathValid(path: string): void {
+    if (typeof path !== 'string') {
+        throw new TaskError(DBTaskError.FunctionArgumentTypeMismatch, 'Path to database file must be a string');
+    }
+    
+    if (!/^[a-z]:((\\|\/)[a-z0-9\s_@\-^!#$%&+={}\[\]]+)+$/i.test(path)) {
+        throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Path to database file is not valid');
+    }
+}
+
 export const verifiers = {
-    isFileContentValid
+    isDatabaseOpen,
+    isDatabaseSchemaValid,
+    isPathValid
 };

@@ -37,9 +37,7 @@ Transactions which operated on in-memory-database with cyclic storing data in fi
 Performance on HDD:
 * Writing/reading file:
     * ~1MB - 65ms/70ms
-    * ~5MB - 100ms/110ms
-
-    
+    * ~5MB - 100ms/110ms    
     * ~10MB - 170ms/190ms
     * ~20MB - 250ms/290ms
 

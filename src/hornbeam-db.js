@@ -214,7 +214,7 @@ export default function hornbeamDB(fs) {
         const entrySize = (Buffer.byteLength(JSON.stringify(entry)) / (1024 * 1024)).toFixed(2);
 
         if (entrySize > configuration['entrySizeLimitInMB']) {
-            throw new TaskException(errorsList.entrySizeExceeded, `Added entry weights ${dataSize}MB (limit is ${configuration['entrySizeLimitInMB']}MB)`);
+            throw new TaskException(errorsList.entrySizeExceeded, `Added entry weights ${entrySize}MB (limit is ${configuration['entrySizeLimitInMB']}MB)`);
         }
     }
 

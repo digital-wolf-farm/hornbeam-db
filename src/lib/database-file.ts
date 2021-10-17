@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 
-import { DB } from '../interfaces/db';
+import { DB } from '../models/db';
 import { DBTaskError } from '../enums/db-task-error';
 import { TaskError } from '../utils/errors';
 import { helpers } from './helpers';

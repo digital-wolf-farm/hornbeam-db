@@ -1,11 +1,11 @@
 
 
 import { DBConfig } from './utils/db-config';
-import { DB } from './interfaces/db';
+import { DB } from './models/db';
 import { DBMethod } from './enums/db-method';
 import { DBTaskError } from './enums/db-task-error';
 import { MethodError } from './utils/errors';
-import { Entry } from './interfaces/entry';
+import { Entry } from './models/entry';
 import { databaseFile } from './lib/database-file';
 import { verifiers } from './lib/verifiers';
 import { helpers } from './lib/helpers';
@@ -27,7 +27,37 @@ export default function hornbeamDB(configuration: DBConfig) {
         databaseFilePath = undefined;
     }
 
-    function add(collection: string, data: Entry, options: any): void { }
+    function add(collection: string, data: Entry, options: any): void {
+        try {
+            verifiers.isDatabaseOpen(database);
+            verifiers.isCollectionNameValid(collection, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
+            verifiers.isDataValid(data, true, { sizeLimit: config.entrySize });
+            // Verify options object
+
+            if (!database[collection]) {
+                database[collection] = [];
+            }
+
+            if (options && options.unique) {
+                // verify uniqueness of entry
+            }
+
+            const entry = { ...data };
+
+            // Create index
+
+            // Add metadata
+            
+            database[collection].push(entry);
+
+            // return index of added entry
+        } catch (e) {
+            clearDatabaseCache();
+
+            throw new MethodError(DBMethod.AddEntry, e.error, e.message);
+        }
+    }
+
     function find(collection: string, filters: any[], options: any): Entry[] { return []; }
     function replace(collection: string, filters: any[], data: Entry): void { }
     function remove(collection: string, filters: any[]): void { }

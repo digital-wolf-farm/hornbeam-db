@@ -1,6 +1,8 @@
-import hornbeamDB from '../../dist/lib/es6/index.js';
+const path = require('path');
 
-export default function odmService() {
+const hornbeamDB = require('../../dist/lib/cjs/index').default;
+
+module.exports = function odmService() {
 
     // Initializing logger for database and database
     const db = hornbeamDB();
@@ -8,9 +10,10 @@ export default function odmService() {
     // Functions to be called in server's services
     async function getAuthors() {
         try {
-            await db.open('./demo-app/db-files/books');
+            await db.open(path.resolve(__dirname, '..', 'db-files', 'books.json'));
             console.log('stats', db.stat());
-            await db.save();
+            db.close();
+            // await db.save();
             // const queries = [{
             //     type: 'eq',
             //     field: 'footSize',

@@ -5,7 +5,7 @@ node_modules/
 dist/lib/
 
 # Example files created by demo app
-demo-app/**/*.json
+demo-app/db-files/*.json
 
 # Example files created by tests
 tests/**/*.json

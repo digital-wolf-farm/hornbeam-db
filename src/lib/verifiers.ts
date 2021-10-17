@@ -73,7 +73,7 @@ function isPathValid(path: string): void {
         throw new TaskError(DBTaskError.FunctionArgumentTypeMismatch, 'Path to database file must be a string.');
     }
 
-    if (!/^[a-z]:((\\|\/)[a-z0-9\s_@\-^!#$%&+={}\[\]]+)+$/i.test(path)) {
+    if (!/^(?:[a-z]:)?[\/\\]{0,2}(?:[.\/\\ ](?![.\/\\\n])|[^<>:"|?*.\/\\ \n])+$/i.test(path)) {
         throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Path to database file is not valid.');
     }
 }

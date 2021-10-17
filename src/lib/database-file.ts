@@ -9,7 +9,7 @@ async function read(path: string, sizeLimit: number): Promise<DB> {
     let fileContent: string;
 
     try {
-        fileContent = await fs.readFile(path + '.json', { encoding: 'utf-8' });
+        fileContent = await fs.readFile(path, { encoding: 'utf-8' });
     } catch (e) {
         throw new TaskError(e.code === 'ENOENT' ? DBTaskError.FileNotFound : DBTaskError.FileReadError, e);
     }

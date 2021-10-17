@@ -1,5 +1,3 @@
-
-
 import { DBConfig } from './utils/db-config';
 import { DB } from './models/db';
 import { DBMethod } from './enums/db-method';

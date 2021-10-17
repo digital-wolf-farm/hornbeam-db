@@ -1,0 +1,14 @@
+{
+    "name": "demo-app",
+    "version": "0.0.1",
+    "description": "Demo app for HornbeamDB",
+    "main": "server.js",
+    "scripts": {
+        "dev": "node ./server.js"
+    },
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.17.1"
+    }
+}

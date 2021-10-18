@@ -31,10 +31,10 @@ async function write(path: string, data: DB, sizeLimit: number): Promise<void> {
     }
 
     try {
-        await fs.writeFile(path + '.json', JSON.stringify(data, null, 4), { encoding: 'utf-8' });
+        await fs.writeFile(path, JSON.stringify(data, null, 4), { encoding: 'utf-8' });
     } catch (e) {
         throw new TaskError(DBTaskError.FileWriteError, e);
     }
 }
 
-export const databaseFile = { read, write };
+export const fileOperations = { read, write };

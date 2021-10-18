@@ -4,7 +4,7 @@ import { DBMethod } from './enums/db-method';
 import { DBTaskError } from './enums/db-task-error';
 import { MethodError } from './utils/errors';
 import { Entry } from './models/entry';
-import { databaseFile } from './lib/database-file';
+import { fileOperations } from './lib/file-operations';
 import { verifiers } from './lib/verifiers';
 import { helpers } from './lib/helpers';
 
@@ -69,7 +69,7 @@ export default function hornbeamDB(configuration: DBConfig) {
 
         try {
             verifiers.isPathValid(path);
-            database = await databaseFile.read(path, config.dbSize);
+            database = await fileOperations.read(path, config.dbSize);
             verifiers.isDatabaseSchemaValid(database);
         } catch (e) {
             if (e.error === DBTaskError.FileNotFound) {
@@ -87,7 +87,7 @@ export default function hornbeamDB(configuration: DBConfig) {
         try {
             verifiers.isDatabaseOpen(database);
             verifiers.isDatabaseSchemaValid(database);
-            await databaseFile.write(databaseFilePath, database, config.dbSize);
+            await fileOperations.write(databaseFilePath, database, config.dbSize);
         } catch (e) {
             throw new MethodError(DBMethod.SaveDB, e.error, e.message);
         } finally {

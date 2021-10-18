@@ -27,13 +27,13 @@ function isDatabaseSchemaValid(parsedContent: DB): void {
         throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Database must be an object.');
     }
 
-    for (let property in parsedContent) {
-        if (parsedContent.hasOwnProperty(property)) {
+    for (const property in parsedContent) {
+        if (Object.prototype.hasOwnProperty.call(parsedContent, property)) {
             if (!Array.isArray(parsedContent[property])) {
                 throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Collection must be an array.');
             }
 
-            for (let entry of parsedContent[property]) {
+            for (const entry of parsedContent[property]) {
                 if (!isObject(entry)) {
                     throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must be an object.');
                 }
@@ -73,7 +73,7 @@ function isPathValid(path: string): void {
         throw new TaskError(DBTaskError.FunctionArgumentTypeMismatch, 'Path to database file must be a string.');
     }
 
-    if (!/^(?:[a-z]:)?[\/\\]{0,2}(?:[.\/\\ ](?![.\/\\\n])|[^<>:"|?*.\/\\ \n])+$/i.test(path)) {
+    if (!/^(?:[a-z]:)?[/\\]{0,2}(?:[./\\ ](?![./\\\n])|[^<>:"|?*./\\ \n])+$/i.test(path)) {
         throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Path to database file is not valid.');
     }
 }

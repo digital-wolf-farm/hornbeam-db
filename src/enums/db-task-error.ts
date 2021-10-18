@@ -9,4 +9,4 @@ export enum DBTaskError {
     FileWriteError = 'FILE_WRITE_ERROR',
     FunctionArgumentMismatch = 'FUNCTION_ARGUMENT_MISMATCH',
     FunctionArgumentTypeMismatch = 'FUNCTION_ARGUMENT_TYPE_MISMATCH'
-};
+}

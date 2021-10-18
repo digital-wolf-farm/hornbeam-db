@@ -6,4 +6,4 @@ export enum DBMethod {
     FindEntries = 'FIND_ENTRIES',
     UpdateEntry = 'UPDATE_ENTRY',
     DeleteEntry = 'DELETE_ENTRY'
-};
+}

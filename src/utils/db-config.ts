@@ -7,8 +7,8 @@ export class DBConfig implements DBConfiguration {
     public readonly collectionNameMaxLength: number = 64;
 
     public constructor(
-        dbSize: number = 10,
-        entrySize: number = 1
+        dbSize = 10,
+        entrySize = 1
     ) {
         this.dbSize = dbSize;
         this.entrySize = entrySize;

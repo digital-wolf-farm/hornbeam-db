@@ -57,8 +57,8 @@ export default function hornbeamDB(configuration: DBConfig) {
     }
 
     function find(collection: string, filters: any[], options: any): Entry[] { return []; }
-    function replace(collection: string, filters: any[], data: Entry): void { }
-    function remove(collection: string, filters: any[]): void { }
+    function replace(collection: string, filters: any[], data: Entry): void { return; }
+    function remove(collection: string, filters: any[]): void { return; }
 
     async function open(path: string): Promise<void> {
         databaseFilePath = path;

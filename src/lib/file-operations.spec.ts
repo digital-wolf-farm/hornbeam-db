@@ -1,37 +1,98 @@
-import * as path from 'path';
 import { promises as fs } from 'fs';
 
 import { fileOperations } from './file-operations';
 import { DBTaskError } from '../enums/db-task-error';
+import { helpers } from './helpers';
 
 describe('File operations', () => {
-    const filePath = path.resolve(__dirname, 'test.json');
-
-    // TODO: Mock fs module
-
-    afterEach(async () => {
-        try {
-            await fs.access(filePath);
-            await fs.unlink(filePath);
-        } catch (e) {
-            console.log('Attempt to remove non-existing file');
-        }
-    });
+    const filePath = 'path/to/file.json';
+    const sizeLimit = 1;
+    const data = { collection1: [], collection: [{ field1: 'A', field2: 'B' }] };
 
     describe('Write', () => {
-        it('should write file when size is not exceeded', async () => {
-            const data = { collection1: [], collection: [{ field1: 'A', field2: 'B' }] };
+        it('should write file when size is less than 100% and no exception occurs', async () => {
+            jest.spyOn(fs, 'writeFile').mockResolvedValueOnce();
+            jest.spyOn(helpers, 'calculateDatabaseUsage').mockReturnValueOnce('99.99');
 
-            expect(await fileOperations.write(filePath, data, 1)).resolves;
+            expect(await fileOperations.write(filePath, data, sizeLimit)).resolves;
         });
 
-        it('should not write file when size is exceeded', async () => {
-            const exampleObject = { key1: 'test1'.repeat(1024), key2: 'test2'.repeat(1024) };
-            const data = { collection1: [], collection: new Array(100).fill({ ...exampleObject }) };
+        it('should throw error when size is equal to 100%', async () => {
+            jest.spyOn(fs, 'writeFile').mockResolvedValueOnce();
+            jest.spyOn(helpers, 'calculateDatabaseUsage').mockReturnValueOnce('100');
 
-            return await fileOperations.write(filePath, data, 0.0001)
+            return await fileOperations.write(filePath, data, sizeLimit)
                 .catch((e) => {
                     expect(e.error).toEqual(DBTaskError.FileSizeExceeded);
+                });
+        });
+
+        it('should throw error when size is greater than 100%', async () => {
+            jest.spyOn(fs, 'writeFile').mockResolvedValueOnce();
+            jest.spyOn(helpers, 'calculateDatabaseUsage').mockReturnValueOnce('100.01');
+
+            return await fileOperations.write(filePath, data, sizeLimit)
+                .catch((e) => {
+                    expect(e.error).toEqual(DBTaskError.FileSizeExceeded);
+                });
+        });
+
+        it('should throw error when size is less than 100% but exception occurs', async () => {
+            jest.spyOn(fs, 'writeFile').mockRejectedValueOnce('error');
+            jest.spyOn(helpers, 'calculateDatabaseUsage').mockReturnValueOnce('25.30');
+
+            return await fileOperations.write(filePath, data, sizeLimit)
+                .catch((e) => {
+                    expect(e.error).toEqual(DBTaskError.FileWriteError);
+                });
+        });
+    });
+
+    describe('Read', () => {
+        const fileContent = JSON.stringify(data);
+
+        it('should return file content when size is less than 100% and no exception occurs', async () => {
+            jest.spyOn(fs, 'readFile').mockResolvedValueOnce(fileContent);
+            jest.spyOn(helpers, 'calculateDatabaseUsage').mockReturnValueOnce('99.99');
+
+            await expect(fileOperations.read(filePath, sizeLimit)).resolves.toEqual(data);
+        });
+
+        it('should throw error when size is equal to 100%', async () => {
+            jest.spyOn(fs, 'readFile').mockResolvedValueOnce(fileContent);
+            jest.spyOn(helpers, 'calculateDatabaseUsage').mockReturnValueOnce('100');
+
+            return await fileOperations.read(filePath, sizeLimit)
+                .catch((e) => {
+                    expect(e.error).toEqual(DBTaskError.FileSizeExceeded);
+                });
+        });
+
+        it('should throw error when size is greater than 100%', async () => {
+            jest.spyOn(fs, 'readFile').mockResolvedValueOnce(fileContent);
+            jest.spyOn(helpers, 'calculateDatabaseUsage').mockReturnValueOnce('100.01');
+
+            return await fileOperations.read(filePath, sizeLimit)
+                .catch((e) => {
+                    expect(e.error).toEqual(DBTaskError.FileSizeExceeded);
+                });
+        });
+
+        it('should throw error when file not found', async () => {
+            jest.spyOn(fs, 'readFile').mockRejectedValueOnce({ code: 'ENOENT' });
+
+            return await fileOperations.read(filePath, sizeLimit)
+                .catch((e) => {
+                    expect(e.error).toEqual(DBTaskError.FileNotFound);
+                });
+        });
+
+        it('should throw error when exception occur', async () => {
+            jest.spyOn(fs, 'readFile').mockRejectedValueOnce('error');
+
+            return await fileOperations.read(filePath, sizeLimit)
+                .catch((e) => {
+                    expect(e.error).toEqual(DBTaskError.FileReadError);
                 });
         });
     });

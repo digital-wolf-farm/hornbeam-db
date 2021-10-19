@@ -1,4 +1,3 @@
-// TODO: Add type for non string data argument
 function calculateDatabaseUsage(data: string | object, limit: number): string {
     let dataSize: number;
 

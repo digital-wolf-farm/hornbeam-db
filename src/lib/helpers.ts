@@ -1,3 +1,5 @@
+import { filters } from './filters';
+
 function calculateDatabaseUsage(data: string | object, limit: number): string {
     let dataSize: number;
 
@@ -10,6 +12,11 @@ function calculateDatabaseUsage(data: string | object, limit: number): string {
     return (dataSize / limit).toFixed(2);
 }
 
+function findEntryId(collection: Object[], queryList: any[]): number {
+    return collection.findIndex((entry) => queryList.every((query) => filters[query.type](entry[query.field], query.value)));
+} 
+
 export const helpers = {
-    calculateDatabaseUsage
+    calculateDatabaseUsage,
+    findEntryId
 };

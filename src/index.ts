@@ -25,40 +25,131 @@ export default function hornbeamDB(configuration: DBConfig) {
         databaseFilePath = undefined;
     }
 
-    function add(collection: string, data: Entry, options: any): void {
+    function createId(collectionName: string): number {
+        if (database[collectionName].length === 0) {
+            return 1;
+        }
+
+        let index = 0;
+
+        for (let entry of database[collectionName]) {
+            if (entry['_id'] > index) {
+                index = entry['_id'];
+            }
+        };
+
+        return ++index;
+    }
+
+    function add(collectionName: string, data: Entry, options: any): number {
         try {
             verifiers.isDatabaseOpen(database);
-            verifiers.isCollectionNameValid(collection, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
+            verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             verifiers.isDataValid(data, true, { sizeLimit: config.entrySize });
-            // Verify options object
+            // TODO: Verify options object
 
-            if (!database[collection]) {
-                database[collection] = [];
+            if (!database[collectionName]) {
+                database[collectionName] = [];
             }
 
             if (options && options.unique) {
-                // verify uniqueness of entry
+                // TODO: Verify uniqueness of entry
             }
 
             const entry = { ...data };
+            const entryId = createId(collectionName);
 
-            // Create index
+            entry['_id'] = entryId;
+            entry['_createdAt'] = new Date();
+            entry['_modifiedAt'] = undefined;
 
-            // Add metadata
-            
-            database[collection].push(entry);
+            database[collectionName].push(entry);
 
-            // return index of added entry
+            // TODO: Verify database usage
+
+            return entryId;
         } catch (e) {
             clearDatabaseCache();
-
             throw new MethodError(DBMethod.AddEntry, e.error, e.message);
         }
     }
 
-    function find(collection: string, filters: any[], options: any): Entry[] { return []; }
-    function replace(collection: string, filters: any[], data: Entry): void { return; }
-    function remove(collection: string, filters: any[]): void { return; }
+    function find(collectionName: string, query: any[], options: any): Entry[] {
+        try {
+            verifiers.isDatabaseOpen(database);
+            verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
+            // TODO: Verify query array
+            // TODO: Verify options object
+
+            if (!database[collectionName]) {
+                return [];
+            }
+
+            // TODO: Filter entries
+            // TODO: Sort results
+            // TODO: Paginate results
+
+            // return results
+        } catch (e) {
+            clearDatabaseCache();
+            throw new MethodError(DBMethod.FindEntries, e.error, e.message);
+        }
+    }
+
+    function replace(collectionName: string, query: any[], data: Entry, options: any): number {
+        try {
+            verifiers.isDatabaseOpen(database);
+            verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
+            // TODO: Verify query array
+            verifiers.isDataValid(data, false, { sizeLimit: config.entrySize });
+
+            // TODO: Verify if collection exists
+
+            if (options && options.unique) {
+                // TODO: Verify uniqueness of entry
+            }
+
+            const entryId = helpers.findEntryId(database[collectionName], query);
+
+            if (entryId !== -1) {
+                const storedEntry = { ...database[collectionName][entryId] };
+                const newEntry = { ...data };
+                newEntry['_id'] = storedEntry['_id'];
+                newEntry['_createdAt'] = storedEntry['_createdAt'];
+                newEntry['_modifiedAt'] = new Date();
+
+                database[collectionName][entryId] = newEntry;
+            }
+
+            // TODO: Verify database usage
+
+            return entryId;
+        } catch (e) {
+            clearDatabaseCache();
+            throw new MethodError(DBMethod.ReplaceEntry, e.error, e.message);
+        }
+    }
+
+    function remove(collectionName: string, query: any[]): number {
+        try {
+            verifiers.isDatabaseOpen(database);
+            verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
+            // TODO: Verify query array
+
+            // TODO: Verify if collection exists
+
+            const entryId = helpers.findEntryId(database[collectionName], query);
+
+            if (entryId !== -1) {
+                database[collectionName].splice(entryId, 1);
+            }
+
+            return entryId;
+        } catch (e) {
+            clearDatabaseCache();
+            throw new MethodError(DBMethod.RemoveEntry, e.error, e.message);
+        }
+    }
 
     async function open(path: string): Promise<void> {
         databaseFilePath = path;

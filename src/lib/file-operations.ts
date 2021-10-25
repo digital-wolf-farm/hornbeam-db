@@ -27,7 +27,7 @@ async function write(path: string, data: DB, sizeLimit: number): Promise<void> {
     const dbUsage = helpers.calculateDatabaseUsage(data, sizeLimit);
     
     if (parseFloat(dbUsage) >= 100) {
-        throw new TaskError(DBTaskError.FileSizeExceeded, `DB usage - ${dbUsage}%`);
+        throw new TaskError(DBTaskError.DatabaseSizeExceeded, `DB usage - ${dbUsage}%`);
     }
 
     try {

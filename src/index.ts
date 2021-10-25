@@ -2,7 +2,7 @@ import { DBConfig } from './utils/db-config';
 import { DB } from './models/db';
 import { DBMethod } from './enums/db-method';
 import { DBTaskError } from './enums/db-task-error';
-import { MethodError } from './utils/errors';
+import { MethodError, TaskError } from './utils/errors';
 import { Entry } from './models/entry';
 import { fileOperations } from './lib/file-operations';
 import { verifiers } from './lib/verifiers';
@@ -41,12 +41,32 @@ export default function hornbeamDB(configuration: DBConfig) {
         return ++index;
     }
 
+    function doesCollectionExists(collectionName: string): void {
+        if (!database[collectionName]) {
+            throw new TaskError(DBTaskError.CollectionNotExists, 'Attempt to find entry in non existing collection.');
+        }
+    }
+
+    function isDatabaseOpen(): void {
+        if (!database) {
+            throw new TaskError(DBTaskError.DatabaseNotOpen, 'Database must be open before this operation.');
+        }
+    }
+
+    function isDatabaseSizeNotExceeded(): void {
+        const dbUsage = helpers.calculateDatabaseUsage(database, config.dbSize);
+
+        if (parseFloat(dbUsage) >= 100) {
+            throw new TaskError(DBTaskError.DatabaseSizeExceeded, `DB usage - ${dbUsage}%`);
+        }
+    }
+
     function add(collectionName: string, data: Entry, options: any): number {
         try {
-            verifiers.isDatabaseOpen(database);
+            isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             verifiers.isDataValid(data, true, { sizeLimit: config.entrySize });
-            // TODO: Verify options object
+            verifiers.areAddOptionsValid(options);
 
             if (!database[collectionName]) {
                 database[collectionName] = [];
@@ -65,7 +85,7 @@ export default function hornbeamDB(configuration: DBConfig) {
 
             database[collectionName].push(entry);
 
-            // TODO: Verify database usage
+            isDatabaseSizeNotExceeded();
 
             return entryId;
         } catch (e) {
@@ -76,20 +96,19 @@ export default function hornbeamDB(configuration: DBConfig) {
 
     function find(collectionName: string, query: any[], options: any): Entry[] {
         try {
-            verifiers.isDatabaseOpen(database);
+            isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             // TODO: Verify query array
             // TODO: Verify options object
 
-            if (!database[collectionName]) {
-                return [];
-            }
+            doesCollectionExists(collectionName);
 
             // TODO: Filter entries
             // TODO: Sort results
             // TODO: Paginate results
 
             // return results
+            return [];
         } catch (e) {
             clearDatabaseCache();
             throw new MethodError(DBMethod.FindEntries, e.error, e.message);
@@ -98,12 +117,13 @@ export default function hornbeamDB(configuration: DBConfig) {
 
     function replace(collectionName: string, query: any[], data: Entry, options: any): number {
         try {
-            verifiers.isDatabaseOpen(database);
+            isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             // TODO: Verify query array
             verifiers.isDataValid(data, false, { sizeLimit: config.entrySize });
+            verifiers.areAddOptionsValid(options);
 
-            // TODO: Verify if collection exists
+            doesCollectionExists(collectionName);
 
             if (options && options.unique) {
                 // TODO: Verify uniqueness of entry
@@ -121,7 +141,7 @@ export default function hornbeamDB(configuration: DBConfig) {
                 database[collectionName][entryId] = newEntry;
             }
 
-            // TODO: Verify database usage
+            isDatabaseSizeNotExceeded();
 
             return entryId;
         } catch (e) {
@@ -132,11 +152,11 @@ export default function hornbeamDB(configuration: DBConfig) {
 
     function remove(collectionName: string, query: any[]): number {
         try {
-            verifiers.isDatabaseOpen(database);
+            isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             // TODO: Verify query array
 
-            // TODO: Verify if collection exists
+            doesCollectionExists(collectionName);
 
             const entryId = helpers.findEntryId(database[collectionName], query);
 
@@ -176,7 +196,7 @@ export default function hornbeamDB(configuration: DBConfig) {
 
     async function save(): Promise<void> {
         try {
-            verifiers.isDatabaseOpen(database);
+            isDatabaseOpen();
             verifiers.isDatabaseSchemaValid(database);
             await fileOperations.write(databaseFilePath, database, config.dbSize);
         } catch (e) {
@@ -192,7 +212,7 @@ export default function hornbeamDB(configuration: DBConfig) {
 
     function stat(): string {
         try {
-            verifiers.isDatabaseOpen(database);
+            isDatabaseOpen();
             return helpers.calculateDatabaseUsage(database, config.dbSize);
         } catch (e) {
             throw new MethodError(DBMethod.StatDB, e.error, e.message);

@@ -3,6 +3,43 @@ import { DB } from '../models/db';
 import { Entry } from '../models/entry';
 import { TaskError } from '../utils/errors';
 
+function areAddOptionsValid(options: any): void {
+    if (!isObject(options)) {
+        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options argument must be an object.');
+    }
+
+    const optionsList = Object.keys(options);
+
+    if (optionsList.length === 0) {
+        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options object cannot be empty.');
+    }
+
+    const allowedProperties = ['unique'];
+    if (!isEveryElementListed(optionsList, allowedProperties)) {
+        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options object can contain only allowed properties.');
+    }
+
+    if(options['unique'] && Array.isArray(options['unique']) && !areArrayElementsProperType(options['unique'], 'string')) {
+        throw new TaskError(DBTaskError.OptionsSchemaMismatch, '"Unique" property of options object must be an array with strings.');
+    }
+}
+
+function areArrayElementsProperType(array: unknown[], type: string): boolean {
+    let isTypeValid = true;
+
+    array.forEach((element) => {
+        if (type === 'string' || type === 'number' || type === 'boolean') {
+            if (typeof element !== type) {
+                isTypeValid = false;
+            }
+        } else {
+            console.warn('Attempt to verify array element for not handled type.');
+        }
+    });
+
+    return isTypeValid;
+}
+
 function isCollectionNameValid(name: string, config: any): void {
     if (typeof name !== 'string') {
         throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name must be a string.');
@@ -13,12 +50,6 @@ function isCollectionNameValid(name: string, config: any): void {
 
     if (!collectionNameRegex.test(name)) {
         throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
-    }
-}
-
-function isDatabaseOpen(database: DB): void {
-    if (!database) {
-        throw new TaskError(DBTaskError.DatabaseNotOpen, 'Database must be open before this operation.');
     }
 }
 
@@ -60,6 +91,18 @@ function isDataValid(entry: Entry, isNewEntry: boolean, config: any): void {
     }
 }
 
+function isEveryElementListed(verifiedArray: string[], referenceArray: string[]): boolean {
+    let isListValid = true;
+
+    verifiedArray.forEach((element) => {
+        if (referenceArray.findIndex((refElement) => refElement === element) === -1) {
+            isListValid = false;
+        }
+    });
+
+    return isListValid;
+}
+
 function isObject(data: object): boolean {
     if (typeof data !== 'object' || data === null || Array.isArray(data)) {
         return false;
@@ -79,8 +122,8 @@ function isPathValid(path: string): void {
 }
 
 export const verifiers = {
+    areAddOptionsValid,
     isCollectionNameValid,
-    isDatabaseOpen,
     isDatabaseSchemaValid,
     isDataValid,
     isPathValid

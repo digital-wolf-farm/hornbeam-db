@@ -20,6 +20,25 @@ export default function hornbeamDB(configuration: DBConfig) {
         config = new DBConfig();
     }
 
+    // TODO: Add functionality for nested objects
+    function areValuesUnique(collectionName: string, data: Entry, uniqueFields: string[]): void {
+        if (database[collectionName].length === 0) {
+            return;
+        }
+
+        uniqueFields.forEach((field) => {
+            if (!data[field]) {
+                return;
+            }
+
+            database[collectionName].forEach((entry) => {
+                if (entry[field] && verifiers.areBasicValueEqual(entry[field], data[field])) {
+                    throw new TaskError(DBTaskError.FieldValueNotUnique, `Added entry must contain unique value for field: ${field}`);
+                }
+            });
+        });
+    }
+
     function clearDatabaseCache() {
         database = undefined;
         databaseFilePath = undefined;
@@ -73,7 +92,7 @@ export default function hornbeamDB(configuration: DBConfig) {
             }
 
             if (options && options.unique) {
-                // TODO: Verify uniqueness of entry
+                areValuesUnique(collectionName, data, options.unique);
             }
 
             const entry = { ...data };
@@ -98,7 +117,7 @@ export default function hornbeamDB(configuration: DBConfig) {
         try {
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            // TODO: Verify query array
+            verifiers.isQueryValid(query);
             // TODO: Verify options object
 
             doesCollectionExists(collectionName);
@@ -119,14 +138,14 @@ export default function hornbeamDB(configuration: DBConfig) {
         try {
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            // TODO: Verify query array
+            verifiers.isQueryValid(query);
             verifiers.isDataValid(data, false, { sizeLimit: config.entrySize });
             verifiers.areAddOptionsValid(options);
 
             doesCollectionExists(collectionName);
 
             if (options && options.unique) {
-                // TODO: Verify uniqueness of entry
+                areValuesUnique(collectionName, data, options.unique)
             }
 
             const entryId = helpers.findEntryId(database[collectionName], query);
@@ -154,7 +173,7 @@ export default function hornbeamDB(configuration: DBConfig) {
         try {
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            // TODO: Verify query array
+            verifiers.isQueryValid(query);
 
             doesCollectionExists(collectionName);
 

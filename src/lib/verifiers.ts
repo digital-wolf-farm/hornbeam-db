@@ -5,6 +5,10 @@ import { TaskError } from '../utils/errors';
 import { filters } from './filters';
 
 function areAddOptionsValid(options: any): void {
+    if (options === undefined) {
+        return;
+    }
+
     if (!isObject(options)) {
         throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options argument must be an object.');
     }
@@ -57,6 +61,30 @@ function areBasicValueEqual(baseValue: unknown, comparedValue: unknown): boolean
     } else {
         throw new TaskError(DBTaskError.DataTypeMismatch, 'Provided values are not basic types or have different types');
     }
+}
+
+function areFindOptionsValid(options: any): void {
+    if (options === undefined) {
+        return;
+    }
+
+    if (!isObject(options)) {
+        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options argument must be an object.');
+    }
+
+    const optionsList = Object.keys(options);
+
+    if (optionsList.length === 0) {
+        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options object cannot be empty.');
+    }
+
+    const allowedProperties = ['pagination', 'sorting'];
+    if (!isEveryElementListed(optionsList, allowedProperties)) {
+        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options object can contain only allowed properties.');
+    }
+
+    // TODO: Add validation for pagination object
+    // TODO: Add validation for sorting array
 }
 
 function isCollectionNameValid(name: string, config: any): void {
@@ -199,6 +227,7 @@ function isQueryValid(queriesArray: unknown): boolean {
 export const verifiers = {
     areAddOptionsValid,
     areBasicValueEqual,
+    areFindOptionsValid,
     isCollectionNameValid,
     isDatabaseSchemaValid,
     isDataValid,

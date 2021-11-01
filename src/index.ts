@@ -118,7 +118,7 @@ export default function hornbeamDB(configuration: DBConfig) {
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             verifiers.isQueryValid(query);
-            // TODO: Verify options object
+            verifiers.areFindOptionsValid(options);
 
             doesCollectionExists(collectionName);
 

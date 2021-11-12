@@ -8,7 +8,7 @@ import { fileOperations } from './lib/file-operations';
 import { verifiers } from './lib/verifiers';
 import { helpers } from './lib/helpers';
 
-export default function hornbeamDB(configuration: DBConfig) {
+export default function hornbeamDB(configuration?: DBConfig) {
 
     let database: DB;
     let databaseFilePath: string;

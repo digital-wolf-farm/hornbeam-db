@@ -23,7 +23,7 @@ describe('File operations', () => {
 
             return await fileOperations.write(filePath, data, sizeLimit)
                 .catch((e) => {
-                    expect(e.error).toEqual(DBTaskError.FileSizeExceeded);
+                    expect(e.error).toEqual(DBTaskError.DatabaseSizeExceeded);
                 });
         });
 
@@ -33,7 +33,7 @@ describe('File operations', () => {
 
             return await fileOperations.write(filePath, data, sizeLimit)
                 .catch((e) => {
-                    expect(e.error).toEqual(DBTaskError.FileSizeExceeded);
+                    expect(e.error).toEqual(DBTaskError.DatabaseSizeExceeded);
                 });
         });
 

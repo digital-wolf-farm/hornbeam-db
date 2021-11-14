@@ -1,11 +1,11 @@
 import { promises as fs } from 'fs';
 
-import { DB } from '../models/db';
-import { DBTaskError } from '../enums/db-task-error';
+import { DBData } from '../models/interfaces';
+import { DBTaskError } from '../models/enums';
 import { TaskError } from '../utils/errors';
 import { helpers } from './helpers';
 
-async function read(path: string, sizeLimit: number): Promise<DB> {
+async function read(path: string, sizeLimit: number): Promise<DBData> {
     let fileContent: string;
 
     try {
@@ -23,7 +23,7 @@ async function read(path: string, sizeLimit: number): Promise<DB> {
     return JSON.parse(fileContent);
 }
 
-async function write(path: string, data: DB, sizeLimit: number): Promise<void> {
+async function write(path: string, data: DBData, sizeLimit: number): Promise<void> {
     const dbUsage = helpers.calculateDatabaseUsage(data, sizeLimit);
     
     if (parseFloat(dbUsage) >= 100) {

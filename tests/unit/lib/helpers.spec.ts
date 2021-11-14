@@ -1,4 +1,4 @@
-import { helpers } from './helpers';
+import { helpers } from '../../../src/lib/helpers';
 
 describe('Helpers', () => {
     describe('CalculateDatabaseUsage', () => {

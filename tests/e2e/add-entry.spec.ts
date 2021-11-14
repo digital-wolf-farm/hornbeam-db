@@ -1,8 +1,9 @@
-import { DBTaskError } from '../../src/enums/db-task-error';
+import { DB } from '../../src/models/interfaces';
+import { DBTaskError } from '../../src/models/enums';
 import hornbeamDB from '../../src/index';
 
 describe.only('Add entry', () => {
-    let db: any;
+    let db: DB;
 
     beforeEach(() => {
         db = hornbeamDB();

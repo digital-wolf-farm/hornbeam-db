@@ -1,4 +1,4 @@
-import DBConfiguration from '../models/db-configuration';
+import { DBConfiguration } from '../models/interfaces';
 
 export class DBConfig implements DBConfiguration {
     public readonly dbSize: number;

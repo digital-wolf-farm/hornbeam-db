@@ -1,5 +1,4 @@
-import { DBMethod } from '../enums/db-method';
-import { DBTaskError } from '../enums/db-task-error';
+import { DBMethod, DBTaskError } from '../models/enums';
 
 export class TaskError extends Error {
     public readonly error: DBTaskError;

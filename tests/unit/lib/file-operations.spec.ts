@@ -1,8 +1,8 @@
 import { promises as fs } from 'fs';
 
-import { fileOperations } from './file-operations';
-import { DBTaskError } from '../enums/db-task-error';
-import { helpers } from './helpers';
+import { fileOperations } from '../../../src/lib/file-operations';
+import { DBTaskError } from '../../../src/models/enums';
+import { helpers } from '../../../src/lib/helpers';
 
 describe('File operations', () => {
     const filePath = 'path/to/file.json';

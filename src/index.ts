@@ -1,16 +1,15 @@
+import { DB, DBData, Entry } from './models/interfaces';
 import { DBConfig } from './utils/db-config';
-import { DB } from './models/db';
-import { DBMethod } from './enums/db-method';
-import { DBTaskError } from './enums/db-task-error';
+import { DBMethod, DBTaskError } from './models/enums';
 import { MethodError, TaskError } from './utils/errors';
-import { Entry } from './models/entry';
 import { fileOperations } from './lib/file-operations';
 import { verifiers } from './lib/verifiers';
 import { helpers } from './lib/helpers';
+import { typeGuards } from './lib/type-guards';
 
-export default function hornbeamDB(configuration?: DBConfig) {
+export default function hornbeamDB(configuration?: DBConfig): DB {
 
-    let database: DB;
+    let database: DBData;
     let databaseFilePath: string;
     let config: DBConfig;
 
@@ -80,8 +79,20 @@ export default function hornbeamDB(configuration?: DBConfig) {
         }
     }
 
-    function add(collectionName: string, data: Entry, options: any): number {
+    function add(collectionName: unknown, data: unknown, options?: unknown): number {
         try {
+            if (!typeGuards.isString(collectionName)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.')
+            }
+
+            if (!typeGuards.isObject(data)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Data argument must be an object.')
+            }
+
+            if (options !== undefined && !typeGuards.isAddOptionsObject(options)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be a valid options object.')
+            }
+
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             verifiers.isDataValid(data, true, { sizeLimit: config.entrySize });
@@ -113,8 +124,20 @@ export default function hornbeamDB(configuration?: DBConfig) {
         }
     }
 
-    function find(collectionName: string, query: any[], options: any): Entry[] {
+    function find(collectionName: unknown, query: unknown, options?: unknown): Entry[] {
         try {
+            if (!typeGuards.isString(collectionName)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.')
+            }
+
+            if (!typeGuards.isQueryArray(query)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Query argument must be an array of valid queries.')
+            }
+
+            if (!typeGuards.isFindOptionsObject(options)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be a valid options object.')
+            }
+
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             verifiers.isQueryValid(query);
@@ -134,8 +157,24 @@ export default function hornbeamDB(configuration?: DBConfig) {
         }
     }
 
-    function replace(collectionName: string, query: any[], data: Entry, options: any): number {
+    function replace(collectionName: unknown, query: unknown, data: unknown, options?: unknown): number {
         try {
+            if (!typeGuards.isString(collectionName)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.')
+            }
+
+            if (!typeGuards.isQueryArray(query)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Query argument must be an array of valid queries.')
+            }
+
+            if (!typeGuards.isObject(data)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Data argument must be an object.')
+            }
+
+            if (!typeGuards.isReplaceOptionsObject(options)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be an object.')
+            }
+
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             verifiers.isQueryValid(query);
@@ -169,8 +208,16 @@ export default function hornbeamDB(configuration?: DBConfig) {
         }
     }
 
-    function remove(collectionName: string, query: any[]): number {
+    function remove(collectionName: unknown, query: unknown): number {
         try {
+            if (!typeGuards.isString(collectionName)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.')
+            }
+
+            if (!typeGuards.isQueryArray(query)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Query argument must be an array of valid queries.')
+            }
+
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             verifiers.isQueryValid(query);
@@ -190,15 +237,18 @@ export default function hornbeamDB(configuration?: DBConfig) {
         }
     }
 
-    async function open(path: string): Promise<void> {
-        databaseFilePath = path;
-
+    async function open(path: unknown): Promise<void> {
         if (database) {
             database = undefined;
         }
 
         try {
+            if (!typeGuards.isString(path)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Path argument must be a string.')
+            }
+
             verifiers.isPathValid(path);
+            databaseFilePath = path;
             database = await fileOperations.read(path, config.dbSize);
             verifiers.isDatabaseSchemaValid(database);
         } catch (e) {

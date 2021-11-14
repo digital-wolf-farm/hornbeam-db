@@ -1,6 +1,5 @@
-import { DBTaskError } from '../enums/db-task-error';
-import { DB } from '../models/db';
-import { Entry } from '../models/entry';
+import { DBTaskError } from '../models/enums';
+import { Entry, DBData } from '../models/interfaces';
 import { TaskError } from '../utils/errors';
 import { filters } from './filters';
 
@@ -88,10 +87,6 @@ function areFindOptionsValid(options: any): void {
 }
 
 function isCollectionNameValid(name: string, config: any): void {
-    if (typeof name !== 'string') {
-        throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name must be a string.');
-    }
-
     // TODO: Fix regex to accept only lowercase letter, numbers, -, _ and must starts with letter
     const regexString = `^([\\w-]{${config.minLength},${config.maxLength}})$`;
     const collectionNameRegex = new RegExp(regexString, 'g');
@@ -101,7 +96,7 @@ function isCollectionNameValid(name: string, config: any): void {
     }
 }
 
-function isDatabaseSchemaValid(parsedContent: DB): void {
+function isDatabaseSchemaValid(parsedContent: DBData): void {
     if (!isObject(parsedContent)) {
         throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Database must be an object.');
     }
@@ -168,10 +163,6 @@ function isObject(data: object): boolean {
 }
 
 function isPathValid(path: string): void {
-    if (typeof path !== 'string') {
-        throw new TaskError(DBTaskError.FunctionArgumentTypeMismatch, 'Path to database file must be a string.');
-    }
-
     if (!/^(?:[a-z]:)?[/\\]{0,2}(?:[./\\ ](?![./\\\n])|[^<>:"|?*./\\ \n])+$/i.test(path)) {
         throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Path to database file is not valid.');
     }

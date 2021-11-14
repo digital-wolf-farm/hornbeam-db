@@ -19,7 +19,6 @@ export interface DB {
 
 export interface DBConfiguration {
     dbSize: number;
-    entrySize: number;
     collectionNameMinLength: number;
     collectionNameMaxLength: number;
 }
@@ -41,4 +40,9 @@ export interface Query {
     type: string; // TODO: Add enum
     field: string;
     value: any // TODO: Narrow down acceptable value types
+}
+
+export interface CollectionNameConfig {
+    minLength: number;
+    maxLength: number;
 }

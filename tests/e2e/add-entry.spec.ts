@@ -18,7 +18,7 @@ describe.only('Add entry', () => {
             db.add('collection1', {});
             expect(true).toBe(false);
         } catch (e) {
-            expect(e.error).toEqual(DBTaskError.DatabaseNotOpen);
+            expect(e.error).toBe(DBTaskError.DatabaseNotOpen);
         }
     });
 
@@ -29,7 +29,7 @@ describe.only('Add entry', () => {
             expect(true).toBe(false);
         } catch (e) {
             console.log(e);
-            expect(e.error).toEqual(DBTaskError.CollectionNameMismatch);
+            expect(e.error).toBe(DBTaskError.CollectionNameMismatch);
         }
     });
 });

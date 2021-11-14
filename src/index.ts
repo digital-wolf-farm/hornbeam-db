@@ -11,13 +11,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
 
     let database: DBData;
     let databaseFilePath: string;
-    let config: DBConfig;
-
-    if (configuration instanceof DBConfig) {
-        config = configuration;
-    } else {
-        config = new DBConfig();
-    }
+    let config: DBConfig = configuration instanceof DBConfig ? configuration : new DBConfig();
 
     // TODO: Add functionality for nested objects
     function areValuesUnique(collectionName: string, data: Entry, uniqueFields: string[]): void {
@@ -95,7 +89,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
 
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            verifiers.isDataValid(data, true, { sizeLimit: config.entrySize });
+            verifiers.isDataValid(data, true);
             verifiers.areAddOptionsValid(options);
 
             if (!database[collectionName]) {
@@ -134,7 +128,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Query argument must be an array of valid queries.')
             }
 
-            if (!typeGuards.isFindOptionsObject(options)) {
+            if (options !== undefined && !typeGuards.isFindOptionsObject(options)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be a valid options object.')
             }
 
@@ -171,14 +165,14 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Data argument must be an object.')
             }
 
-            if (!typeGuards.isReplaceOptionsObject(options)) {
+            if (options !== undefined && !typeGuards.isReplaceOptionsObject(options)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be an object.')
             }
 
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             verifiers.isQueryValid(query);
-            verifiers.isDataValid(data, false, { sizeLimit: config.entrySize });
+            verifiers.isDataValid(data, false);
             verifiers.areAddOptionsValid(options);
 
             doesCollectionExists(collectionName);
@@ -287,6 +281,8 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
             throw new MethodError(DBMethod.StatDB, e.error, e.message);
         }
     }
+
+    // TODO: [Improvement]: Add export/import methods
 
     return {
         add,

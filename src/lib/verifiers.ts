@@ -1,26 +1,11 @@
 import { DBTaskError } from '../models/enums';
-import { Entry, DBData } from '../models/interfaces';
+import { Entry, DBData, CollectionNameConfig } from '../models/interfaces';
 import { TaskError } from '../utils/errors';
 import { filters } from './filters';
 
 function areAddOptionsValid(options: any): void {
     if (options === undefined) {
         return;
-    }
-
-    if (!isObject(options)) {
-        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options argument must be an object.');
-    }
-
-    const optionsList = Object.keys(options);
-
-    if (optionsList.length === 0) {
-        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options object cannot be empty.');
-    }
-
-    const allowedProperties = ['unique'];
-    if (!isEveryElementListed(optionsList, allowedProperties)) {
-        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options object can contain only allowed properties.');
     }
 
     // TODO: Fix this part of code: if unique is present it must be non-empty array with strings only
@@ -86,9 +71,8 @@ function areFindOptionsValid(options: any): void {
     // TODO: Add validation for sorting array
 }
 
-function isCollectionNameValid(name: string, config: any): void {
-    // TODO: Fix regex to accept only lowercase letter, numbers, -, _ and must starts with letter
-    const regexString = `^([\\w-]{${config.minLength},${config.maxLength}})$`;
+function isCollectionNameValid(name: string, config: CollectionNameConfig): void {
+    const regexString = `^([a-z][a-z0-9-_]{${config.minLength - 1},${config.maxLength - 1}})$`;
     const collectionNameRegex = new RegExp(regexString, 'g');
 
     if (!collectionNameRegex.test(name)) {
@@ -96,6 +80,7 @@ function isCollectionNameValid(name: string, config: any): void {
     }
 }
 
+// TODO: Add optional argument to enable deep verify schema of db (eg. _id, _createdAt fields)
 function isDatabaseSchemaValid(parsedContent: DBData): void {
     if (!isObject(parsedContent)) {
         throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Database must be an object.');
@@ -116,21 +101,11 @@ function isDatabaseSchemaValid(parsedContent: DBData): void {
     }
 }
 
-function isDataValid(entry: Entry, isNewEntry: boolean, config: any): void {
-    if (!isObject(entry)) {
-        throw new TaskError(DBTaskError.DataValidationError, 'Added data must be an object.');
-    }
-
+function isDataValid(entry: Entry, isNewEntry: boolean): void {
     if (isNewEntry) {
         if (entry['_id'] || entry['_createdAt'] || entry['_modifiedAt']) {
             throw new TaskError(DBTaskError.DataValidationError, 'Added entry cannot contain any of properties: "_id", "_createdAt", "_modifiedAt"');
         }
-    }
-
-    const entrySize = (Buffer.byteLength(JSON.stringify(entry)) / (1024 * 1024)).toFixed(2);
-
-    if (entrySize > config.sizeLimit) {
-        throw new TaskError(DBTaskError.DataValidationError, `Added entry weights ${entrySize}MB (limit is ${config.sizeLimit}MB)`);
     }
 }
 

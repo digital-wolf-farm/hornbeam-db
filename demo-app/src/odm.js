@@ -4,7 +4,7 @@ const hornbeamDB = require('../../dist/lib/cjs/index').default;
 
 module.exports = function odmService() {
 
-    // Initializing logger for database and database
+    // Initializing database
     const db = hornbeamDB();
 
     // Functions to be called in server's services

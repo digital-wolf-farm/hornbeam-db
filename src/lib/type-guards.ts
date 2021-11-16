@@ -1,4 +1,4 @@
-import { AddOptions, Query } from '../models/interfaces';
+import { AddOptions, FindOptions, PaginationOptions, Query, SortingOptions } from '../models/interfaces';
 
 // Guards for JS data types
 function isArray(value: unknown): value is [] {
@@ -22,19 +22,15 @@ function isAddOptionsObject(value: unknown): value is AddOptions {
 
     const keys = Object.keys(value);
 
-    if (keys.length === 0) {
+    if (keys.length !== 1 || !value['unique']) {
         return false;
     }
 
-    let validProperties = true;
+    if (!isArray(value['unique']) || value['unique'].length === 0 || !value['unique'].every((element) => isString(element))) {
+        return false;
+    }
 
-    keys.forEach((key) => {
-        if (['unique'].findIndex((item) => item === key) === -1) {
-            validProperties = false;
-        }
-    });
-
-    return validProperties;
+    return true;
 }
 
 function isReplaceOptionsObject(value: unknown): value is AddOptions {
@@ -44,41 +40,77 @@ function isReplaceOptionsObject(value: unknown): value is AddOptions {
 
     const keys = Object.keys(value);
 
-    if (keys.length === 0) {
+    if (keys.length !== 1 || !value['unique']) {
         return false;
     }
 
-    let validProperties = true;
+    if (!isArray(value['unique']) || value['unique'].length === 0 || !value['unique'].every((element) => isString(element))) {
+        return false;
+    }
 
-    keys.forEach((key) => {
-        if (['unique'].findIndex((item) => item === key) === -1) {
-            validProperties = false;
-        }
-    });
-
-    return validProperties;
+    return true;
 }
 
-function isFindOptionsObject(value: unknown): value is AddOptions {
+function isPaginationOptionsValid(value: unknown): value is PaginationOptions {
     if (!isObject(value)) {
         return false;
     }
 
     const keys = Object.keys(value);
 
-    if (keys.length === 0) {
+    if(!keys.every((key) => ['pageNumber', 'pageSize'].findIndex((item) => item === key) !== -1)) {
         return false;
     }
 
-    let validProperties = true;
+    if (typeof value['pageNumber'] !== 'number' || typeof value['pageSize'] !== 'number') {
+        return false;
+    }
 
-    keys.forEach((key) => {
-        if (['page', 'sort'].findIndex((item) => item === key) === -1) {
-            validProperties = false;
-        }
-    });
+    return true;
+}
 
-    return validProperties;
+function isSortingOptionsValid(value: unknown): value is SortingOptions {
+    if (!isObject(value)) {
+        return false;
+    }
+
+    const keys = Object.keys(value);
+
+    if(!keys.every((key) => ['field', 'order'].findIndex((item) => item === key) !== -1)) {
+        return false;
+    }
+
+    if (typeof value['field'] !== 'string' || (value['order'] !== 1 || value['order'] !== -1)) {
+        return false;
+    }
+
+    return true;
+}
+
+function isFindOptionsObject(value: unknown): value is FindOptions {
+    if (!isObject(value)) {
+        return false;
+    }
+
+    const keys = Object.keys(value);
+
+    if (keys.length === 0 || keys.length > 2) {
+        return false;
+    }
+
+    if(!keys.every((key) => ['page', 'sort'].findIndex((item) => item === key) !== -1)) {
+        return false;
+    }
+
+    if (value['page'] && !isPaginationOptionsValid(value['page'])) {
+        return false;
+    }
+
+    if (!isArray(value['sort']) || value['sort'].length === 0 || !value['sort'].every((element) => isSortingOptionsValid(element))) {
+        return false;
+    }
+
+    return true;
 }
 
 function isQueryArray(value: unknown): value is Query[] {
@@ -112,15 +144,15 @@ function isQueryObject(value: unknown): value is Query {
         return false;
     }
 
-    let validProperties = true;
+    let isPropertyValid = true;
 
     ['type', 'field', 'value'].forEach((item) => {
         if (keys.findIndex((key) => item === key) === -1) {
-            validProperties = false;
+            isPropertyValid = false;
         }
     });
 
-    return validProperties;
+    return isPropertyValid;
 }
 
 export const typeGuards = {

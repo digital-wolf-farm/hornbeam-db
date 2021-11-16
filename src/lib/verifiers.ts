@@ -3,22 +3,6 @@ import { Entry, DBData, CollectionNameConfig } from '../models/interfaces';
 import { TaskError } from '../utils/errors';
 import { filters } from './filters';
 
-function areAddOptionsValid(options: any): void {
-    if (options === undefined) {
-        return;
-    }
-
-    // TODO: Fix this part of code: if unique is present it must be non-empty array with strings only
-    if (
-        options['unique'] &&
-        !Array.isArray(options['unique']) &&
-        options['unique'].length > 0 &&
-        !areArrayElementsProperType(options['unique'], 'string')
-    ) {
-        throw new TaskError(DBTaskError.OptionsSchemaMismatch, '"Unique" property of options object must be non-empty array with strings.');
-    }
-}
-
 function areArrayElementsProperType(array: unknown[], type: string): boolean {
     let isTypeValid = true;
 
@@ -191,7 +175,6 @@ function isQueryValid(queriesArray: unknown): boolean {
 }
 
 export const verifiers = {
-    areAddOptionsValid,
     areBasicValueEqual,
     areFindOptionsValid,
     isCollectionNameValid,

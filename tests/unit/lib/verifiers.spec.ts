@@ -80,6 +80,5 @@ describe('Verifiers', () => {
                 expect(e.error).toBe(DBTaskError.CollectionNameMismatch);
             }
         });
-
     });
 });

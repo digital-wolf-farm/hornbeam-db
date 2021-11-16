@@ -90,7 +90,6 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             verifiers.isDataValid(data, true);
-            verifiers.areAddOptionsValid(options);
 
             if (!database[collectionName]) {
                 database[collectionName] = [];
@@ -125,7 +124,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
             }
 
             if (!typeGuards.isQueryArray(query)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Query argument must be an array of valid queries.')
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Query argument must be an empty array or array of valid queries.')
             }
 
             if (options !== undefined && !typeGuards.isFindOptionsObject(options)) {
@@ -173,7 +172,6 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
             verifiers.isQueryValid(query);
             verifiers.isDataValid(data, false);
-            verifiers.areAddOptionsValid(options);
 
             doesCollectionExists(collectionName);
 

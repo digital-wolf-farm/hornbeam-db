@@ -58,7 +58,7 @@ describe.only('Type Guards', () => {
 
     describe('isAddOptionsObject', () => {
         it('should return true when valid object is passed', () => {
-            expect(typeGuards.isAddOptionsObject({ unique: [] })).toBe(true);
+            expect(typeGuards.isAddOptionsObject({ unique: ['a', 'b'] })).toBe(true);
         });
 
         it('should return false when invalid value is passed', () => {
@@ -68,14 +68,17 @@ describe.only('Type Guards', () => {
             expect(typeGuards.isAddOptionsObject({})).toBe(false);
             expect(typeGuards.isAddOptionsObject([])).toBe(false);
             expect(typeGuards.isAddOptionsObject(() => { })).toBe(false);
+            expect(typeGuards.isAddOptionsObject({ unique: [] })).toBe(false);
+            expect(typeGuards.isAddOptionsObject({ unique: [1, 2] })).toBe(false);
+            expect(typeGuards.isAddOptionsObject({ unique: [{}, {}] })).toBe(false);
+            expect(typeGuards.isAddOptionsObject({ unique: ['a', 'b'], someProperty: 'someValue' })).toBe(false);
             expect(typeGuards.isAddOptionsObject({ someProperty: 'someValue' })).toBe(false);
-            expect(typeGuards.isAddOptionsObject({ unique: [], someProperty: 'someValue' })).toBe(false);
         });
     });
 
     describe('isReplaceOptionsObject', () => {
         it('should return true when valid object is passed', () => {
-            expect(typeGuards.isReplaceOptionsObject({ unique: [] })).toBe(true);
+            expect(typeGuards.isReplaceOptionsObject({ unique: ['a', 'b'] })).toBe(true);
         });
 
         it('should return false when invalid value is passed', () => {
@@ -85,16 +88,19 @@ describe.only('Type Guards', () => {
             expect(typeGuards.isReplaceOptionsObject({})).toBe(false);
             expect(typeGuards.isReplaceOptionsObject([])).toBe(false);
             expect(typeGuards.isReplaceOptionsObject(() => { })).toBe(false);
+            expect(typeGuards.isReplaceOptionsObject({ unique: [] })).toBe(false);
+            expect(typeGuards.isReplaceOptionsObject({ unique: [1, 2] })).toBe(false);
+            expect(typeGuards.isReplaceOptionsObject({ unique: [{}, {}] })).toBe(false);
+            expect(typeGuards.isReplaceOptionsObject({ unique: ['a', 'b'], someProperty: 'someValue' })).toBe(false);
             expect(typeGuards.isReplaceOptionsObject({ someProperty: 'someValue' })).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject({ unique: [], someProperty: 'someValue' })).toBe(false);
         });
     });
 
     describe('isFindOptionsObject', () => {
         it('should return true when valid object is passed', () => {
-            expect(typeGuards.isFindOptionsObject({ sort: {} })).toBe(true);
-            expect(typeGuards.isFindOptionsObject({ page: {} })).toBe(true);
-            expect(typeGuards.isFindOptionsObject({ sort: {}, page: {} })).toBe(true);
+            expect(typeGuards.isFindOptionsObject({ sort: [{ field: 'name', order: 1 }] })).toBe(true);
+            expect(typeGuards.isFindOptionsObject({ page: { pageNumber: 1, pageSize: 50 } })).toBe(true);
+            expect(typeGuards.isFindOptionsObject({ sort: [{ field: 'name', order: 1 }], page: { pageNumber: 5, pageSize: 50 } })).toBe(true);
         });
 
         it('should return false when invalid value is passed', () => {
@@ -104,6 +110,14 @@ describe.only('Type Guards', () => {
             expect(typeGuards.isFindOptionsObject({})).toBe(false);
             expect(typeGuards.isFindOptionsObject([])).toBe(false);
             expect(typeGuards.isFindOptionsObject(() => { })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ page: 10 })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ page: { pageNumber: 1 } })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ page: { pageNumber: '1', pageSize: 20 } })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ page: { pageSize: 20 } })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ page: { pageNumber: 1, pageSize: '20' } })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ page: { number: 5, size: 50 } })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ page: { pageNumber: 1, pageSize: 20, totalNumber: 5 } })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: [] })).toBe(false);
             expect(typeGuards.isFindOptionsObject({ someProperty: 'someValue' })).toBe(false);
             expect(typeGuards.isFindOptionsObject({ sort: {}, someProperty: 'someValue' })).toBe(false);
             expect(typeGuards.isFindOptionsObject({ sort: {}, page: {}, someProperty: 'someValue' })).toBe(false);

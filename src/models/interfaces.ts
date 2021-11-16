@@ -31,9 +31,19 @@ export interface ReplaceOptions {
     unique: string[];
 }
 
+export interface PaginationOptions {
+    pageNumber: number;
+    pageSize: number;
+}
+
+export interface SortingOptions {
+    field: string;
+    order: 1 | -1;
+}
+
 export interface FindOptions {
-    page?: any; // TODO: Add type
-    sort?: any[]; // TODO: Add type
+    page?: PaginationOptions;
+    sort?: SortingOptions[];
 }
 
 export interface Query {

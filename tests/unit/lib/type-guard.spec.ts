@@ -118,9 +118,18 @@ describe.only('Type Guards', () => {
             expect(typeGuards.isFindOptionsObject({ page: { number: 5, size: 50 } })).toBe(false);
             expect(typeGuards.isFindOptionsObject({ page: { pageNumber: 1, pageSize: 20, totalNumber: 5 } })).toBe(false);
             expect(typeGuards.isFindOptionsObject({ sort: [] })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: {} })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: ['1', '2'] })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: [{}, {}] })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: [{ field: 'name', order: 1, other: 1 }] })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: [{ field: 'name', order: 0 }] })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: [{ field: 'name' }] })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: [{ order: 1 }] })).toBe(false);
             expect(typeGuards.isFindOptionsObject({ someProperty: 'someValue' })).toBe(false);
-            expect(typeGuards.isFindOptionsObject({ sort: {}, someProperty: 'someValue' })).toBe(false);
-            expect(typeGuards.isFindOptionsObject({ sort: {}, page: {}, someProperty: 'someValue' })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: [{ field: 'name', order: 1 }], someProperty: 'someValue' })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: [{ field: 'name', order: 1 }], page: { pageNumber: 1, pageSize: 50 }, someProperty: 'someValue' })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: [{ field: 'name', order: 1 }], page: { pageSize: 50 } })).toBe(false);
+            expect(typeGuards.isFindOptionsObject({ sort: [{ field: 'name' }], page: { pageNumber: 5, pageSize: 50 } })).toBe(false);
         });
     });
 

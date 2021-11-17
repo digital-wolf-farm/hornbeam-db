@@ -80,7 +80,7 @@ function isSortingOptionsValid(value: unknown): value is SortingOptions {
         return false;
     }
 
-    if (typeof value['field'] !== 'string' || (value['order'] !== 1 || value['order'] !== -1)) {
+    if (typeof value['field'] !== 'string' || (value['order'] !== 1 && value['order'] !== -1)) {
         return false;
     }
 
@@ -106,7 +106,7 @@ function isFindOptionsObject(value: unknown): value is FindOptions {
         return false;
     }
 
-    if (!isArray(value['sort']) || value['sort'].length === 0 || !value['sort'].every((element) => isSortingOptionsValid(element))) {
+    if (value['sort'] && (!isArray(value['sort']) || value['sort'].length === 0 || !value['sort'].every((element) => isSortingOptionsValid(element)))) {
         return false;
     }
 

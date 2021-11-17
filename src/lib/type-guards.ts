@@ -113,6 +113,7 @@ function isFindOptionsObject(value: unknown): value is FindOptions {
     return true;
 }
 
+// TODO: To refactor
 function isQueryArray(value: unknown): value is Query[] {
     if (!isArray(value)) {
         return false;

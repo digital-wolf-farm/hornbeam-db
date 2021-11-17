@@ -133,8 +133,6 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
 
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            verifiers.isQueryValid(query);
-
             doesCollectionExists(collectionName);
 
             // TODO: Filter entries
@@ -169,9 +167,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
 
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            verifiers.isQueryValid(query);
             verifiers.isDataValid(data, false);
-
             doesCollectionExists(collectionName);
 
             if (options && options.unique) {
@@ -211,8 +207,6 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
 
             isDatabaseOpen();
             verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            verifiers.isQueryValid(query);
-
             doesCollectionExists(collectionName);
 
             const entryId = helpers.findEntryId(database[collectionName], query);

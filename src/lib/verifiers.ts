@@ -1,23 +1,6 @@
 import { DBTaskError } from '../models/enums';
 import { Entry, DBData, CollectionNameConfig } from '../models/interfaces';
 import { TaskError } from '../utils/errors';
-import { filters } from './filters';
-
-function areArrayElementsProperType(array: unknown[], type: string): boolean {
-    let isTypeValid = true;
-
-    array.forEach((element) => {
-        if (type === 'string' || type === 'number' || type === 'boolean') {
-            if (typeof element !== type) {
-                isTypeValid = false;
-            }
-        } else {
-            console.warn('Attempt to verify array element for not handled type.');
-        }
-    });
-
-    return isTypeValid;
-}
 
 function areBasicValueEqual(baseValue: unknown, comparedValue: unknown): boolean {
     if (isPrimitive(baseValue) && isPrimitive(comparedValue)) {
@@ -29,30 +12,6 @@ function areBasicValueEqual(baseValue: unknown, comparedValue: unknown): boolean
     } else {
         throw new TaskError(DBTaskError.DataTypeMismatch, 'Provided values are not basic types or have different types');
     }
-}
-
-function areFindOptionsValid(options: any): void {
-    if (options === undefined) {
-        return;
-    }
-
-    if (!isObject(options)) {
-        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options argument must be an object.');
-    }
-
-    const optionsList = Object.keys(options);
-
-    if (optionsList.length === 0) {
-        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options object cannot be empty.');
-    }
-
-    const allowedProperties = ['pagination', 'sorting'];
-    if (!isEveryElementListed(optionsList, allowedProperties)) {
-        throw new TaskError(DBTaskError.OptionsSchemaMismatch, 'Options object can contain only allowed properties.');
-    }
-
-    // TODO: Add validation for pagination object
-    // TODO: Add validation for sorting array
 }
 
 function isCollectionNameValid(name: string, config: CollectionNameConfig): void {
@@ -85,6 +44,7 @@ function isDatabaseSchemaValid(parsedContent: DBData): void {
     }
 }
 
+// TODO: decide if leave or just overwrite properties listed below
 function isDataValid(entry: Entry, isNewEntry: boolean): void {
     if (isNewEntry) {
         if (entry['_id'] || entry['_createdAt'] || entry['_modifiedAt']) {
@@ -99,18 +59,6 @@ function isDate(data: unknown): boolean {
     }
 
     return false;
-}
-
-function isEveryElementListed(verifiedArray: string[], referenceArray: string[]): boolean {
-    let isListValid = true;
-
-    verifiedArray.forEach((element) => {
-        if (referenceArray.findIndex((refElement) => refElement === element) === -1) {
-            isListValid = false;
-        }
-    });
-
-    return isListValid;
 }
 
 function isObject(data: object): boolean {
@@ -139,47 +87,10 @@ function isPrimitive(data: unknown): boolean {
     }
 }
 
-function isQueryValid(queriesArray: unknown): boolean {
-    if (queriesArray === undefined) {
-        return true;
-    }
-
-    if (!Array.isArray(queriesArray)) {
-        throw new TaskError(DBTaskError.QuerySchemaMismatch, 'Query argument must be an array.');
-    }
-
-    const allowedProperties = ['type', 'field', 'value'];
-
-    queriesArray.forEach((query) => {
-        if (!isEveryElementListed(Object.keys(query), allowedProperties)) {
-            throw new TaskError(DBTaskError.QuerySchemaMismatch, 'Query object can contain only allowed properties.');
-        }
-
-        const filterTypes = Object.keys(filters);
-
-        if (filterTypes.findIndex((type) => type === query.type) === -1) {
-            throw new TaskError(DBTaskError.QuerySchemaMismatch, 'Query type must be one of filter name.');
-        }
-
-        // TODO: Add regex for verifying filed name. Also nested with dot inside.
-        if (typeof query.field !== 'string') {
-            throw new TaskError(DBTaskError.QuerySchemaMismatch, 'Query field must be string.');
-        }
-
-        if (!isPrimitive(query.value) && !isDate(query.value)) {
-            throw new TaskError(DBTaskError.QuerySchemaMismatch, 'Query value must be string, number, null, boolean or date.');
-        }
-    });
-
-    return true;
-}
-
 export const verifiers = {
     areBasicValueEqual,
-    areFindOptionsValid,
     isCollectionNameValid,
     isDatabaseSchemaValid,
     isDataValid,
-    isPathValid,
-    isQueryValid
+    isPathValid
 };

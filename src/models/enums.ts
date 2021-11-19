@@ -26,3 +26,15 @@ export enum DBTaskError {
     OptionsSchemaMismatch = 'OPTIONS_OBJECT_MISMATCH',
     QuerySchemaMismatch = 'QUERY_SCHEMA_MISMATCH'
 }
+
+export enum FilterType {
+    Contains = 'contains',
+    Equals = 'eq',
+    Greater = 'gt',
+    GreaterOrEqual = 'gte',
+    Less = 'lt',
+    LessOrEqual = 'lte',
+    NotEqual = 'ne',
+    InArray = 'in',
+    NotInArray = 'nin'
+}

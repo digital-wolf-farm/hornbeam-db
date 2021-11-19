@@ -1,3 +1,5 @@
+import { FilterType } from './enums';
+
 export interface Entry {
     [field: string]: any;
 }
@@ -47,9 +49,9 @@ export interface FindOptions {
 }
 
 export interface Query {
-    type: string; // TODO: Add enum
+    type: FilterType;
     field: string;
-    value: any // TODO: Narrow down acceptable value types
+    value: unknown; // TODO: Narrow down valid types of value field
 }
 
 export interface CollectionNameConfig {

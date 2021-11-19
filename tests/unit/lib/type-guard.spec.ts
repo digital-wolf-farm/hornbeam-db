@@ -136,8 +136,8 @@ describe.only('Type Guards', () => {
     describe('isQueryArray', () => {
         it('should return true when valid array is passed', () => {
             expect(typeGuards.isQueryArray([])).toBe(true);
-            expect(typeGuards.isQueryArray([{ type: '', field: '', value: '' }])).toBe(true);
-            expect(typeGuards.isQueryArray([{ type: '', field: '', value: '' }, { type: '', field: '', value: '' }])).toBe(true);
+            expect(typeGuards.isQueryArray([{ type: 'eq', field: 'name', value: undefined }])).toBe(true);
+            expect(typeGuards.isQueryArray([{ type: 'contains', field: 'name', value: 'z' }, { type: 'eq', field: 'age', value: 24 }])).toBe(true);
         });
 
         it('should return false when invalid value is passed', () => {
@@ -151,6 +151,8 @@ describe.only('Type Guards', () => {
             expect(typeGuards.isQueryArray([{ type: '', value: '' }])).toBe(false);
             expect(typeGuards.isQueryArray([{ field: '', value: '' }])).toBe(false);
             expect(typeGuards.isQueryArray([{ type: '', field: '', value: '' }, {}])).toBe(false);
+            expect(typeGuards.isQueryArray([{ type: 1, field: '', value: '' }])).toBe(false);
+            expect(typeGuards.isQueryArray([{ type: '', field: undefined, value: '' }])).toBe(false);
         });
     });
 });

@@ -1,4 +1,6 @@
-export const filters = {
+import { FiltersList } from '../models/types';
+
+export const filters: FiltersList = {
     contains: (item, text) => item.toLowerCase().includes(text.toLowerCase()),
     eq: (item, value) => item === value,
     gt: (item, value) => item > value,

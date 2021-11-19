@@ -5,6 +5,10 @@ function isArray(value: unknown): value is [] {
     return Array.isArray(value);
 }
 
+function isNumber(value: unknown): value is number {
+    return typeof value === 'number';
+}
+
 function isObject(value: unknown): value is object {
     return typeof value === 'object' && !Array.isArray(value) && value !== null;
 }
@@ -62,7 +66,7 @@ function isPaginationOptionsValid(value: unknown): value is PaginationOptions {
         return false;
     }
 
-    if (typeof value['pageNumber'] !== 'number' || typeof value['pageSize'] !== 'number') {
+    if (!isNumber(value['pageNumber']) || !isNumber(value['pageSize'])) {
         return false;
     }
 
@@ -80,7 +84,7 @@ function isSortingOptionsValid(value: unknown): value is SortingOptions {
         return false;
     }
 
-    if (typeof value['field'] !== 'string' || (value['order'] !== 1 && value['order'] !== -1)) {
+    if (!isString(value['field']) || (value['order'] !== 1 && value['order'] !== -1)) {
         return false;
     }
 
@@ -113,7 +117,6 @@ function isFindOptionsObject(value: unknown): value is FindOptions {
     return true;
 }
 
-// TODO: To refactor
 function isQueryArray(value: unknown): value is Query[] {
     if (!isArray(value)) {
         return false;
@@ -123,18 +126,14 @@ function isQueryArray(value: unknown): value is Query[] {
         return true;
     }
 
-    let validItems = true;
+    if (!value.every((element) => isQueryObjectValid(element))) {
+        return false;
+    }
 
-    value.forEach((item) => {
-        if (!isQueryObject(item)) {
-            validItems = false;
-        }
-    });
-
-    return validItems;
+    return true;
 }
 
-function isQueryObject(value: unknown): value is Query {
+function isQueryObjectValid(value: unknown): value is Query {
     if (!isObject(value)) {
         return false;
     }
@@ -145,15 +144,16 @@ function isQueryObject(value: unknown): value is Query {
         return false;
     }
 
-    let isPropertyValid = true;
+    if(!keys.every((key) => ['type', 'field', 'value'].findIndex((item) => item === key) !== -1)) {
+        return false;
+    }
 
-    ['type', 'field', 'value'].forEach((item) => {
-        if (keys.findIndex((key) => item === key) === -1) {
-            isPropertyValid = false;
-        }
-    });
+    // TODO: Add validation for value of value field
+    if (!isString(value['type']) || !isString(value['field'])) {
+        return false;
+    }
 
-    return isPropertyValid;
+    return true;
 }
 
 export const typeGuards = {

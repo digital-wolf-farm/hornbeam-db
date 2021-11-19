@@ -1,5 +1,5 @@
 import { DBTaskError } from '../models/enums';
-import { Entry, DBData, CollectionNameConfig } from '../models/interfaces';
+import { DBData } from '../models/interfaces';
 import { TaskError } from '../utils/errors';
 
 function areBasicValueEqual(baseValue: unknown, comparedValue: unknown): boolean {
@@ -11,15 +11,6 @@ function areBasicValueEqual(baseValue: unknown, comparedValue: unknown): boolean
         return false;
     } else {
         throw new TaskError(DBTaskError.DataTypeMismatch, 'Provided values are not basic types or have different types');
-    }
-}
-
-function isCollectionNameValid(name: string, config: CollectionNameConfig): void {
-    const regexString = `^([a-z][a-z0-9-_]{${config.minLength - 1},${config.maxLength - 1}})$`;
-    const collectionNameRegex = new RegExp(regexString, 'g');
-
-    if (!collectionNameRegex.test(name)) {
-        throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
     }
 }
 
@@ -44,15 +35,6 @@ function isDatabaseSchemaValid(parsedContent: DBData): void {
     }
 }
 
-// TODO: decide if leave or just overwrite properties listed below
-function isDataValid(entry: Entry, isNewEntry: boolean): void {
-    if (isNewEntry) {
-        if (entry['_id'] || entry['_createdAt'] || entry['_modifiedAt']) {
-            throw new TaskError(DBTaskError.DataValidationError, 'Added entry cannot contain any of properties: "_id", "_createdAt", "_modifiedAt"');
-        }
-    }
-}
-
 function isDate(data: unknown): boolean {
     if (Object.prototype.toString.call(data) === "[object Date]" && !isNaN(data as number)) {
         return true;
@@ -69,12 +51,6 @@ function isObject(data: object): boolean {
     return true;
 }
 
-function isPathValid(path: string): void {
-    if (!/^(?:[a-z]:)?[/\\]{0,2}(?:[./\\ ](?![./\\\n])|[^<>:"|?*./\\ \n])+$/i.test(path)) {
-        throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Path to database file is not valid.');
-    }
-}
-
 function isPrimitive(data: unknown): boolean {
     if (data === null) {
         return true;
@@ -89,8 +65,5 @@ function isPrimitive(data: unknown): boolean {
 
 export const verifiers = {
     areBasicValueEqual,
-    isCollectionNameValid,
     isDatabaseSchemaValid,
-    isDataValid,
-    isPathValid
 };

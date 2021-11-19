@@ -1,118 +1,36 @@
-import { DB, DBData, Entry } from './models/interfaces';
+import { DB, Entry } from './models/interfaces';
 import { DBConfig } from './utils/db-config';
 import { DBMethod, DBTaskError } from './models/enums';
 import { MethodError, TaskError } from './utils/errors';
-import { fileOperations } from './lib/file-operations';
-import { verifiers } from './lib/verifiers';
-import { helpers } from './lib/helpers';
 import { typeGuards } from './lib/type-guards';
+import { createDB } from './lib/database';
+import { validators } from './lib/validators';
 
 export default function hornbeamDB(configuration?: DBConfig): DB {
 
-    let database: DBData;
-    let databaseFilePath: string;
     let config: DBConfig = configuration instanceof DBConfig ? configuration : new DBConfig();
-
-    // TODO: Add functionality for nested objects
-    function areValuesUnique(collectionName: string, data: Entry, uniqueFields: string[]): void {
-        if (database[collectionName].length === 0) {
-            return;
-        }
-
-        uniqueFields.forEach((field) => {
-            if (!data[field]) {
-                return;
-            }
-
-            database[collectionName].forEach((entry) => {
-                if (entry[field] && verifiers.areBasicValueEqual(entry[field], data[field])) {
-                    throw new TaskError(DBTaskError.FieldValueNotUnique, `Added entry must contain unique value for field: ${field}`);
-                }
-            });
-        });
-    }
-
-    function clearDatabaseCache() {
-        database = undefined;
-        databaseFilePath = undefined;
-    }
-
-    function createId(collectionName: string): number {
-        if (database[collectionName].length === 0) {
-            return 1;
-        }
-
-        let index = 0;
-
-        for (let entry of database[collectionName]) {
-            if (entry['_id'] > index) {
-                index = entry['_id'];
-            }
-        };
-
-        return ++index;
-    }
-
-    function doesCollectionExists(collectionName: string): void {
-        if (!database[collectionName]) {
-            throw new TaskError(DBTaskError.CollectionNotExists, 'Attempt to find entry in non existing collection.');
-        }
-    }
-
-    function isDatabaseOpen(): void {
-        if (!database) {
-            throw new TaskError(DBTaskError.DatabaseNotOpen, 'Database must be open before this operation.');
-        }
-    }
-
-    function isDatabaseSizeNotExceeded(): void {
-        const dbUsage = helpers.calculateDatabaseUsage(database, config.dbSize);
-
-        if (parseFloat(dbUsage) >= 100) {
-            throw new TaskError(DBTaskError.DatabaseSizeExceeded, `DB usage - ${dbUsage}%`);
-        }
-    }
+    let db = createDB(config);
 
     function add(collectionName: unknown, data: unknown, options?: unknown): number {
         try {
             if (!typeGuards.isString(collectionName)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.')
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
             }
 
             if (!typeGuards.isObject(data)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Data argument must be an object.')
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Data argument must be an object.');
             }
 
             if (options !== undefined && !typeGuards.isAddOptionsObject(options)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be a valid options object.')
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be a valid options object.');
             }
 
-            isDatabaseOpen();
-            verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            verifiers.isDataValid(data, true);
-
-            if (!database[collectionName]) {
-                database[collectionName] = [];
+            if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
+                throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
             }
 
-            if (options && options.unique) {
-                areValuesUnique(collectionName, data, options.unique);
-            }
-
-            const entry = { ...data };
-            const entryId = createId(collectionName);
-
-            entry['_id'] = entryId;
-            entry['_createdAt'] = new Date();
-            entry['_modifiedAt'] = undefined;
-
-            database[collectionName].push(entry);
-
-            isDatabaseSizeNotExceeded();
-
-            return entryId;
+            return db.add(collectionName, data, options);
         } catch (e) {
-            clearDatabaseCache();
             throw new MethodError(DBMethod.AddEntry, e.error, e.message);
         }
     }
@@ -131,18 +49,12 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be a valid options object.')
             }
 
-            isDatabaseOpen();
-            verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            doesCollectionExists(collectionName);
+            if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
+                throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
+            }
 
-            // TODO: Filter entries
-            // TODO: Sort results
-            // TODO: Paginate results
-
-            // return results
-            return [];
+            return db.find(collectionName, query, options);
         } catch (e) {
-            clearDatabaseCache();
             throw new MethodError(DBMethod.FindEntries, e.error, e.message);
         }
     }
@@ -165,32 +77,12 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be an object.')
             }
 
-            isDatabaseOpen();
-            verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            verifiers.isDataValid(data, false);
-            doesCollectionExists(collectionName);
-
-            if (options && options.unique) {
-                areValuesUnique(collectionName, data, options.unique)
+            if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
+                throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
             }
 
-            const entryId = helpers.findEntryId(database[collectionName], query);
-
-            if (entryId !== -1) {
-                const storedEntry = { ...database[collectionName][entryId] };
-                const newEntry = { ...data };
-                newEntry['_id'] = storedEntry['_id'];
-                newEntry['_createdAt'] = storedEntry['_createdAt'];
-                newEntry['_modifiedAt'] = new Date();
-
-                database[collectionName][entryId] = newEntry;
-            }
-
-            isDatabaseSizeNotExceeded();
-
-            return entryId;
+            return db.replace(collectionName, query, data, options);
         } catch (e) {
-            clearDatabaseCache();
             throw new MethodError(DBMethod.ReplaceEntry, e.error, e.message);
         }
     }
@@ -205,69 +97,47 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Query argument must be an array of valid queries.')
             }
 
-            isDatabaseOpen();
-            verifiers.isCollectionNameValid(collectionName, { minLength: config.collectionNameMinLength, maxLength: config.collectionNameMaxLength });
-            doesCollectionExists(collectionName);
-
-            const entryId = helpers.findEntryId(database[collectionName], query);
-
-            if (entryId !== -1) {
-                database[collectionName].splice(entryId, 1);
+            if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
+                throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
             }
 
-            return entryId;
+            return db.remove(collectionName, query);
         } catch (e) {
-            clearDatabaseCache();
             throw new MethodError(DBMethod.RemoveEntry, e.error, e.message);
         }
     }
 
     async function open(path: unknown): Promise<void> {
-        if (database) {
-            database = undefined;
-        }
-
         try {
             if (!typeGuards.isString(path)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Path argument must be a string.')
             }
 
-            verifiers.isPathValid(path);
-            databaseFilePath = path;
-            database = await fileOperations.read(path, config.dbSize);
-            verifiers.isDatabaseSchemaValid(database);
-        } catch (e) {
-            if (e.error === DBTaskError.FileNotFound) {
-                database = {};
-            } else {
-                clearDatabaseCache();
-
-                throw new MethodError(DBMethod.OpenDB, e.error, e.message);
+            if (!validators.validatePath(path)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Path to database file is not valid.');
             }
 
+            await db.open(path);
+        } catch (e) {
+            throw new MethodError(DBMethod.OpenDB, e.error, e.message);
         }
     }
 
     async function save(): Promise<void> {
         try {
-            isDatabaseOpen();
-            verifiers.isDatabaseSchemaValid(database);
-            await fileOperations.write(databaseFilePath, database, config.dbSize);
+            await db.save();
         } catch (e) {
             throw new MethodError(DBMethod.SaveDB, e.error, e.message);
-        } finally {
-            clearDatabaseCache();
         }
     }
 
     function close(): void {
-        clearDatabaseCache();
+        db.close();
     }
 
-    function stat(): string {
+    function stat(): any {
         try {
-            isDatabaseOpen();
-            return helpers.calculateDatabaseUsage(database, config.dbSize);
+            return db.stat();
         } catch (e) {
             throw new MethodError(DBMethod.StatDB, e.error, e.message);
         }

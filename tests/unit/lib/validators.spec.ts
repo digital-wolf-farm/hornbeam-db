@@ -24,4 +24,17 @@ describe('Validators', () => {
             expect(validators.validateCollectionName('abc#1', minLength, maxLength)).toBe(false);
         });
     });
+
+    describe('validatePath', () => {
+        it('should return true when valid path is passed', () => {
+            expect(validators.validatePath('C:\Users\MyUser')).toBe(true);
+            expect(validators.validatePath('C:\Users\MyUser\AppDirectory\file.json')).toBe(true);
+        });
+
+        it('should return true when invalid path is passed', () => {
+            expect(validators.validatePath('./file.json')).toBe(false);
+            expect(validators.validatePath('../file.json')).toBe(false);
+            expect(validators.validatePath('../directory/file.json')).toBe(false);
+        });
+    });
 });

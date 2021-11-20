@@ -5,7 +5,6 @@ function validateCollectionName(name: string, minLength: number, maxLength: numb
     return collectionNameRegex.test(name);
 }
 
-// TODO: Add tests and verify regex
 function validatePath(path: string): boolean {
     return /^(?:[a-z]:)?[/\\]{0,2}(?:[./\\ ](?![./\\\n])|[^<>:"|?*./\\ \n])+$/i.test(path);
 }

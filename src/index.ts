@@ -11,7 +11,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
     let config: DBConfig = configuration instanceof DBConfig ? configuration : new DBConfig();
     let db = createDB(config);
 
-    function add(collectionName: unknown, data: unknown, options?: unknown): number {
+    function insert(collectionName: unknown, data: unknown, options?: unknown): number {
         try {
             if (!typeGuards.isString(collectionName)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
@@ -21,15 +21,15 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Data argument must be an object.');
             }
 
-            if (options !== undefined && !typeGuards.isAddOptionsObject(options)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be a valid options object.');
+            if (options !== undefined && !typeGuards.isInsertOptionsObject(options)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be a valid object.');
             }
 
             if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
                 throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
             }
 
-            return db.add(collectionName, data, options);
+            return db.insert(collectionName, data, options);
         } catch (e) {
             throw new MethodError(DBMethod.AddEntry, e.error, e.message);
         }
@@ -54,6 +54,22 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
             }
 
             return db.find(collectionName, query, options);
+        } catch (e) {
+            throw new MethodError(DBMethod.FindEntries, e.error, e.message);
+        }
+    }
+
+    function findById(collectionName: unknown, id: unknown): Entry[] {
+        try {
+            if (!typeGuards.isString(collectionName)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.')
+            }
+
+            if (!typeGuards.isNumber(id)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Id argument must be a number.')
+            }
+
+            return db.find(collectionName, [{ type: 'eq', field: '_id', value: id }]);
         } catch (e) {
             throw new MethodError(DBMethod.FindEntries, e.error, e.message);
         }
@@ -146,8 +162,9 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
     // TODO: [Improvement]: Add export/import methods
 
     return {
-        add,
+        insert,
         find,
+        findById,
         replace,
         remove,
         open,

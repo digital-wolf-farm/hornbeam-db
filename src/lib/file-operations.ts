@@ -33,6 +33,7 @@ async function write(path: string, data: DBData, sizeLimit: number): Promise<voi
     try {
         await fs.writeFile(path, JSON.stringify(data, null, 4), { encoding: 'utf-8' });
     } catch (e) {
+        console.log('------ e ------', e);
         throw new TaskError(DBTaskError.FileWriteError, e);
     }
 }

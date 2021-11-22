@@ -1,5 +1,5 @@
 import { DBTaskError } from '../models/enums';
-import { AddOptions, DBData, Entry, FindOptions, Query, ReplaceOptions } from '../models/interfaces';
+import { InsertOptions, DBData, Entry, FindOptions, Query, ReplaceOptions } from '../models/interfaces';
 import { DBConfig } from '../utils/db-config';
 import { TaskError } from '../utils/errors';
 import { fileOperations } from './file-operations';
@@ -10,21 +10,35 @@ export function createDB(config: DBConfig) {
     let database: DBData;
     let databaseFilePath: string;
 
-    // TODO: Add functionality for nested objects
     function areValuesUnique(collectionName: string, data: Entry, uniqueFields: string[]): void {
         if (database[collectionName].length === 0) {
             return;
         }
 
         uniqueFields.forEach((field) => {
-            if (!data[field]) {
-                return;
+            // TODO: Add functionality for nested objects
+            // 'field'.split('.').reduce((o,i) => o[i], data);
+            // Add verification to that array length === 1 is not nested object
+            // and return when undefined occur instead of error
+            // TODO: verify that value is primitive
+
+            // if (!data[field]) {
+            //     return;
+            // }
+
+            let insertedValue: unknown;
+
+            try {
+                insertedValue = field.split('.').reduce((o, i) => o[i], data);
+            } catch (e) {
+                console.warn(`Value for field: ${field} not found`);
+                insertedValue = undefined;
             }
 
             database[collectionName].forEach((entry) => {
-                // if (entry[field] && verifiers.areBasicValueEqual(entry[field], data[field])) {
-                //     throw new TaskError(DBTaskError.FieldValueNotUnique, `Added entry must contain unique value for field: ${field}`);
-                // }
+                if (entry[field] && entry[field] === data[field]) {
+                    throw new TaskError(DBTaskError.FieldValueNotUnique, `Added entry must contain unique value for field: ${field}`);
+                }
             });
         });
     }
@@ -70,7 +84,7 @@ export function createDB(config: DBConfig) {
         }
     }
 
-    function add(collectionName: string, data: object, options?: AddOptions): number {
+    function insert(collectionName: string, data: object, options?: InsertOptions): number {
         isDatabaseOpen();
 
         if (!database[collectionName]) {
@@ -86,7 +100,7 @@ export function createDB(config: DBConfig) {
 
         entry['_id'] = entryId;
         entry['_createdAt'] = new Date();
-        entry['_modifiedAt'] = undefined;
+        entry['_modifiedAt'] = null;
 
         database[collectionName].push(entry);
 
@@ -151,6 +165,7 @@ export function createDB(config: DBConfig) {
         }
 
         try {
+            databaseFilePath = path;
             database = await fileOperations.read(path, config.dbSize);
             // verifyDBSchema
         } catch (e) {
@@ -188,7 +203,7 @@ export function createDB(config: DBConfig) {
         save,
         close,
         stat,
-        add,
+        insert,
         find,
         replace,
         remove

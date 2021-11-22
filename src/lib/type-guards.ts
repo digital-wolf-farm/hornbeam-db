@@ -1,4 +1,4 @@
-import { AddOptions, FindOptions, PaginationOptions, Query, SortingOptions } from '../models/interfaces';
+import { InsertOptions, FindOptions, PaginationOptions, Query, SortingOptions } from '../models/interfaces';
 
 // Guards for JS data types
 function isArray(value: unknown): value is [] {
@@ -19,7 +19,7 @@ function isString(value: unknown): value is string {
 
 // Guard for custom data types
 
-function isAddOptionsObject(value: unknown): value is AddOptions {
+function isInsertOptionsObject(value: unknown): value is InsertOptions {
     if (!isObject(value)) {
         return false;
     }
@@ -37,7 +37,7 @@ function isAddOptionsObject(value: unknown): value is AddOptions {
     return true;
 }
 
-function isReplaceOptionsObject(value: unknown): value is AddOptions {
+function isReplaceOptionsObject(value: unknown): value is InsertOptions {
     if (!isObject(value)) {
         return false;
     }
@@ -158,9 +158,10 @@ function isQueryObjectValid(value: unknown): value is Query {
 
 export const typeGuards = {
     isArray,
+    isNumber,
     isObject,
     isString,
-    isAddOptionsObject,
+    isInsertOptionsObject,
     isReplaceOptionsObject,
     isFindOptionsObject,
     isQueryArray

@@ -22,6 +22,25 @@ describe.only('Type Guards', () => {
         });
     });
 
+    describe('isNumber', () => {
+        it('should return true when object is passed', () => {
+            expect(typeGuards.isNumber(0)).toBe(true);
+            expect(typeGuards.isNumber(123)).toBe(true);
+            expect(typeGuards.isNumber(Number('123'))).toBe(true);
+            expect(typeGuards.isNumber(NaN)).toBe(true);
+            expect(typeGuards.isNumber(Date.now())).toBe(true);
+        });
+
+        it('should return false when non object is passed', () => {
+            expect(typeGuards.isNumber('123')).toBe(false);
+            expect(typeGuards.isNumber(() => { })).toBe(false);
+            expect(typeGuards.isNumber([])).toBe(false);
+            expect(typeGuards.isNumber(null)).toBe(false);
+            expect(typeGuards.isNumber(String(123))).toBe(false);
+            expect(typeGuards.isNumber(Date())).toBe(false);
+        });
+    });
+
     describe('isObject', () => {
         it('should return true when object is passed', () => {
             expect(typeGuards.isObject({})).toBe(true);
@@ -56,23 +75,23 @@ describe.only('Type Guards', () => {
         });
     });
 
-    describe('isAddOptionsObject', () => {
+    describe('isInsertOptionsObject', () => {
         it('should return true when valid object is passed', () => {
-            expect(typeGuards.isAddOptionsObject({ unique: ['a', 'b'] })).toBe(true);
+            expect(typeGuards.isInsertOptionsObject({ unique: ['a', 'b'] })).toBe(true);
         });
 
         it('should return false when invalid value is passed', () => {
-            expect(typeGuards.isAddOptionsObject(undefined)).toBe(false);
-            expect(typeGuards.isAddOptionsObject('abc')).toBe(false);
-            expect(typeGuards.isAddOptionsObject(123)).toBe(false);
-            expect(typeGuards.isAddOptionsObject({})).toBe(false);
-            expect(typeGuards.isAddOptionsObject([])).toBe(false);
-            expect(typeGuards.isAddOptionsObject(() => { })).toBe(false);
-            expect(typeGuards.isAddOptionsObject({ unique: [] })).toBe(false);
-            expect(typeGuards.isAddOptionsObject({ unique: [1, 2] })).toBe(false);
-            expect(typeGuards.isAddOptionsObject({ unique: [{}, {}] })).toBe(false);
-            expect(typeGuards.isAddOptionsObject({ unique: ['a', 'b'], someProperty: 'someValue' })).toBe(false);
-            expect(typeGuards.isAddOptionsObject({ someProperty: 'someValue' })).toBe(false);
+            expect(typeGuards.isInsertOptionsObject(undefined)).toBe(false);
+            expect(typeGuards.isInsertOptionsObject('abc')).toBe(false);
+            expect(typeGuards.isInsertOptionsObject(123)).toBe(false);
+            expect(typeGuards.isInsertOptionsObject({})).toBe(false);
+            expect(typeGuards.isInsertOptionsObject([])).toBe(false);
+            expect(typeGuards.isInsertOptionsObject(() => { })).toBe(false);
+            expect(typeGuards.isInsertOptionsObject({ unique: [] })).toBe(false);
+            expect(typeGuards.isInsertOptionsObject({ unique: [1, 2] })).toBe(false);
+            expect(typeGuards.isInsertOptionsObject({ unique: [{}, {}] })).toBe(false);
+            expect(typeGuards.isInsertOptionsObject({ unique: ['a', 'b'], someProperty: 'someValue' })).toBe(false);
+            expect(typeGuards.isInsertOptionsObject({ someProperty: 'someValue' })).toBe(false);
         });
     });
 

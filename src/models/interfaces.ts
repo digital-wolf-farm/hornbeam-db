@@ -9,8 +9,9 @@ export interface DBData {
 }
 
 export interface DB {
-    add(collectionName: unknown, data: unknown, options?: unknown): number;
+    insert(collectionName: unknown, data: unknown, options?: unknown): number;
     find(collectionName: unknown, query: unknown, options?: unknown): Entry[];
+    findById(collectionName: unknown, id: number): Entry;
     replace(collectionName: unknown, query: unknown, data: unknown, options?: unknown): number;
     remove(collectionName: unknown, query: unknown): number;
     open(path: unknown): Promise<void>;
@@ -25,7 +26,7 @@ export interface DBConfiguration {
     collectionNameMaxLength: number;
 }
 
-export interface AddOptions {
+export interface InsertOptions {
     unique: string[];
 }
 
@@ -49,7 +50,7 @@ export interface FindOptions {
 }
 
 export interface Query {
-    type: FilterType;
+    type: string; // TODO: Change into enum FilterType
     field: string;
     value: unknown; // TODO: Narrow down valid types of value field
 }

@@ -3,6 +3,7 @@ import { InsertOptions, DBData, Entry, FindOptions, Query, ReplaceOptions } from
 import { DBConfig } from '../utils/db-config';
 import { TaskError } from '../utils/errors';
 import { fileOperations } from './file-operations';
+import { filters } from './filters';
 import { helpers } from './helpers';
 
 export function createDB(config: DBConfig) {
@@ -10,33 +11,52 @@ export function createDB(config: DBConfig) {
     let database: DBData;
     let databaseFilePath: string;
 
-    function areValuesUnique(collectionName: string, data: Entry, uniqueFields: string[]): void {
+    function getProperty(field: string, object: {}): unknown {
+        return field.split('.').reduce((obj, prop) => {
+            if (!obj || !obj.hasOwnProperty(prop)) {
+                throw 'Property not exists';
+            } else {
+                return obj[prop];
+            }
+        }, object);
+    }
+
+    function checkValuesUniqueness(collectionName: string, data: Entry, uniqueFields: string[]): void {
         if (database[collectionName].length === 0) {
             return;
         }
 
         uniqueFields.forEach((field) => {
-            // TODO: Add functionality for nested objects
-            // 'field'.split('.').reduce((o,i) => o[i], data);
-            // Add verification to that array length === 1 is not nested object
-            // and return when undefined occur instead of error
-            // TODO: verify that value is primitive
-
-            // if (!data[field]) {
-            //     return;
-            // }
-
             let insertedValue: unknown;
 
             try {
-                insertedValue = field.split('.').reduce((o, i) => o[i], data);
+                insertedValue = getProperty(field, data);
             } catch (e) {
-                console.warn(`Value for field: ${field} not found`);
-                insertedValue = undefined;
+                return;
+            }
+
+            if (insertedValue === Object(insertedValue)) {
+                return;
             }
 
             database[collectionName].forEach((entry) => {
-                if (entry[field] && entry[field] === data[field]) {
+                if (entry['_id'] === data['_id']) {
+                    return;
+                }
+
+                let storedValue: unknown;
+
+                try {
+                    storedValue = getProperty(field, entry);
+                } catch (e) {
+                    return;
+                }
+    
+                if (storedValue === Object(storedValue)) {
+                    return;
+                }
+
+                if (insertedValue === storedValue) {
                     throw new TaskError(DBTaskError.FieldValueNotUnique, `Added entry must contain unique value for field: ${field}`);
                 }
             });
@@ -70,6 +90,42 @@ export function createDB(config: DBConfig) {
         }
     }
 
+    function findEntries(collectionName: string, queryList: Query[]): Entry[] {
+        return database[collectionName].filter((entry) => queryList.every((query) => {
+            let entryValue: unknown;
+
+            try {
+                entryValue = getProperty(query.field, entry);
+            } catch (e) {
+                return;
+            }
+
+            if (entryValue === Object(entryValue)) {
+                return;
+            }
+
+            return filters[query.type](entryValue, query.value);
+        }));
+    }
+
+    function findEntryId(collectionName: string, queryList: Query[]): number {
+        return database[collectionName].findIndex((entry) => queryList.every((query) => {
+            let entryValue: unknown;
+
+            try {
+                entryValue = getProperty(query.field, entry);
+            } catch (e) {
+                return;
+            }
+
+            if (entryValue === Object(entryValue)) {
+                return;
+            }
+
+            return filters[query.type](entryValue, query.value)
+        }));
+    }
+
     function isDatabaseSizeNotExceeded(): void {
         const dbUsage = helpers.calculateDatabaseUsage(database, config.dbSize);
 
@@ -92,7 +148,7 @@ export function createDB(config: DBConfig) {
         }
 
         if (options && options.unique) {
-            areValuesUnique(collectionName, data, options.unique);
+            checkValuesUniqueness(collectionName, data, options.unique);
         }
 
         const entry = { ...data };
@@ -113,23 +169,33 @@ export function createDB(config: DBConfig) {
         isDatabaseOpen();
         doesCollectionExists(collectionName);
 
-        // TODO: Filter entries
+        if (!database[collectionName]) {
+            return [];
+        }
+
+        let foundEntries: Entry[];
+
+        if (query.length === 0) {
+            foundEntries = database[collectionName];
+        } else {
+            foundEntries = findEntries(collectionName, query);
+        }
+
         // TODO: Sort results
         // TODO: Paginate results
 
-        return [];
+        return foundEntries;
     }
 
     function replace(collectionName: string, query: Query[], data: object, options?: ReplaceOptions): number {
-
         isDatabaseOpen();
         doesCollectionExists(collectionName);
 
         if (options && options.unique) {
-            areValuesUnique(collectionName, data, options.unique)
+            checkValuesUniqueness(collectionName, data, options.unique)
         }
 
-        const entryId = helpers.findEntryId(database[collectionName], query);
+        const entryId = findEntryId(collectionName, query);
 
         if (entryId !== -1) {
             const storedEntry = { ...database[collectionName][entryId] };
@@ -150,7 +216,7 @@ export function createDB(config: DBConfig) {
         isDatabaseOpen();
         doesCollectionExists(collectionName);
 
-        const entryId = helpers.findEntryId(database[collectionName], query);
+        const entryId = findEntryId(collectionName, query);
 
         if (entryId !== -1) {
             database[collectionName].splice(entryId, 1);
@@ -166,8 +232,10 @@ export function createDB(config: DBConfig) {
 
         try {
             databaseFilePath = path;
-            database = await fileOperations.read(path, config.dbSize);
-            // verifyDBSchema
+            database = await fileOperations.read(path);
+
+            // TODO: Verify db schema
+            // TODO: Verify db size
         } catch (e) {
             if (e.error === DBTaskError.FileNotFound) {
                 database = {};
@@ -181,8 +249,9 @@ export function createDB(config: DBConfig) {
     async function save(): Promise<void> {
         try {
             isDatabaseOpen();
-            // verifyDBSchema
-            await fileOperations.write(databaseFilePath, database, config.dbSize);
+            // TODO: Verify db schema
+            // TODO: Verify db size
+            await fileOperations.write(databaseFilePath, database);
         } catch (e) {
             throw e;
         } finally {

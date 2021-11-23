@@ -2,7 +2,7 @@ import { DB } from '../../src/models/interfaces';
 import { DBTaskError } from '../../src/models/enums';
 import hornbeamDB from '../../src/index';
 
-describe.skip('Insert entry', () => {
+describe.only('Remove entry', () => {
     let db: DB;
 
     beforeEach(() => {
@@ -15,25 +15,16 @@ describe.skip('Insert entry', () => {
 
     it('should throw error when collection name is not a string', async () => {
         try {
-            db.insert(1, {});
+            db.remove(1, []);
             expect(true).toBe(false);
         } catch (e) {
             expect(e.error).toBe(DBTaskError.FunctionArgumentMismatch);
         }
     });
 
-    it('should throw error when data value is not an object', async () => {
+    it('should throw error when query value is not a valid query', async () => {
         try {
-            db.insert('collection1', 'data');
-            expect(true).toBe(false);
-        } catch (e) {
-            expect(e.error).toBe(DBTaskError.FunctionArgumentMismatch);
-        }
-    });
-
-    it('should throw error when options object is invalid', async () => {
-        try {
-            db.insert('collection1', { 'name': 'Adam' }, { options: undefined });
+            db.remove('collection1', 'id');
             expect(true).toBe(false);
         } catch (e) {
             expect(e.error).toBe(DBTaskError.FunctionArgumentMismatch);
@@ -42,7 +33,7 @@ describe.skip('Insert entry', () => {
 
     it('should throw error when collection name is invalid', async () => {
         try {
-            db.insert('$collection-1', { 'name': 'Adam' });
+            db.remove('$collection-1', []);
             expect(true).toBe(false);
         } catch (e) {
             expect(e.error).toBe(DBTaskError.CollectionNameMismatch);
@@ -51,17 +42,18 @@ describe.skip('Insert entry', () => {
 
     it('should throw error when arguments are valid but db is not open', async () => {
         try {
-            db.insert('collection1', {});
+            db.remove('collection1', [{ type: 'eq', field: '_id', value: '1' }]);
             expect(true).toBe(false);
         } catch (e) {
             expect(e.error).toBe(DBTaskError.DatabaseNotOpen);
         }
     });
 
-    it('should throw error when collection name is invalid', async () => {
+    it.only('should throw error when collection name is invalid', async () => {
         try {
             await db.open('tests/e2e/test-db.json');
-            db.insert('collection1', { 'name': 'Krzysztof', address: { city: 'Gdańsk' } }, { unique: ['address.main.postal'] });
+            const results = db.remove('collection1', [{ type: 'eq', field: 'address.city', value: 'Gdańsk' }]);
+            console.log(results);
             await db.save();
             // expect(true).toBe(false);
         } catch (e) {

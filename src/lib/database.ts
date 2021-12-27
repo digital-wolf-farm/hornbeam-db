@@ -1,5 +1,5 @@
 import { DBTaskError } from '../models/enums';
-import { InsertOptions, DBData, Entry, FindOptions, Query, ReplaceOptions } from '../models/interfaces';
+import { InsertOptions, DBData, Entry, FindOptions, Query, ReplaceOptions, FindResults, SortingOptions } from '../models/interfaces';
 import { DBConfig } from '../utils/db-config';
 import { TaskError } from '../utils/errors';
 import { fileOperations } from './file-operations';
@@ -51,7 +51,7 @@ export function createDB(config: DBConfig) {
                 } catch (e) {
                     return;
                 }
-    
+
                 if (storedValue === Object(storedValue)) {
                     return;
                 }
@@ -140,6 +140,47 @@ export function createDB(config: DBConfig) {
         }
     }
 
+    function getStringOfFieldValue(entry: Entry, field: string): string {
+        let rawValue = getProperty(field, entry);
+
+        if (rawValue === Object(rawValue)) {
+            throw 'Cannot compare non primitive value';
+        }
+
+        let value: string;
+
+        if (rawValue == null) {
+            value = '';
+        } else if (rawValue === true) {
+            value = '1'
+        } else if (rawValue === false) {
+            value = '0';
+        } else if (typeof rawValue === 'string') {
+            value = rawValue;
+        } else {
+            value = String(rawValue);
+        }
+
+        return value;
+    }
+
+    function compareValuesOrder(a: Entry, b: Entry, sortingOptions: SortingOptions[]): number {
+        const sortingOption = sortingOptions.shift();
+
+        let valueA = getStringOfFieldValue(a, sortingOption.field);
+        let valueB = getStringOfFieldValue(b, sortingOption.field);
+
+        if (sortingOptions.length === 0) {
+            return valueA.localeCompare(valueB);
+        } else {
+            return valueA.localeCompare(valueB) || compareValuesOrder(a, b, sortingOptions);
+        }
+    }
+
+    function sortEntries(filteredEntries: Entry[], sortingOptions: SortingOptions[]): void {
+        filteredEntries.sort((a, b) => compareValuesOrder(a, b, sortingOptions));
+    }
+
     function insert(collectionName: string, data: object, options?: InsertOptions): number {
         isDatabaseOpen();
 
@@ -147,7 +188,7 @@ export function createDB(config: DBConfig) {
             database[collectionName] = [];
         }
 
-        if (options && options.unique) {
+        if (options?.unique) {
             checkValuesUniqueness(collectionName, data, options.unique);
         }
 
@@ -165,12 +206,12 @@ export function createDB(config: DBConfig) {
         return entryId;
     }
 
-    function find(collectionName: string, query: Query[], options?: FindOptions): Entry[] {
+    function find(collectionName: string, query: Query[], options?: FindOptions): FindResults {
         isDatabaseOpen();
         doesCollectionExists(collectionName);
 
         if (!database[collectionName]) {
-            return [];
+            return { data: [] };
         }
 
         let foundEntries: Entry[];
@@ -181,17 +222,31 @@ export function createDB(config: DBConfig) {
             foundEntries = findEntries(collectionName, query);
         }
 
-        // TODO: Sort results
-        // TODO: Paginate results
+        if (options?.sort) {
+            sortEntries(foundEntries, options.sort);
+        }
 
-        return foundEntries;
+        if (options?.page) {
+            const pagesNumber = Math.ceil(foundEntries.length / options.page.pageSize);
+
+            return {
+                data: foundEntries.slice((options.page.pageNumber - 1) * options.page.pageSize, options.page.pageNumber * options.page.pageSize),
+                pagination: {
+                    entriesNumber: foundEntries.length,
+                    pagesNumber: pagesNumber,
+                    ...options.page
+                }
+            };
+        }
+
+        return { data: foundEntries };
     }
 
     function replace(collectionName: string, query: Query[], data: object, options?: ReplaceOptions): number {
         isDatabaseOpen();
         doesCollectionExists(collectionName);
 
-        if (options && options.unique) {
+        if (options?.unique) {
             checkValuesUniqueness(collectionName, data, options.unique)
         }
 

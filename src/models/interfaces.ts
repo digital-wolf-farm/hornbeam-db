@@ -8,9 +8,21 @@ export interface DBData {
     [collectionName: string]: Entry[];
 }
 
+export interface PaginationResults {
+    entriesNumber: number;
+    pagesNumber: number;
+    pageNumber: number;
+    pageSize: number;
+}
+
+export interface FindResults {
+    data: Entry[];
+    pagination?: PaginationResults;
+}
+
 export interface DB {
     insert(collectionName: unknown, data: unknown, options?: unknown): number;
-    find(collectionName: unknown, query: unknown, options?: unknown): Entry[];
+    find(collectionName: unknown, query: unknown, options?: unknown): FindResults;
     findById(collectionName: unknown, id: number): Entry;
     replace(collectionName: unknown, query: unknown, data: unknown, options?: unknown): number;
     remove(collectionName: unknown, query: unknown): number;

@@ -1,4 +1,4 @@
-import { DB, Entry } from './models/interfaces';
+import { DB, FindResults } from './models/interfaces';
 import { DBConfig } from './utils/db-config';
 import { DBMethod, DBTaskError } from './models/enums';
 import { MethodError, TaskError } from './utils/errors';
@@ -35,7 +35,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
         }
     }
 
-    function find(collectionName: unknown, query: unknown, options?: unknown): Entry[] {
+    function find(collectionName: unknown, query: unknown, options?: unknown): FindResults {
         try {
             if (!typeGuards.isString(collectionName)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.')
@@ -59,7 +59,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
         }
     }
 
-    function findById(collectionName: unknown, id: unknown): Entry[] {
+    function findById(collectionName: unknown, id: unknown): FindResults {
         try {
             if (!typeGuards.isString(collectionName)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.')

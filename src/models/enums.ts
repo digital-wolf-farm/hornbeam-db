@@ -16,6 +16,7 @@ export enum DBTaskError {
     DatabaseSizeExceeded = 'DATABASE_SIZE_EXCEEDED',
     DataTypeMismatch = 'DATA_TYPE_MISMATCH',
     DataValidationError = 'DATA_VALIDATION_ERROR',
+    FieldNotFound = 'FIELD_NOT_FOUND',
     FieldValueNotUnique = 'FIELD_VALUE_NOT_UNIQUE',
     FileNotFound = 'FILE_NOT_FOUND',
     FileReadError = 'FILE_READ_ERROR',

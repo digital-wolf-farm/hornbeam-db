@@ -6,7 +6,6 @@ import { helpers } from '../../../src/lib/helpers';
 
 describe('File operations', () => {
     const filePath = 'path/to/file.json';
-    const sizeLimit = 1;
     const data = { collection1: [], collection: [{ field1: 'A', field2: 'B' }] };
 
     describe('Write', () => {

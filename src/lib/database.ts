@@ -6,6 +6,7 @@ import { fileOperations } from './file-operations';
 import { filters } from './filters';
 import { helpers } from './helpers';
 
+// TODO: Add interface for returned value
 export function createDB(config: DBConfig) {
 
     let database: DBData;
@@ -14,7 +15,7 @@ export function createDB(config: DBConfig) {
     function getProperty(field: string, object: {}): unknown {
         return field.split('.').reduce((obj, prop) => {
             if (!obj || !obj.hasOwnProperty(prop)) {
-                throw 'Property not exists';
+                throw DBTaskError.FieldNotFound;
             } else {
                 return obj[prop];
             }
@@ -141,7 +142,13 @@ export function createDB(config: DBConfig) {
     }
 
     function getStringOfFieldValue(entry: Entry, field: string): string {
-        let rawValue = getProperty(field, entry);
+        let rawValue: unknown;
+
+        try {
+            rawValue = getProperty(field, entry);
+        } catch (e) {
+            return;
+        }
 
         if (rawValue === Object(rawValue)) {
             throw 'Cannot compare non primitive value';
@@ -165,15 +172,28 @@ export function createDB(config: DBConfig) {
     }
 
     function compareValuesOrder(a: Entry, b: Entry, sortingOptions: SortingOptions[]): number {
-        const sortingOption = sortingOptions.shift();
+        const optionsList = [...sortingOptions];
+        const options = optionsList.shift();
 
-        let valueA = getStringOfFieldValue(a, sortingOption.field);
-        let valueB = getStringOfFieldValue(b, sortingOption.field);
+        let valueA = getStringOfFieldValue(a, options.field);
+        let valueB = getStringOfFieldValue(b, options.field);
 
-        if (sortingOptions.length === 0) {
-            return valueA.localeCompare(valueB);
+        if (valueA === undefined || valueB === undefined) {
+            return 0;
+        }
+
+        if (optionsList.length === 0) {
+            if (options.order === 1) {
+                return valueA.localeCompare(valueB);
+            } else {
+                return valueB.localeCompare(valueA);
+            }
         } else {
-            return valueA.localeCompare(valueB) || compareValuesOrder(a, b, sortingOptions);
+            if (options.order === 1) {
+                return valueA.localeCompare(valueB) || compareValuesOrder(a, b, optionsList);
+            } else {
+                return valueB.localeCompare(valueA) || compareValuesOrder(a, b, optionsList);
+            } 
         }
     }
 
@@ -217,7 +237,7 @@ export function createDB(config: DBConfig) {
         let foundEntries: Entry[];
 
         if (query.length === 0) {
-            foundEntries = database[collectionName];
+            foundEntries = [...database[collectionName]];
         } else {
             foundEntries = findEntries(collectionName, query);
         }

@@ -38,7 +38,7 @@ describe('Database', () => {
             }
         });
 
-        it('should return whole collection when no query passed', async () => {
+        it('should return entire collection when no query passed', async () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
 
             await db.open('any/path');
@@ -47,9 +47,17 @@ describe('Database', () => {
             expect(results.data.length).toBe(7);
         });
 
-        // Query with not nested field
+        it('should return filtered collection when query with not nested field is passed', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
 
-        it('should return filtered collection when query passed', async () => {
+            await db.open('any/path');
+            const results = db.find('publishers', [{ type: 'eq', field: 'founded', value: 1534 }]);
+            expect(results.pagination).toBe(undefined);
+            expect(results.data.length).toBe(1);
+            expect(results.data[0].name).toBe('Cambridge University Press');
+        });
+
+        it('should return filtered collection when query with nested field is passed', async () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
 
             await db.open('any/path');
@@ -59,8 +67,42 @@ describe('Database', () => {
             expect(results.data[0].name).toBe('Macmillan Inc.');
         });
 
-        // Multiple query
-        // Not existing query
+        it('should return empty collection when query with not existing field is passed', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('publishers', [{ type: 'eq', field: 'owner', value: 'Any' }]);
+            expect(results.pagination).toBe(undefined);
+            expect(results.data.length).toBe(0);
+        });
+
+        it('should return filtered collection when multiple query is passed', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('publishers', [{ type: 'eq', field: 'address.country', value: 'United States' }, { type: 'eq', field: 'active', value: false }]);
+            expect(results.pagination).toBe(undefined);
+            expect(results.data.length).toBe(1);
+            expect(results.data[0].name).toBe('Macmillan Inc.');
+        });
+
+        it('should return empty collection when multiple query is passed and first query contains not existing field', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('publishers', [{ type: 'eq', field: 'owner', value: 'Any' }, { type: 'eq', field: 'active', value: false }]);
+            expect(results.pagination).toBe(undefined);
+            expect(results.data.length).toBe(0);
+        });
+
+        it('should return empty collection when multiple query is passed and last query contains not existing field', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('publishers', [{ type: 'eq', field: 'active', value: true }, { type: 'eq', field: 'owner', value: 'Any' }]);
+            expect(results.pagination).toBe(undefined);
+            expect(results.data.length).toBe(0);
+        });
 
         // Sort by string
         // Sort by number
@@ -97,7 +139,7 @@ describe('Database', () => {
             expect(results.data[6].name).toBe('Macmillan Inc.');
         });
 
-        it('should sort result by multiple conditions with different orders', async() => {
+        it('should sort result by multiple conditions with different orders', async () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
 
             await db.open('any/path');

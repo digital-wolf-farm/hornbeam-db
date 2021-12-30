@@ -85,7 +85,7 @@ export function createDB(config: DBConfig) {
         return ++index;
     }
 
-    function doesCollectionExists(collectionName: string): void {
+    function isCollectionCreated(collectionName: string): void {
         if (!database[collectionName]) {
             throw new TaskError(DBTaskError.CollectionNotExists, 'Attempt to find entry in non existing collection.');
         }
@@ -98,7 +98,7 @@ export function createDB(config: DBConfig) {
             try {
                 entryValue = getProperty(query.field, entry);
             } catch (e) {
-                return;
+                return false;
             }
 
             if (entryValue === Object(entryValue)) {
@@ -228,11 +228,7 @@ export function createDB(config: DBConfig) {
 
     function find(collectionName: string, query: Query[], options?: FindOptions): FindResults {
         isDatabaseOpen();
-        doesCollectionExists(collectionName);
-
-        if (!database[collectionName]) {
-            return { data: [] };
-        }
+        isCollectionCreated(collectionName);
 
         let foundEntries: Entry[];
 
@@ -264,7 +260,7 @@ export function createDB(config: DBConfig) {
 
     function replace(collectionName: string, query: Query[], data: object, options?: ReplaceOptions): number {
         isDatabaseOpen();
-        doesCollectionExists(collectionName);
+        isCollectionCreated(collectionName);
 
         if (options?.unique) {
             checkValuesUniqueness(collectionName, data, options.unique)
@@ -289,7 +285,7 @@ export function createDB(config: DBConfig) {
 
     function remove(collectionName: string, query: Query[]): number {
         isDatabaseOpen();
-        doesCollectionExists(collectionName);
+        isCollectionCreated(collectionName);
 
         const entryId = findEntryId(collectionName, query);
 

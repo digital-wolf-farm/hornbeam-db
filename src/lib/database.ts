@@ -159,9 +159,9 @@ export function createDB(config: DBConfig) {
         if (rawValue == null) {
             value = '';
         } else if (rawValue === true) {
-            value = '1'
+            value = '0'
         } else if (rawValue === false) {
-            value = '0';
+            value = '1';
         } else if (typeof rawValue === 'string') {
             value = rawValue;
         } else {
@@ -184,16 +184,16 @@ export function createDB(config: DBConfig) {
 
         if (optionsList.length === 0) {
             if (options.order === 1) {
-                return valueA.localeCompare(valueB);
+                return valueA.localeCompare(valueB, 'en', { sensitivity: 'base', numeric: true });
             } else {
-                return valueB.localeCompare(valueA);
+                return valueB.localeCompare(valueA, 'en', { sensitivity: 'base', numeric: true });
             }
         } else {
             if (options.order === 1) {
-                return valueA.localeCompare(valueB) || compareValuesOrder(a, b, optionsList);
+                return valueA.localeCompare(valueB, 'en', { sensitivity: 'base', numeric: true }) || compareValuesOrder(a, b, optionsList);
             } else {
-                return valueB.localeCompare(valueA) || compareValuesOrder(a, b, optionsList);
-            } 
+                return valueB.localeCompare(valueA, 'en', { sensitivity: 'base', numeric: true }) || compareValuesOrder(a, b, optionsList);
+            }
         }
     }
 

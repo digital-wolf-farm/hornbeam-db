@@ -1,7 +1,6 @@
 import { createDB } from '../../../src/lib/database';
 import { fileOperations } from '../../../src/lib/file-operations';
 import { DBTaskError } from '../../../src/models/enums';
-import { DBData } from '../../../src/models/interfaces';
 import { DBConfig } from '../../../src/utils/db-config';
 import { mockedDB } from '../mocked-data/mocked-db';
 
@@ -104,12 +103,53 @@ describe('Database', () => {
             expect(results.data.length).toBe(0);
         });
 
-        // Sort by string
-        // Sort by number
-        // Sort by null
-        // Sort by undefined
-        // Sort by date
-        // Sort by boolean
+        it('should sort results by string', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('team', [], { sort: [{ field: 'nickname', order: 1 }] });
+            expect(results.data.map((item) => item.nickname)).toEqual(['Alex', 'Egg', 'Headshot', 'Italiano', 'Zebra']);
+        });
+
+        it('should sort results by number', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('team', [], { sort: [{ field: 'age', order: 1 }] });
+            expect(results.data.map((item) => item.nickname)).toEqual(['Headshot', 'Alex', 'Zebra', 'Egg', 'Italiano']);
+        });
+
+        it('should sort results by null/string', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('team', [], { sort: [{ field: 'supervisor', order: 1 }] });
+            expect(results.data.map((item) => item.nickname)).toEqual(['Zebra', 'Italiano', 'Headshot', 'Egg', 'Alex']);
+        });
+
+        it('should sort results by null/number', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('team', [], { sort: [{ field: 'pets', order: 1 }] });
+            expect(results.data.map((item) => item.nickname)).toEqual(['Alex', 'Italiano', 'Egg', 'Headshot', 'Zebra']);
+        });
+
+        it('should sort results by undefined/string', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('team', [], { sort: [{ field: 'project', order: 1 }] });
+            expect(results.data.map((item) => item.nickname)).toEqual(['Italiano', 'Zebra', 'Alex', 'Headshot', 'Egg']);
+        });
+
+        it('should sort results by boolean', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('team', [], { sort: [{ field: 'isManager', order: 1 }] });
+            expect(results.data.map((item) => item.nickname)).toEqual(['Zebra', 'Italiano', 'Alex', 'Headshot', 'Egg']);
+        });
         // Sort by other type - throw error
 
         it('should sort results by one condition with ascending order', async () => {

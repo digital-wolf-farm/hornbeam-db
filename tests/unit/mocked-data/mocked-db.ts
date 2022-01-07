@@ -180,5 +180,48 @@ export const mockedDB: DBData = {
             },
             "active": false
         }
+    ],
+    "team" : [
+        {
+            "nickname": "Zebra",
+            "age": 40,
+            "supervisor": null,
+            "project": "Alpha",
+            "isManager": true,
+            "hobbies": ["biking"],
+            "pets": 10
+        }, {
+            "nickname": "Alex",
+            "age": 29,
+            "supervisor": "Zebra",
+            "project": "Theta",
+            "isManager": false,
+            "hobbies": ["reading", "movies"],
+            "pets": null
+        }, {
+            "nickname": "Italiano",
+            "age": 64,
+            "supervisor": null,
+            "project": undefined,
+            "isManager": true,
+            "hobbies": ["fishing"],
+            "pets": undefined
+        }, {
+            "nickname": "Headshot",
+            "age": 22,
+            "supervisor": "Italiano",
+            "project": "Theta",
+            "isManager": false,
+            "hobbies": ["clubbing", "dancing"],
+            "pets": 2
+        }, {
+            "nickname": "Egg",
+            "age": 40,
+            "supervisor": "Italiano",
+            "project": "Theta",
+            "isManager": false,
+            "hobbies": ["cooking", "movies"],
+            "pets": 0
+        }
     ]
 };

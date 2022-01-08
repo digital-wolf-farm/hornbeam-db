@@ -25,7 +25,8 @@ export enum DBTaskError {
     FunctionArgumentMismatch = 'FUNCTION_ARGUMENT_MISMATCH',
     FunctionArgumentTypeMismatch = 'FUNCTION_ARGUMENT_TYPE_MISMATCH',
     OptionsSchemaMismatch = 'OPTIONS_OBJECT_MISMATCH',
-    QuerySchemaMismatch = 'QUERY_SCHEMA_MISMATCH'
+    QuerySchemaMismatch = 'QUERY_SCHEMA_MISMATCH',
+    SortDataTypeError = 'SORT_DATA_TYPE_ERROR'
 }
 
 export enum FilterType {

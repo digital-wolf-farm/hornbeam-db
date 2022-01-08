@@ -183,6 +183,7 @@ export const mockedDB: DBData = {
     ],
     "team" : [
         {
+            "_id": 1,
             "nickname": "Zebra",
             "age": 40,
             "supervisor": null,
@@ -191,6 +192,7 @@ export const mockedDB: DBData = {
             "hobbies": ["biking"],
             "pets": 10
         }, {
+            "_id": 2,
             "nickname": "Alex",
             "age": 29,
             "supervisor": "Zebra",
@@ -199,6 +201,7 @@ export const mockedDB: DBData = {
             "hobbies": ["reading", "movies"],
             "pets": null
         }, {
+            "_id": 3,
             "nickname": "Italiano",
             "age": 64,
             "supervisor": null,
@@ -207,6 +210,7 @@ export const mockedDB: DBData = {
             "hobbies": ["fishing"],
             "pets": undefined
         }, {
+            "_id": 4,
             "nickname": "Headshot",
             "age": 22,
             "supervisor": "Italiano",
@@ -215,6 +219,7 @@ export const mockedDB: DBData = {
             "hobbies": ["clubbing", "dancing"],
             "pets": 2
         }, {
+            "_id": 5,
             "nickname": "Egg",
             "age": 40,
             "supervisor": "Italiano",
@@ -222,6 +227,23 @@ export const mockedDB: DBData = {
             "isManager": false,
             "hobbies": ["cooking", "movies"],
             "pets": 0
+        }
+    ],
+    "contractors": [
+        {
+            "_id": 1,
+            "name": "Building Inc.",
+            "address": {
+                "city": "London",
+                "street": "Oxford Street"
+            }
+        }, {
+            "_id": 2,
+            "name": "Gut Auto GMBH",
+            "address": {
+                "city": "Berlin",
+                "street": "Kurfürstendamm"
+            }
         }
     ]
 };

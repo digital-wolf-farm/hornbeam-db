@@ -7,6 +7,87 @@ import { mockedDB } from '../mocked-data/mocked-db';
 describe('Database', () => {
     let db;
 
+    describe('Insert', () => {
+        beforeEach(() => {
+            db = createDB(new DBConfig());
+        });
+
+        afterEach(() => {
+            db.close();
+        });
+
+        it('should throw error when database is not open', () => {
+            try {
+                db.insert('contractors', {});
+                expect(true).toBe(false);
+            } catch (e) {
+                expect(e.error).toBe(DBTaskError.DatabaseNotOpen);
+            }
+        });
+
+        it('should add entry without restricted field and id equal to 1 when collection is empty', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({});
+
+            await db.open('any/path');
+            const result = db.insert('contractors', { name: 'Building Inc.' });
+            expect(result).toBe(1);
+        });
+
+        it('should add entry with restricted field and id equal to 1 when collection is empty', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({});
+
+            await db.open('any/path');
+            const result = db.insert('contractors', { name: 'Building Inc.' }, { unique: ['name'] });
+            expect(result).toBe(1);
+        });
+
+        // Add properly with multiple restricted fields
+        // Add properly with not existing restricted field
+        // Add properly, when restricted field is not primitive value
+
+        it('should add entry with proper id when no options are provided', async () => {
+            const dbTemp = { 'contractors': [{ _id: 100, name: 'Building Inc.' }] };
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(dbTemp);
+
+            await db.open('any/path');
+            const result = db.insert('contractors', { name: 'Cheaper Building Inc.' });
+            expect(result).toBe(101);
+        });
+
+        it('should add entry with proper id when options are provided', async () => {
+            const dbTemp = { 'contractors': [{ _id: 100, name: 'Building Inc.' }] };
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(dbTemp);
+
+            await db.open('any/path');
+            const result = db.insert('contractors', { name: 'Cheaper Building Inc.' }, { unique: ['name'] });
+            expect(result).toBe(101);
+        });
+
+        it('should throw error when attempt to add data with the same value for resticted not nested field', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            try {
+                await db.open('any/path');
+                db.insert('contractors', { name: 'Building Inc.' }, { unique: ['name'] });
+                expect(true).toBe(false);
+            } catch (e) {
+                expect(e.error).toBe(DBTaskError.FieldValueNotUnique);
+            }
+        });
+
+        it('should throw error when attempt to add data with the same value for resticted nested field', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            try {
+                await db.open('any/path');
+                db.insert('contractors', { name: 'Sehr Gut Auto GMBH', address: { street: 'Kurfürstendamm' } }, { unique: ['address.street'] });
+                expect(true).toBe(false);
+            } catch (e) {
+                expect(e.error).toBe(DBTaskError.FieldValueNotUnique);
+            }
+        });
+    });
+
     describe('Find', () => {
         beforeEach(() => {
             db = createDB(new DBConfig());
@@ -150,7 +231,18 @@ describe('Database', () => {
             const results = db.find('team', [], { sort: [{ field: 'isManager', order: 1 }] });
             expect(results.data.map((item) => item.nickname)).toEqual(['Zebra', 'Italiano', 'Alex', 'Headshot', 'Egg']);
         });
-        // Sort by other type - throw error
+
+        it('should throw error when attempt to sort by non primitive value', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            try {
+                await db.open('any/path');
+                db.find('team', [], { sort: [{ field: 'hobbies', order: 1 }] });
+                expect(true).toBe(false);
+            } catch (e) {
+                expect(e.error).toBe(DBTaskError.SortDataTypeError);
+            }
+        });
 
         it('should sort results by one condition with ascending order', async () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);

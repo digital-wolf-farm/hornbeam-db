@@ -151,7 +151,7 @@ export function createDB(config: DBConfig) {
         }
 
         if (rawValue === Object(rawValue)) {
-            throw 'Cannot compare non primitive value';
+            throw new TaskError(DBTaskError.SortDataTypeError, 'Cannot sort results by non primitive value.');
         }
 
         let value: string;

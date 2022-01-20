@@ -41,10 +41,6 @@ describe('Database', () => {
             expect(result).toBe(1);
         });
 
-        // Add properly with multiple restricted fields
-        // Add properly with not existing restricted field
-        // Add properly, when restricted field is not primitive value
-
         it('should add entry with proper id when no options are provided', async () => {
             const dbTemp = { 'contractors': [{ _id: 100, name: 'Building Inc.' }] };
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(dbTemp);
@@ -54,13 +50,49 @@ describe('Database', () => {
             expect(result).toBe(101);
         });
 
-        it('should add entry with proper id when options are provided', async () => {
+        it('should add entry with proper id when restricted not nested field is provided', async () => {
             const dbTemp = { 'contractors': [{ _id: 100, name: 'Building Inc.' }] };
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(dbTemp);
 
             await db.open('any/path');
             const result = db.insert('contractors', { name: 'Cheaper Building Inc.' }, { unique: ['name'] });
             expect(result).toBe(101);
+        });
+
+        it('should add entry with proper id when restricted nested field is provided', async () => {
+            const dbTemp = { 'contractors': [{ _id: 10, name: 'Building Inc.', address: { city: 'Paris' } }] };
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(dbTemp);
+
+            await db.open('any/path');
+            const result = db.insert('contractors', { name: 'Cheaper Building Inc.', address: { city: 'Amsterdam' } }, { unique: ['address.city'] });
+            expect(result).toBe(11);
+        });
+
+        it('should add entry with proper id when multiple restricted fields are provided', async () => {
+            const dbTemp = { 'contractors': [{ _id: 20, name: 'Building Inc.', address: { city: 'Paris' } }] };
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(dbTemp);
+
+            await db.open('any/path');
+            const result = db.insert('contractors', { name: 'Cheaper Building Inc.', address: { city: 'Amsterdam' } }, { unique: ['name', 'address.city'] });
+            expect(result).toBe(21);
+        });
+
+        it('should add entry with proper id when restricted not existing field is provided', async () => {
+            const dbTemp = { 'contractors': [{ _id: 30, name: 'Building Inc.' }] };
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(dbTemp);
+
+            await db.open('any/path');
+            const result = db.insert('contractors', { name: 'Cheaper Building Inc.' }, { unique: ['owner'] });
+            expect(result).toBe(31);
+        });
+
+        it('should add entry with proper id when restricted field for not primitive value is provided', async () => {
+            const dbTemp = { 'contractors': [{ _id: 40, name: 'Building Inc.', address: { city: 'Paris' } }] };
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(dbTemp);
+
+            await db.open('any/path');
+            const result = db.insert('contractors', { name: 'Cheaper Building Inc.', address: { city: 'Amsterdam' } }, { unique: ['address'] });
+            expect(result).toBe(41);
         });
 
         it('should throw error when attempt to add data with the same value for resticted not nested field', async () => {
@@ -81,6 +113,18 @@ describe('Database', () => {
             try {
                 await db.open('any/path');
                 db.insert('contractors', { name: 'Sehr Gut Auto GMBH', address: { street: 'Kurfürstendamm' } }, { unique: ['address.street'] });
+                expect(true).toBe(false);
+            } catch (e) {
+                expect(e.error).toBe(DBTaskError.FieldValueNotUnique);
+            }
+        });
+
+        it('should throw error when attempt to add data with the same value for one of restricted fields', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            try {
+                await db.open('any/path');
+                db.insert('contractors', { name: 'Sehr Gut Auto GMBH', address: { street: 'Kurfürstendamm' } }, { unique: ['name', 'address.street'] });
                 expect(true).toBe(false);
             } catch (e) {
                 expect(e.error).toBe(DBTaskError.FieldValueNotUnique);
@@ -326,6 +370,93 @@ describe('Database', () => {
             const results = db.find('publishers', [], { page: { pageNumber: 5, pageSize: 2 } });
             expect(results.pagination).toEqual({ entriesNumber: 7, pagesNumber: 4, pageNumber: 5, pageSize: 2 });
             expect(results.data.length).toBe(0);
+        });
+    });
+
+    describe('Remove', () => {
+        beforeEach(() => {
+            db = createDB(new DBConfig());
+        });
+
+        afterEach(() => {
+            db.close();
+        });
+
+        it('should throw error when database is not open', () => {
+            try {
+                db.remove('contractors', []);
+                expect(true).toBe(false);
+            } catch (e) {
+                expect(e.error).toBe(DBTaskError.DatabaseNotOpen);
+            }
+        });
+
+        it('should throw error when database is open but collection doesn\'t exist', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ companies: [] });
+
+            try {
+                await db.open('any/path');
+                db.remove('contractors', []);
+                expect(true).toBe(false);
+            } catch (e) {
+                expect(e.error).toBe(DBTaskError.CollectionNotExists);
+            }
+        });
+
+        it('should remove entry when found in collection by not nested field', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna' }, { _id: 16, name: 'John' }] });
+
+            await db.open('any/path');
+            const result = db.remove('students', [{ field: 'name', value: 'John', type: 'eq' }]);
+            expect(result).toBe(1);
+        });
+
+        it('should remove entry when found in collection by nested field', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', scores: { math: 90 } }, { _id: 16, name: 'John', scores: { math: 89 } }] });
+
+            await db.open('any/path');
+            const result = db.remove('students', [{ field: 'scores.math', value: 90, type: 'eq' }]);
+            expect(result).toBe(0);
+        });
+
+        it('should remove entry when found in collection by all of fields', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', scores: { math: 90 } }, { _id: 16, name: 'John', scores: { math: 89 } }] });
+
+            await db.open('any/path');
+            const result = db.remove('students', [{ field: 'scores.math', value: 90, type: 'eq' }, { field: 'name', value: 'Anna', type: 'eq' }]);
+            expect(result).toBe(0);
+        });
+
+        it('should not remove entry when found in collection by not all of fields', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', scores: { math: 90 } }, { _id: 16, name: 'John', scores: { math: 89 } }] });
+
+            await db.open('any/path');
+            const result = db.remove('students', [{ field: 'scores.math', value: 90, type: 'eq' }, { field: 'name', value: 'Katy', type: 'eq' }]);
+            expect(result).toBe(-1);
+        });
+
+        it('should not remove entry when not found in collection by existing field', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'John' }] });
+
+            await db.open('any/path');
+            const result = db.remove('students', [{ field: 'name', value: 'William', type: 'eq' }]);
+            expect(result).toBe(-1);
+        });
+
+        it('should not remove entry when not found in collection by not existing field', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'John' }] });
+
+            await db.open('any/path');
+            const result = db.remove('students', [{ field: 'age', value: 24, type: 'eq' }]);
+            expect(result).toBe(-1);
+        });
+
+        it('should not remove entry when not found in collection by existing and not existing field', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'John' }] });
+
+            await db.open('any/path');
+            const result = db.remove('students', [{ field: 'name', value: 'John', type: 'eq' }, { field: 'age', value: 24, type: 'eq' }]);
+            expect(result).toBe(-1);
         });
     });
 });

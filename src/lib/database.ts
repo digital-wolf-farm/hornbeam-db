@@ -4,7 +4,6 @@ import { DBConfig } from '../utils/db-config';
 import { TaskError } from '../utils/errors';
 import { fileOperations } from './file-operations';
 import { filters } from './filters';
-import { helpers } from './helpers';
 
 // TODO: Add interface for returned value
 export function createDB(config: DBConfig) {
@@ -20,6 +19,10 @@ export function createDB(config: DBConfig) {
                 return obj[prop];
             }
         }, object);
+    }
+
+    function calculateDatabaseUsage(): number {
+        return (Buffer.byteLength(JSON.stringify(database)) / (1024 * 1024)) / config.dbSize;
     }
 
     function checkValuesUniqueness(collectionName: string, data: Entry, uniqueFields: string[]): void {
@@ -128,10 +131,10 @@ export function createDB(config: DBConfig) {
     }
 
     function isDatabaseSizeNotExceeded(): void {
-        const dbUsage = helpers.calculateDatabaseUsage(database, config.dbSize);
+        const dbUsage = calculateDatabaseUsage();
 
-        if (parseFloat(dbUsage) >= 100) {
-            throw new TaskError(DBTaskError.DatabaseSizeExceeded, `DB usage - ${dbUsage}%`);
+        if (dbUsage >= 100) {
+            throw new TaskError(DBTaskError.DatabaseSizeExceeded, `DB usage - ${dbUsage.toFixed(2)}%`);
         }
     }
 
@@ -306,7 +309,7 @@ export function createDB(config: DBConfig) {
             database = await fileOperations.read(path);
 
             // TODO: Verify db schema
-            // TODO: Verify db size
+            isDatabaseSizeNotExceeded();
         } catch (e) {
             if (e.error === DBTaskError.FileNotFound) {
                 database = {};
@@ -321,7 +324,8 @@ export function createDB(config: DBConfig) {
         try {
             isDatabaseOpen();
             // TODO: Verify db schema
-            // TODO: Verify db size
+            isDatabaseSizeNotExceeded();
+
             await fileOperations.write(databaseFilePath, database);
         } catch (e) {
             throw e;
@@ -334,8 +338,10 @@ export function createDB(config: DBConfig) {
         clearDatabaseCache();
     }
 
-    function stat(): any {
-        // return db stats
+    function stat(): string {
+        isDatabaseOpen();
+
+        return calculateDatabaseUsage().toFixed(2);
     }
 
     return {

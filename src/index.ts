@@ -31,6 +31,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
 
             return db.insert(collectionName, data, options);
         } catch (e) {
+            db.close();
             throw new MethodError(DBMethod.AddEntry, e.error, e.message);
         }
     }
@@ -55,6 +56,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
 
             return db.find(collectionName, query, options);
         } catch (e) {
+            db.close();
             throw new MethodError(DBMethod.FindEntries, e.error, e.message);
         }
     }
@@ -71,6 +73,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
 
             return db.find(collectionName, [{ type: 'eq', field: '_id', value: id }]);
         } catch (e) {
+            db.close();
             throw new MethodError(DBMethod.FindEntries, e.error, e.message);
         }
     }
@@ -99,6 +102,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
 
             return db.replace(collectionName, query, data, options);
         } catch (e) {
+            db.close();
             throw new MethodError(DBMethod.ReplaceEntry, e.error, e.message);
         }
     }
@@ -119,6 +123,7 @@ export default function hornbeamDB(configuration?: DBConfig): DB {
 
             return db.remove(collectionName, query);
         } catch (e) {
+            db.close();
             throw new MethodError(DBMethod.RemoveEntry, e.error, e.message);
         }
     }

@@ -2,7 +2,6 @@ import { promises as fs } from 'fs';
 
 import { fileOperations } from '../../../src/lib/file-operations';
 import { DBTaskError } from '../../../src/models/enums';
-import { helpers } from '../../../src/lib/helpers';
 
 describe('File operations', () => {
     const filePath = 'path/to/file.json';
@@ -11,14 +10,12 @@ describe('File operations', () => {
     describe('Write', () => {
         it('should write file when no exception occurs', async () => {
             jest.spyOn(fs, 'writeFile').mockResolvedValueOnce();
-            jest.spyOn(helpers, 'calculateDatabaseUsage').mockReturnValueOnce('99.99');
 
             expect(await fileOperations.write(filePath, data)).resolves;
         });
 
         it('should throw error when exception occurs', async () => {
             jest.spyOn(fs, 'writeFile').mockRejectedValueOnce('error');
-            jest.spyOn(helpers, 'calculateDatabaseUsage').mockReturnValueOnce('25.30');
 
             return await fileOperations.write(filePath, data)
                 .catch((e) => {
@@ -32,7 +29,6 @@ describe('File operations', () => {
 
         it('should return file content when no exception occurs', async () => {
             jest.spyOn(fs, 'readFile').mockResolvedValueOnce(fileContent);
-            jest.spyOn(helpers, 'calculateDatabaseUsage').mockReturnValueOnce('99.99');
 
             await expect(fileOperations.read(filePath)).resolves.toEqual(data);
         });

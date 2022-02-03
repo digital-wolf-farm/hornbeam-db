@@ -1,12 +1,11 @@
 import { DBTaskError } from '../models/enums';
-import { InsertOptions, DBData, Entry, FindOptions, Query, ReplaceOptions, FindResults, SortingOptions } from '../models/interfaces';
+import { InsertOptions, DBData, Entry, FindOptions, Query, ReplaceOptions, FindResults, SortingOptions, DB } from '../models/interfaces';
 import { DBConfig } from '../utils/db-config';
 import { TaskError } from '../utils/errors';
 import { fileOperations } from './file-operations';
 import { filters } from './filters';
 
-// TODO: Add interface for returned value
-export function createDB(config: DBConfig) {
+export function createDB(config: DBConfig): DB {
 
     let database: DBData;
     let databaseFilePath: string;
@@ -345,14 +344,14 @@ export function createDB(config: DBConfig) {
     }
 
     return {
-        open,
-        save,
-        close,
-        stat,
         insert,
         find,
         replace,
-        remove
+        remove,
+        open,
+        save,
+        close,
+        stat
     }
 
 }

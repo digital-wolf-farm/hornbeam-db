@@ -1,4 +1,4 @@
-import { DB, FindResults } from './models/interfaces';
+import { DBAPI, FindResults } from './models/interfaces';
 import { DBConfig } from './utils/db-config';
 import { DBMethod, DBTaskError } from './models/enums';
 import { MethodError, TaskError } from './utils/errors';
@@ -6,7 +6,7 @@ import { typeGuards } from './lib/type-guards';
 import { createDB } from './lib/database';
 import { validators } from './lib/validators';
 
-export default function hornbeamDB(configuration?: DBConfig): DB {
+export default function hornbeamDB(configuration?: DBConfig): DBAPI {
 
     let config: DBConfig = configuration instanceof DBConfig ? configuration : new DBConfig();
     let db = createDB(config);

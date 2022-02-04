@@ -2,6 +2,7 @@ import { DBTaskError } from '../models/enums';
 import { InsertOptions, DBData, Entry, FindOptions, Query, ReplaceOptions, FindResults, SortingOptions, DB } from '../models/interfaces';
 import { DBConfig } from '../utils/db-config';
 import { TaskError } from '../utils/errors';
+import { dbSchemaValidator } from './database-schema-validator';
 import { fileOperations } from './file-operations';
 import { filters } from './filters';
 
@@ -307,7 +308,7 @@ export function createDB(config: DBConfig): DB {
             databaseFilePath = path;
             database = await fileOperations.read(path);
 
-            // TODO: Verify db schema
+            dbSchemaValidator.validate(database, config);
             isDatabaseSizeNotExceeded();
         } catch (e) {
             if (e.error === DBTaskError.FileNotFound) {
@@ -322,7 +323,7 @@ export function createDB(config: DBConfig): DB {
     async function save(): Promise<void> {
         try {
             isDatabaseOpen();
-            // TODO: Verify db schema
+            dbSchemaValidator.validate(database, config);
             isDatabaseSizeNotExceeded();
 
             await fileOperations.write(databaseFilePath, database);

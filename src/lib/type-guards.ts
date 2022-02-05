@@ -1,6 +1,7 @@
 import { InsertOptions, FindOptions, PaginationOptions, Query, SortingOptions } from '../models/interfaces';
 
 // Guards for JS data types
+
 function isArray(value: unknown): value is [] {
     return Array.isArray(value);
 }
@@ -11,6 +12,10 @@ function isNumber(value: unknown): value is number {
 
 function isObject(value: unknown): value is object {
     return typeof value === 'object' && !Array.isArray(value) && value !== null;
+}
+
+function isPositiveInteger(value: unknown): value is number {
+    return (Number.isInteger(value) && value > 0);
 }
 
 function isString(value: unknown): value is string {
@@ -148,7 +153,6 @@ function isQueryObjectValid(value: unknown): value is Query {
         return false;
     }
 
-    // TODO: Add validation for value of value field
     if (!isString(value['type']) || !isString(value['field'])) {
         return false;
     }
@@ -160,6 +164,7 @@ export const typeGuards = {
     isArray,
     isNumber,
     isObject,
+    isPositiveInteger,
     isString,
     isInsertOptionsObject,
     isReplaceOptionsObject,

@@ -79,11 +79,11 @@ export function createDB(config: DBConfig): DB {
 
         let index = 0;
 
-        for (let entry of database[collectionName]) {
+        for (const entry of database[collectionName]) {
             if (entry['_id'] > index) {
                 index = entry['_id'];
             }
-        };
+        }
 
         return ++index;
     }
@@ -178,8 +178,8 @@ export function createDB(config: DBConfig): DB {
         const optionsList = [...sortingOptions];
         const options = optionsList.shift();
 
-        let valueA = getStringOfFieldValue(a, options.field);
-        let valueB = getStringOfFieldValue(b, options.field);
+        const valueA = getStringOfFieldValue(a, options.field);
+        const valueB = getStringOfFieldValue(b, options.field);
 
         if (valueA === undefined || valueB === undefined) {
             return 0;
@@ -219,8 +219,6 @@ export function createDB(config: DBConfig): DB {
         const entryId = createId(collectionName);
 
         entry['_id'] = entryId;
-        entry['_created'] = new Date();
-        entry['_modified'] = null;
 
         database[collectionName].push(entry);
 
@@ -275,8 +273,6 @@ export function createDB(config: DBConfig): DB {
             const storedEntry = { ...database[collectionName][entryId] };
             const newEntry = { ...data };
             newEntry['_id'] = storedEntry['_id'];
-            newEntry['_created'] = storedEntry['_created'];
-            newEntry['_modified'] = new Date();
 
             database[collectionName][entryId] = newEntry;
         }
@@ -327,8 +323,6 @@ export function createDB(config: DBConfig): DB {
             isDatabaseSizeNotExceeded();
 
             await fileOperations.write(databaseFilePath, database);
-        } catch (e) {
-            throw e;
         } finally {
             clearDatabaseCache();
         }

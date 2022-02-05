@@ -5,6 +5,7 @@ import { typeGuards } from './type-guards';
 import { validators } from './validators';
 
 function validate(db: unknown, config: DBConfig): void {
+
     if (!typeGuards.isObject(db)) {
         throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Database must be an object.');
     }
@@ -33,31 +34,15 @@ function validate(db: unknown, config: DBConfig): void {
                 throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must be an object.');
             }
 
-            const fields = Object.keys(entry);
-
-            if(!['_id', '_created', '_modified'].every((metadataField) => fields.includes(metadataField))) {
-                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must contain mandatory fields: _id, _created, _modified.');
+            if(!entry['_id'] || !typeGuards.isPositiveInteger(entry['_id'])) {
+                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must contain field _id with positive integer value.');
             }
 
-            if (fields.length < 4) {
-                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must contain at least 4 fields.');
-            }
-
-            if (!Number.isInteger(entry['_id']) || entry['_id'] < 1) {
-                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Field _id must be an integer greater or equal to 1.');
-            }
-
-            if (!Number.isInteger(entry['_created'])) {
-                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Field _created must be a valid timestamp.');
-            }
-
-            if (!Number.isInteger(entry['_modified']) || entry['_modified'] != null) {
-                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Field _created must be a valid timestamp.');
+            if (Object.keys(entry).length < 2) {
+                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must contain at least 1 custom fields.');
             }
         });
     });
 }
 
-export const dbSchemaValidator = {
-    validate
-}
+export const dbSchemaValidator = { validate };

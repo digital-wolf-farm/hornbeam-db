@@ -219,8 +219,8 @@ export function createDB(config: DBConfig): DB {
         const entryId = createId(collectionName);
 
         entry['_id'] = entryId;
-        entry['_createdAt'] = new Date();
-        entry['_modifiedAt'] = null;
+        entry['_created'] = new Date();
+        entry['_modified'] = null;
 
         database[collectionName].push(entry);
 
@@ -275,8 +275,8 @@ export function createDB(config: DBConfig): DB {
             const storedEntry = { ...database[collectionName][entryId] };
             const newEntry = { ...data };
             newEntry['_id'] = storedEntry['_id'];
-            newEntry['_createdAt'] = storedEntry['_createdAt'];
-            newEntry['_modifiedAt'] = new Date();
+            newEntry['_created'] = storedEntry['_created'];
+            newEntry['_modified'] = new Date();
 
             database[collectionName][entryId] = newEntry;
         }

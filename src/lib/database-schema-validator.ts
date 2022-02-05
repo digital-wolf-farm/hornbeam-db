@@ -33,8 +33,28 @@ function validate(db: unknown, config: DBConfig): void {
                 throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must be an object.');
             }
 
-            
-        })
+            const fields = Object.keys(entry);
+
+            if(!['_id', '_created', '_modified'].every((metadataField) => fields.includes(metadataField))) {
+                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must contain mandatory fields: _id, _created, _modified.');
+            }
+
+            if (fields.length < 4) {
+                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must contain at least 4 fields.');
+            }
+
+            if (!Number.isInteger(entry['_id']) || entry['_id'] < 1) {
+                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Field _id must be an integer greater or equal to 1.');
+            }
+
+            if (!Number.isInteger(entry['_created'])) {
+                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Field _created must be a valid timestamp.');
+            }
+
+            if (!Number.isInteger(entry['_modified']) || entry['_modified'] != null) {
+                throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Field _created must be a valid timestamp.');
+            }
+        });
     });
 }
 

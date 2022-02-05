@@ -238,8 +238,8 @@ export default function hornbeamDB(fs) {
         }
 
         if (newEntry) {
-            if (entry['_id'] || entry['_createdAt'] || entry['_modifiedAt']) {
-                throw new TaskException(errorsList.entryContainsReservedProperties, 'Added entry cannot contain any of properties: "_id", "_createdAt", "_modifiedAt"');
+            if (entry['_id'] || entry['_created'] || entry['_modified']) {
+                throw new TaskException(errorsList.entryContainsReservedProperties, 'Added entry cannot contain any of properties: "_id", "_created", "_modified"');
             }
         }
     }
@@ -400,8 +400,8 @@ export default function hornbeamDB(fs) {
             const entry = { ...data };
 
             entry['_id'] = index;
-            entry['_createdAt'] = new Date();
-            entry['_modifiedAt'] = '';
+            entry['_created'] = new Date();
+            entry['_modified'] = '';
 
             database[collection].push(entry);
 
@@ -503,8 +503,8 @@ export default function hornbeamDB(fs) {
             const storedEntry = { ...database[collection][entryIndex] };
             const newEntry = { ...data };
             newEntry['_id'] = storedEntry['_id'];
-            newEntry['_createdAt'] = storedEntry['_createdAt'];
-            newEntry['_modifiedAt'] = new Date();
+            newEntry['_created'] = storedEntry['_created'];
+            newEntry['_modified'] = new Date();
 
             database[collection][entryIndex] = newEntry;
 

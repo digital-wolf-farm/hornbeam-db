@@ -491,6 +491,15 @@ describe('Database', () => {
             const result = db.replace('students', 1001, { _id: 15, name: 'John', surname: 'Wayne JR.', address: { city: 'SF' } });
             expect(result).toBe(-1);
         });
+
+        it('should preserve proper entryId even if in passed data is changed', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith' }, { _id: 16, name: 'John', surname: 'Wayne' }] });
+
+            await db.open('any/path');
+            const result = db.replace('students', 16, { _id: 24, name: 'John', surname: 'Wayne JR.', address: { city: 'SF' } });
+            expect(result).toBe(1);
+            expect(db.find('students', [{ type: 'eq', field: 'name', value: 'John' }])['data'][0]['_id']).toBe(16);
+        });
     });
 
     describe('Remove', () => {

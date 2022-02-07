@@ -253,32 +253,31 @@ export function createDB(config: DBConfig): DB {
             checkValuesUniqueness(collectionName, data, options.unique)
         }
 
-        const entryId = findEntryIndex(collectionName, id);
+        const entryIndex = findEntryIndex(collectionName, id);
 
-        if (entryId !== -1) {
-            const storedEntry = { ...database[collectionName][entryId] };
+        if (entryIndex !== -1) {
             const newEntry = { ...data };
-            newEntry['_id'] = storedEntry['_id'];
+            newEntry['_id'] = id;
 
-            database[collectionName][entryId] = newEntry;
+            database[collectionName][entryIndex] = newEntry;
         }
 
         isDatabaseSizeNotExceeded();
 
-        return entryId;
+        return entryIndex;
     }
 
     function remove(collectionName: string, id: number): number {
         isDatabaseOpen();
         isCollectionCreated(collectionName);
 
-        const entryId = findEntryIndex(collectionName, id);
+        const entryIndex = findEntryIndex(collectionName, id);
 
-        if (entryId !== -1) {
-            database[collectionName].splice(entryId, 1);
+        if (entryIndex !== -1) {
+            database[collectionName].splice(entryIndex, 1);
         }
 
-        return entryId;
+        return entryIndex;
     }
 
     async function open(path: string): Promise<void> {

@@ -112,22 +112,8 @@ export function createDB(config: DBConfig): DB {
         }));
     }
 
-    function findEntryId(collectionName: string, queryList: Query[]): number {
-        return database[collectionName].findIndex((entry) => queryList.every((query) => {
-            let entryValue: unknown;
-
-            try {
-                entryValue = getProperty(query.field, entry);
-            } catch (e) {
-                return;
-            }
-
-            if (entryValue === Object(entryValue)) {
-                return;
-            }
-
-            return filters[query.type](entryValue, query.value)
-        }));
+    function findEntryIndex(collectionName: string, id: number): number {
+        return database[collectionName].findIndex((entry) => entry['_id'] === id);
     }
 
     function isDatabaseSizeNotExceeded(): void {
@@ -259,7 +245,7 @@ export function createDB(config: DBConfig): DB {
         return { data: foundEntries };
     }
 
-    function replace(collectionName: string, query: Query[], data: object, options?: ReplaceOptions): number {
+    function replace(collectionName: string, id: number, data: object, options?: ReplaceOptions): number {
         isDatabaseOpen();
         isCollectionCreated(collectionName);
 
@@ -267,7 +253,7 @@ export function createDB(config: DBConfig): DB {
             checkValuesUniqueness(collectionName, data, options.unique)
         }
 
-        const entryId = findEntryId(collectionName, query);
+        const entryId = findEntryIndex(collectionName, id);
 
         if (entryId !== -1) {
             const storedEntry = { ...database[collectionName][entryId] };
@@ -282,11 +268,11 @@ export function createDB(config: DBConfig): DB {
         return entryId;
     }
 
-    function remove(collectionName: string, query: Query[]): number {
+    function remove(collectionName: string, id: number): number {
         isDatabaseOpen();
         isCollectionCreated(collectionName);
 
-        const entryId = findEntryId(collectionName, query);
+        const entryId = findEntryIndex(collectionName, id);
 
         if (entryId !== -1) {
             database[collectionName].splice(entryId, 1);
@@ -348,5 +334,4 @@ export function createDB(config: DBConfig): DB {
         close,
         stat
     }
-
 }

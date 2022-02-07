@@ -228,6 +228,15 @@ describe('Database', () => {
             expect(results.data.length).toBe(0);
         });
 
+        it('should return empty collection when query for non primitive value', async () => {
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
+
+            await db.open('any/path');
+            const results = db.find('publishers', [{ type: 'eq', field: 'address', value: 'New York' }]);
+            expect(results.pagination).toBe(undefined);
+            expect(results.data.length).toBe(0);
+        });
+
         it('should sort results by string', async () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(mockedDB);
 
@@ -408,7 +417,7 @@ describe('Database', () => {
 
             try {
                 await db.open('any/path');
-                db.replace('students', [{ field: 'name', value: 'Anna', type: 'eq' }], { _id: 15, name: 'Anna', surname: 'Wayne' }, { unique: ['surname'] });
+                db.replace('students', 15, { _id: 15, name: 'Anna', surname: 'Wayne' }, { unique: ['surname'] });
                 expect(true).toBe(false);
             } catch (e) {
                 expect(e.error).toBe(DBTaskError.FieldValueNotUnique);
@@ -420,7 +429,7 @@ describe('Database', () => {
 
             try {
                 await db.open('any/path');
-                db.replace('students', [{ field: 'name', value: 'Anna', type: 'eq' }], { _id: 15, name: 'Anna', surname: 'Wayne', address: { city: 'SF' } }, { unique: ['address.city'] });
+                db.replace('students', 15, { _id: 15, name: 'Anna', surname: 'Wayne', address: { city: 'SF' } }, { unique: ['address.city'] });
                 expect(true).toBe(false);
             } catch (e) {
                 expect(e.error).toBe(DBTaskError.FieldValueNotUnique);
@@ -431,7 +440,7 @@ describe('Database', () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith' }, { _id: 16, name: 'John', surname: 'Wayne' }] });
 
             await db.open('any/path');
-            const result = db.replace('students', [{ field: 'name', value: 'Anna', type: 'eq' }], { _id: 15, name: 'Anna Catherine', surname: 'Smith' }, { unique: ['surname'] });
+            const result = db.replace('students', 15, { _id: 15, name: 'Anna Catherine', surname: 'Smith' }, { unique: ['surname'] });
             expect(result).toBe(0);
         });
 
@@ -439,7 +448,7 @@ describe('Database', () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith', address: { city: 'LA' } }, { _id: 16, name: 'John', surname: 'Wayne', address: { city: 'SF' } }] });
 
             await db.open('any/path');
-            const result = db.replace('students', [{ field: 'name', value: 'Anna', type: 'eq' }], { _id: 15, name: 'Anna Catherine', surname: 'Smith', address: { city: 'LA' } }, { unique: ['address.city'] });
+            const result = db.replace('students', 15, { _id: 15, name: 'Anna Catherine', surname: 'Smith', address: { city: 'LA' } }, { unique: ['address.city'] });
             expect(result).toBe(0);
         });
 
@@ -447,7 +456,7 @@ describe('Database', () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith' }, { _id: 16, name: 'John', surname: 'Wayne' }] });
 
             await db.open('any/path');
-            const result = db.replace('students', [{ field: 'name', value: 'Anna', type: 'eq' }], { _id: 15, name: 'Anna', surname: 'Wayne' }, { unique: ['grade'] });
+            const result = db.replace('students', 15, { _id: 15, name: 'Anna', surname: 'Wayne' }, { unique: ['grade'] });
             expect(result).toBe(0);
         });
 
@@ -455,79 +464,31 @@ describe('Database', () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith' }, { _id: 16, name: 'John', surname: 'Wayne' }] });
 
             await db.open('any/path');
-            const result = db.replace('students', [{ field: 'name', value: 'Anna', type: 'eq' }], { _id: 15, name: 'Anna', surname: 'Wayne' }, { unique: ['address.city'] });
+            const result = db.replace('students', 15, { _id: 15, name: 'Anna', surname: 'Wayne' }, { unique: ['address.city'] });
             expect(result).toBe(0);
         });
 
         it('should replace entry when restricted field is not a primitive value', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith' }, { _id: 16, name: 'John', surname: 'Wayne' }] });
+            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith', address: { city: 'LA' } }, { _id: 16, name: 'John', surname: 'Wayne', address: { city: 'SF' } }] });
 
             await db.open('any/path');
-            const result = db.replace('students', [{ field: 'name', value: 'John', type: 'eq' }], { _id: 15, name: 'Anna', surname: 'Wayne' });
-            expect(result).toBe(1);
+            const result = db.replace('students', 15, { _id: 15, name: 'Anna', surname: 'Wayne', address: { city: 'LA' } }, { unique: ['address'] });
+            expect(result).toBe(0);
         });
 
-        it('should replace entry when found in collection by not nested field', async () => {
+        it('should replace entry when found in collection', async () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna' }, { _id: 16, name: 'John' }] });
 
             await db.open('any/path');
-            const result = db.remove('students', [{ field: 'name', value: 'John', type: 'eq' }]);
+            const result = db.replace('students', 16);
             expect(result).toBe(1);
         });
 
-        it('should replace entry when found in collection by nested field', async () => {
+        it('should not replace entry when not found in collection', async () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith', address: { city: 'LA' } }, { _id: 16, name: 'John', surname: 'Wayne', address: { city: 'SF' } }] });
 
             await db.open('any/path');
-            const result = db.replace('students', [{ field: 'address.city', value: 'SF', type: 'eq' }], { _id: 15, name: 'John', surname: 'Wayne JR.', address: { city: 'SF' } });
-            expect(result).toBe(1);
-        });
-
-        it('should replace entry when found in collection by all of fields', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith', address: { city: 'LA' } }, { _id: 16, name: 'John', surname: 'Wayne', address: { city: 'SF' } }] });
-
-            await db.open('any/path');
-            const result = db.replace('students', [{ field: 'address.city', value: 'SF', type: 'eq' }, { field: 'name', value: 'John', type: 'eq' }], { _id: 15, name: 'John', surname: 'Wayne JR.', address: { city: 'SF' } });
-            expect(result).toBe(1);
-        });
-
-        it('should not replace entry when found in collection by not all of fields', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith', address: { city: 'LA' } }, { _id: 16, name: 'John', surname: 'Wayne', address: { city: 'SF' } }] });
-
-            await db.open('any/path');
-            const result = db.replace('students', [{ field: 'address.city', value: 'SF', type: 'eq' }, { field: 'name', value: 'Adam', type: 'eq' }], { _id: 15, name: 'John', surname: 'Wayne JR.', address: { city: 'SF' } });
-            expect(result).toBe(-1);
-        });
-
-        it('should not replace entry when not found in collection by existing field', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith', address: { city: 'LA' } }, { _id: 16, name: 'John', surname: 'Wayne', address: { city: 'SF' } }] });
-
-            await db.open('any/path');
-            const result = db.replace('students', [{ field: 'name', value: 'Bruce', type: 'eq' }], { _id: 15, name: 'John', surname: 'Wayne JR.', address: { city: 'SF' } });
-            expect(result).toBe(-1);
-        });
-
-        it('should not replace entry when not found in collection by not existing field', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith', address: { city: 'LA' } }, { _id: 16, name: 'John', surname: 'Wayne', address: { city: 'SF' } }] });
-
-            await db.open('any/path');
-            const result = db.replace('students', [{ field: 'age', value: 19, type: 'eq' }], { _id: 15, name: 'John', surname: 'Wayne JR.', address: { city: 'SF' } });
-            expect(result).toBe(-1);
-        });
-
-        it('should not replace entry when not found in collection by existing and not existing field', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith', address: { city: 'LA' } }, { _id: 16, name: 'John', surname: 'Wayne', address: { city: 'SF' } }] });
-
-            await db.open('any/path');
-            const result = db.replace('students', [{ field: 'name', value: 'John', type: 'eq' }, { field: 'age', value: '21', type: 'eq' }], { _id: 15, name: 'John', surname: 'Wayne JR.', address: { city: 'SF' } });
-            expect(result).toBe(-1);
-        });
-
-        it('should not replace entry when find by field with non primitive value', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', surname: 'Smith', address: { city: 'LA' } }, { _id: 16, name: 'John', surname: 'Wayne', address: { city: 'SF' } }] });
-
-            await db.open('any/path');
-            const result = db.replace('students', [{ field: 'address', value: { city: 'SF' }, type: 'eq' }], { _id: 15, name: 'John', surname: 'Wayne JR.', address: { city: 'SF' } });
+            const result = db.replace('students', 1001, { _id: 15, name: 'John', surname: 'Wayne JR.', address: { city: 'SF' } });
             expect(result).toBe(-1);
         });
     });
@@ -562,67 +523,19 @@ describe('Database', () => {
             }
         });
 
-        it('should remove entry when found in collection by not nested field', async () => {
+        it('should remove entry when found in collection', async () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna' }, { _id: 16, name: 'John' }] });
 
             await db.open('any/path');
-            const result = db.remove('students', [{ field: 'name', value: 'John', type: 'eq' }]);
+            const result = db.remove('students', 16);
             expect(result).toBe(1);
         });
 
-        it('should remove entry when found in collection by nested field', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', scores: { math: 90 } }, { _id: 16, name: 'John', scores: { math: 89 } }] });
-
-            await db.open('any/path');
-            const result = db.remove('students', [{ field: 'scores.math', value: 90, type: 'eq' }]);
-            expect(result).toBe(0);
-        });
-
-        it('should remove entry when found in collection by all of fields', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', scores: { math: 90 } }, { _id: 16, name: 'John', scores: { math: 89 } }] });
-
-            await db.open('any/path');
-            const result = db.remove('students', [{ field: 'scores.math', value: 90, type: 'eq' }, { field: 'name', value: 'Anna', type: 'eq' }]);
-            expect(result).toBe(0);
-        });
-
-        it('should not remove entry when found in collection by not all of fields', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', scores: { math: 90 } }, { _id: 16, name: 'John', scores: { math: 89 } }] });
-
-            await db.open('any/path');
-            const result = db.remove('students', [{ field: 'scores.math', value: 90, type: 'eq' }, { field: 'name', value: 'Katy', type: 'eq' }]);
-            expect(result).toBe(-1);
-        });
-
-        it('should not remove entry when not found in collection by existing field', async () => {
+        it('should not remove entry when not found in collection', async () => {
             jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'John' }] });
 
             await db.open('any/path');
-            const result = db.remove('students', [{ field: 'name', value: 'William', type: 'eq' }]);
-            expect(result).toBe(-1);
-        });
-
-        it('should not remove entry when not found in collection by not existing field', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'John' }] });
-
-            await db.open('any/path');
-            const result = db.remove('students', [{ field: 'age', value: 24, type: 'eq' }]);
-            expect(result).toBe(-1);
-        });
-
-        it('should not remove entry when not found in collection by existing and not existing field', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'John' }] });
-
-            await db.open('any/path');
-            const result = db.remove('students', [{ field: 'name', value: 'John', type: 'eq' }, { field: 'age', value: 24, type: 'eq' }]);
-            expect(result).toBe(-1);
-        });
-
-        it('should not remove entry when find by field with non primitive value', async () => {
-            jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({ students: [{ _id: 15, name: 'Anna', scores: { math: 90 } }, { _id: 16, name: 'John', scores: { math: 89 } }] });
-
-            await db.open('any/path');
-            const result = db.remove('students', [{ field: 'scores', value: { math: 90 }, type: 'eq' }]);
+            const result = db.remove('students', 16);
             expect(result).toBe(-1);
         });
     });

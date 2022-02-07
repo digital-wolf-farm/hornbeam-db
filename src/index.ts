@@ -81,14 +81,14 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
         }
     }
 
-    function replace(collectionName: unknown, query: unknown, data: unknown, options?: unknown): number {
+    function replace(collectionName: unknown, id: unknown, data: unknown, options?: unknown): number {
         try {
             if (!typeGuards.isString(collectionName)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
             }
 
-            if (!typeGuards.isQueryArray(query)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Query argument must be an array of valid queries.');
+            if (!typeGuards.isPositiveInteger(id)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Id argument must be an integer greater than 0.');
             }
 
             if (!typeGuards.isObject(data)) {
@@ -103,7 +103,7 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
                 throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
             }
 
-            return db.replace(collectionName, query, data, options);
+            return db.replace(collectionName, id, data, options);
         } catch (e) {
             db.close();
 
@@ -111,21 +111,21 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
         }
     }
 
-    function remove(collectionName: unknown, query: unknown): number {
+    function remove(collectionName: unknown, id: unknown): number {
         try {
             if (!typeGuards.isString(collectionName)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
             }
 
-            if (!typeGuards.isQueryArray(query)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Query argument must be an array of valid queries.');
+            if (!typeGuards.isPositiveInteger(id)) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Id argument must be an integer greater than 0.');
             }
 
             if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
                 throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
             }
 
-            return db.remove(collectionName, query);
+            return db.remove(collectionName, id);
         } catch (e) {
             db.close();
 

@@ -77,7 +77,7 @@ export const mockedDB: DBData = {
     ],
     "books": [
         {
-            "id": 1,
+            "_id": 1,
             "titleTranslated": "Iliada",
             "title": "Ἰλιάς Iliás",
             "authors": [
@@ -88,7 +88,7 @@ export const mockedDB: DBData = {
             ]
         },
         {
-            "id": 2,
+            "_id": 2,
             "titleTranslated": "",
             "title": "W pustyni i w puszczy",
             "authors": [
@@ -99,7 +99,7 @@ export const mockedDB: DBData = {
             ]
         },
         {
-            "id": 3,
+            "_id": 3,
             "titleTranslated": "Romeo i Julia",
             "title": "Romeo and Juliet",
             "authors": [
@@ -110,7 +110,7 @@ export const mockedDB: DBData = {
             ]
         },
         {
-            "id": 4,
+            "_id": 4,
             "titleTranslated": "",
             "title": "Kukuczka. Opowieść o najsłynniejszym polskim himalaiście",
             "authors": [
@@ -124,6 +124,7 @@ export const mockedDB: DBData = {
     ],
     "publishers": [
         {
+            "_id": 1,
             "name": "PWN",
             "founded": 1951,
             "address": {
@@ -132,6 +133,7 @@ export const mockedDB: DBData = {
             },
             "active": true
         }, {
+            "_id": 2,
             "name": "Świat Książki",
             "founded": 1994,
             "address": {
@@ -140,6 +142,7 @@ export const mockedDB: DBData = {
             },
             "active": true
         }, {
+            "_id": 3,
             "name": "Znak",
             "founded": 1959,
             "address": {
@@ -148,6 +151,7 @@ export const mockedDB: DBData = {
             },
             "active": true
         }, {
+            "_id": 4,
             "name": "Helion",
             "founded": 1991,
             "address": {
@@ -156,6 +160,7 @@ export const mockedDB: DBData = {
             },
             "active": true
         }, {
+            "_id": 5,
             "name": "Cambridge University Press",
             "founded": 1534,
             "address": {
@@ -164,6 +169,7 @@ export const mockedDB: DBData = {
             },
             "active": true
         }, {
+            "_id": 6,
             "name": "Harvard University Press",
             "founded": 1913,
             "address": {
@@ -172,6 +178,7 @@ export const mockedDB: DBData = {
             },
             "active": true
         }, {
+            "_id": 7,
             "name": "Macmillan Inc.",
             "founded": 1869,
             "address": {

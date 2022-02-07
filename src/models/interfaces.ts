@@ -21,8 +21,8 @@ export interface FindResults {
 export interface DB {
     insert(collectionName: string, data: object, options?: InsertOptions): number;
     find(collectionName: string, query: Query[], options?: FindOptions): FindResults;
-    replace(collectionName: string, query: Query[], data: object, options?: ReplaceOptions): number;
-    remove(collectionName: string, query: Query[]): number;
+    replace(collectionName: string, id: number, data: object, options?: ReplaceOptions): number;
+    remove(collectionName: string, id: number): number;
     open(path: string): Promise<void>;
     save(): Promise<void>;
     close(): void;
@@ -33,8 +33,8 @@ export interface DBAPI {
     insert(collectionName: unknown, data: unknown, options?: unknown): number;
     find(collectionName: unknown, query: unknown, options?: unknown): FindResults;
     findById(collectionName: unknown, id: number): Entry;
-    replace(collectionName: unknown, query: unknown, data: unknown, options?: unknown): number;
-    remove(collectionName: unknown, query: unknown): number;
+    replace(collectionName: unknown, id: unknown, data: unknown, options?: unknown): number;
+    remove(collectionName: unknown, id: unknown): number;
     open(path: unknown): Promise<void>;
     save(): Promise<void>;
     close(): void;

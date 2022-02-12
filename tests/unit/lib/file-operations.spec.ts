@@ -5,7 +5,7 @@ import { DBTaskError } from '../../../src/models/enums';
 
 describe('File operations', () => {
     const filePath = 'path/to/file.json';
-    const data = { collection1: [], collection: [{ field1: 'A', field2: 'B' }] };
+    const data = { collection1: [], collection2: [] };
 
     describe('Write', () => {
         it('should write file when no exception occurs', async () => {

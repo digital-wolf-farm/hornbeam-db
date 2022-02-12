@@ -1,5 +1,5 @@
 import { DBTaskError } from '../models/enums';
-import { InsertOptions, DBData, Entry, FindOptions, Query, ReplaceOptions, FindResults, SortingOptions, DB } from '../models/interfaces';
+import { InsertOptions, DBData, Entry, FindOptions, Query, ReplaceOptions, FindResults, SortingOptions, DB, NewEntry } from '../models/interfaces';
 import { DBConfig } from '../utils/db-config';
 import { TaskError } from '../utils/errors';
 import { dbSchemaValidator } from './database-schema-validator';
@@ -11,21 +11,21 @@ export function createDB(config: DBConfig): DB {
     let database: DBData;
     let databaseFilePath: string;
 
-    function getProperty(field: string, object: {}): unknown {
+    function getProperty(field: string, object: Entry): unknown {
         return field.split('.').reduce((obj, prop) => {
-            if (!obj || !obj.hasOwnProperty(prop)) {
+            if (!obj || !Object.prototype.hasOwnProperty.call(obj, prop)) {
                 throw DBTaskError.FieldNotFound;
             } else {
                 return obj[prop];
             }
-        }, object);
+        }, object as any);
     }
 
     function calculateDatabaseUsage(): number {
         return (Buffer.byteLength(JSON.stringify(database)) / (1024 * 1024)) / config.dbSize;
     }
 
-    function checkValuesUniqueness(collectionName: string, data: Entry, uniqueFields: string[]): void {
+    function checkValuesUniqueness(collectionName: string, data: NewEntry | Entry, uniqueFields: string[]): void {
         if (database[collectionName].length === 0) {
             return;
         }
@@ -190,7 +190,7 @@ export function createDB(config: DBConfig): DB {
         filteredEntries.sort((a, b) => compareValuesOrder(a, b, sortingOptions));
     }
 
-    function insert(collectionName: string, data: object, options?: InsertOptions): number {
+    function insert(collectionName: string, data: NewEntry, options?: InsertOptions): number {
         isDatabaseOpen();
 
         if (!database[collectionName]) {
@@ -201,10 +201,8 @@ export function createDB(config: DBConfig): DB {
             checkValuesUniqueness(collectionName, data, options.unique);
         }
 
-        const entry = { ...data };
         const entryId = createId(collectionName);
-
-        entry['_id'] = entryId;
+        const entry: Entry = { _id: entryId, ...data };
 
         database[collectionName].push(entry);
 
@@ -245,7 +243,7 @@ export function createDB(config: DBConfig): DB {
         return { data: foundEntries };
     }
 
-    function replace(collectionName: string, id: number, data: object, options?: ReplaceOptions): number {
+    function replace(collectionName: string, id: number, data: Entry, options?: ReplaceOptions): number {
         isDatabaseOpen();
         isCollectionCreated(collectionName);
 

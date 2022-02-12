@@ -1,6 +1,6 @@
-import { DBAPI, FindResults } from './models/interfaces';
+import { DBAPI, Entry, FindResults } from './models/interfaces';
 import { DBConfig } from './utils/db-config';
-import { DBMethod, DBTaskError } from './models/enums';
+import { DBMethod, DBTaskError, FilterType } from './models/enums';
 import { MethodError, TaskError } from './utils/errors';
 import { typeGuards } from './lib/type-guards';
 import { createDB } from './lib/database';
@@ -63,7 +63,7 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
         }
     }
 
-    function findById(collectionName: unknown, id: unknown): FindResults {
+    function findById(collectionName: unknown, id: unknown): Entry {
         try {
             if (!typeGuards.isString(collectionName)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
@@ -73,7 +73,7 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Id argument must be an integer greater than 0.');
             }
 
-            return db.find(collectionName, [{ type: 'eq', field: '_id', value: id }]);
+            return db.find(collectionName, [{ type: FilterType.Equals, field: '_id', value: id }]).data[0];
         } catch (e) {
             db.close();
 

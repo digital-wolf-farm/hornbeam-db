@@ -1,3 +1,4 @@
+import { FilterType } from '../models/enums';
 import { InsertOptions, FindOptions, PaginationOptions, Query, SortingOptions } from '../models/interfaces';
 
 // Guards for JS data types
@@ -71,7 +72,7 @@ function isPaginationOptionsValid(value: unknown): value is PaginationOptions {
         return false;
     }
 
-    if (!isNumber(value['pageNumber']) || !isNumber(value['pageSize'])) {
+    if (!isPositiveInteger(value['pageNumber']) || !isPositiveInteger(value['pageSize'])) {
         return false;
     }
 
@@ -153,7 +154,15 @@ function isQueryObjectValid(value: unknown): value is Query {
         return false;
     }
 
-    if (!isString(value['type']) || !isString(value['field'])) {
+    if (!isString(value['type']) || !Object.keys(FilterType).map((type) => FilterType[type]).includes(value['type'])) {
+        return false;
+    }
+
+    if (!isString(value['field'])) {
+        return false;
+    }
+
+    if (value['value'] === Object(value['value'])) {
         return false;
     }
 

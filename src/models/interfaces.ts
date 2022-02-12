@@ -1,32 +1,9 @@
-export interface Entry {
-    [field: string]: any;
-}
+import { FilterType } from './enums';
 
-export interface DBData {
-    [collectionName: string]: Entry[];
-}
-
-export interface PaginationResults {
-    entriesNumber: number;
-    pagesNumber: number;
-    pageNumber: number;
-    pageSize: number;
-}
-
-export interface FindResults {
-    data: Entry[];
-    pagination?: PaginationResults;
-}
-
-export interface DB {
-    insert(collectionName: string, data: object, options?: InsertOptions): number;
-    find(collectionName: string, query: Query[], options?: FindOptions): FindResults;
-    replace(collectionName: string, id: number, data: object, options?: ReplaceOptions): number;
-    remove(collectionName: string, id: number): number;
-    open(path: string): Promise<void>;
-    save(): Promise<void>;
-    close(): void;
-    stat(): string;
+export interface DBConfiguration {
+    dbSize: number;
+    collectionNameMinLength: number;
+    collectionNameMaxLength: number;
 }
 
 export interface DBAPI {
@@ -41,10 +18,41 @@ export interface DBAPI {
     stat(): string;
 }
 
-export interface DBConfiguration {
-    dbSize: number;
-    collectionNameMinLength: number;
-    collectionNameMaxLength: number;
+export interface DB {
+    insert(collectionName: string, data: object, options?: InsertOptions): number;
+    find(collectionName: string, query: Query[], options?: FindOptions): FindResults;
+    replace(collectionName: string, id: number, data: object, options?: ReplaceOptions): number;
+    remove(collectionName: string, id: number): number;
+    open(path: string): Promise<void>;
+    save(): Promise<void>;
+    close(): void;
+    stat(): string;
+}
+
+export interface DBData {
+    [collectionName: string]: Entry[];
+}
+
+export interface NewEntry {
+    _id: never;
+    [field: string]: unknown;
+}
+
+export interface Entry {
+    _id: number;
+    [field: string]: unknown;
+}
+
+export interface PaginationResults {
+    entriesNumber: number;
+    pagesNumber: number;
+    pageNumber: number;
+    pageSize: number;
+}
+
+export interface FindResults {
+    data: Entry[];
+    pagination?: PaginationResults;
 }
 
 export interface InsertOptions {
@@ -71,7 +79,7 @@ export interface FindOptions {
 }
 
 export interface Query {
-    type: string;
+    type: FilterType;
     field: string;
     value: unknown;
 }

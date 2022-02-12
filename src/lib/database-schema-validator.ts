@@ -42,6 +42,12 @@ function validate(db: unknown, config: DBConfig): void {
                 throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Entry must contain at least 1 custom fields.');
             }
         });
+
+        const idsArray = collection.map((entry) => entry['_id']);
+
+        if (new Set(idsArray).size !== idsArray.length) {
+            throw new TaskError(DBTaskError.DatabaseSchemaMismatch, 'Every entry within collection has to have unique id.');
+        }
     });
 }
 

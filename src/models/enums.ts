@@ -25,7 +25,8 @@ export enum DBTaskError {
 
 export enum FilterType {
     // Contains = 'contains',
-    Equals = 'eq',
+    Eq = 'eq',
+    Eqi = 'eqi',
     Greater = 'gt',
     GreaterOrEqual = 'gte',
     Less = 'lt',

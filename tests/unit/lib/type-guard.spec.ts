@@ -92,6 +92,7 @@ describe.only('Type Guards', () => {
             expect(typeGuards.isInsertOptionsObject({ unique: [{}, {}] })).toBe(false);
             expect(typeGuards.isInsertOptionsObject({ unique: ['a', 'b'], someProperty: 'someValue' })).toBe(false);
             expect(typeGuards.isInsertOptionsObject({ someProperty: 'someValue' })).toBe(false);
+            expect(typeGuards.isInsertOptionsObject({ unique: ['_id'] })).toBe(false);
         });
     });
 
@@ -112,6 +113,7 @@ describe.only('Type Guards', () => {
             expect(typeGuards.isReplaceOptionsObject({ unique: [{}, {}] })).toBe(false);
             expect(typeGuards.isReplaceOptionsObject({ unique: ['a', 'b'], someProperty: 'someValue' })).toBe(false);
             expect(typeGuards.isReplaceOptionsObject({ someProperty: 'someValue' })).toBe(false);
+            expect(typeGuards.isReplaceOptionsObject({ unique: ['_id'] })).toBe(false);
         });
     });
 

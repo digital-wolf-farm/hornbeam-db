@@ -17,7 +17,7 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
             }
 
-            if (!typeGuards.isObject(data)) {
+            if (!typeGuards.isNewEntry(data)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Data argument must be an object.');
             }
 
@@ -91,7 +91,7 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Id argument must be an integer greater than 0.');
             }
 
-            if (!typeGuards.isObject(data)) {
+            if (!typeGuards.isEntry(data)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Data argument must be an object.');
             }
 

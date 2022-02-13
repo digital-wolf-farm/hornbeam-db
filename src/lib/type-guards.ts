@@ -1,5 +1,5 @@
 import { FilterType } from '../models/enums';
-import { InsertOptions, FindOptions, PaginationOptions, Query, SortingOptions } from '../models/interfaces';
+import { InsertOptions, FindOptions, PaginationOptions, Query, SortingOptions, NewEntry, Entry } from '../models/interfaces';
 
 // Guards for JS data types
 
@@ -25,6 +25,30 @@ function isString(value: unknown): value is string {
 
 // Guard for custom data types
 
+function isNewEntry(value: unknown): value is NewEntry {
+    if (!isObject(value)) {
+        return false;
+    }
+
+    if (value['_id']) {
+        return false;
+    }
+
+    return true;
+}
+
+function isEntry(value: unknown): value is Entry {
+    if (!isObject(value)) {
+        return false;
+    }
+
+    if (!value['_id']) {
+        return false;
+    }
+
+    return true;
+}
+
 function isInsertOptionsObject(value: unknown): value is InsertOptions {
     if (!isObject(value)) {
         return false;
@@ -36,7 +60,7 @@ function isInsertOptionsObject(value: unknown): value is InsertOptions {
         return false;
     }
 
-    if (!isArray(value['unique']) || value['unique'].length === 0 || !value['unique'].every((element) => isString(element))) {
+    if (!isArray(value['unique']) || value['unique'].length === 0 || value['unique'].findIndex((field) => field === '_id') !== -1 || !value['unique'].every((element) => isString(element))) {
         return false;
     }
 
@@ -54,7 +78,7 @@ function isReplaceOptionsObject(value: unknown): value is InsertOptions {
         return false;
     }
 
-    if (!isArray(value['unique']) || value['unique'].length === 0 || !value['unique'].every((element) => isString(element))) {
+    if (!isArray(value['unique']) || value['unique'].length === 0 || value['unique'].findIndex((field) => field === '_id') !== -1 || !value['unique'].every((element) => isString(element))) {
         return false;
     }
 
@@ -175,6 +199,8 @@ export const typeGuards = {
     isObject,
     isPositiveInteger,
     isString,
+    isNewEntry,
+    isEntry,
     isInsertOptionsObject,
     isReplaceOptionsObject,
     isFindOptionsObject,

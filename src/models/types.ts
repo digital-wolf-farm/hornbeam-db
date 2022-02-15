@@ -1,5 +1,5 @@
 import { FilterType } from './enums';
 
 export type FiltersList = {
-    [key in FilterType]: (item: unknown, value: unknown) => boolean;
+    [key in FilterType]: (entryValue: unknown, reference: unknown) => boolean;
 }

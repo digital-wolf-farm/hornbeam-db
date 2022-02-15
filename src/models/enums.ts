@@ -24,14 +24,13 @@ export enum DBTaskError {
 }
 
 export enum FilterType {
-    // Contains = 'contains',
-    Eq = 'eq',
-    Eqi = 'eqi',
+    Equal = 'eq',
+    Equali = 'eqi',
+    NotEqual = 'neq',
+    NotEquali = 'neqi',
     Greater = 'gt',
     GreaterOrEqual = 'gte',
-    Less = 'lt',
-    LessOrEqual = 'lte',
-    NotEqual = 'ne',
-    // InArray = 'in',
-    // NotInArray = 'nin'
+    LessThan = 'lt',
+    LessThanOrEqual = 'lte',
+    Exist = 'exist'
 }

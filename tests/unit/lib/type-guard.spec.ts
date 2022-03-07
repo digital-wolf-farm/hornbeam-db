@@ -1,6 +1,6 @@
 import { typeGuards } from '../../../src/lib/type-guards';
 
-describe('Type Guards', () => {
+describe.skip('Type Guards', () => {
     describe('isArray', () => {
         it('should return true when array is passed', () => {
             expect(typeGuards.isArray([])).toBe(true);

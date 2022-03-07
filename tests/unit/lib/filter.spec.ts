@@ -2,7 +2,7 @@ import { filters } from '../../../src/lib/filters';
 
 // INFO: Only primitive value valid for JSON format (string, number, boolean and null) should be passed to filters
 
-describe('Filter', () => {
+describe.skip('Filter', () => {
     describe('Equal (case-sensitive) - "eq"', () => {
         it('should return true when elements are equal', () => {
             expect(filters.eq('text', 'text')).toBe(true);

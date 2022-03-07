@@ -1,6 +1,8 @@
 # HornbeamDB
 Simple database for storing data in JSON file.
 
+[More info](dist/README.md)
+
 ## Goals to archieve
 * No need to install additional software to store data locally on NodeJS apps.
 * Light - only useful functionality, no excessive resource usage.

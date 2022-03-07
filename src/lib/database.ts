@@ -1,5 +1,5 @@
 import { DBTaskError } from '../models/enums';
-import { InsertOptions, DBData, Entry, FindOptions, Query, ReplaceOptions, FindResults, SortingOptions, DB, NewEntry } from '../models/interfaces';
+import { DBData, Entry, FindOptions, Query, FindResults, SortingOptions, DB, NewEntry } from '../models/interfaces';
 import { DBConfig } from '../utils/db-config';
 import { TaskError } from '../utils/errors';
 import { dbSchemaValidator } from './database-schema-validator';
@@ -10,6 +10,8 @@ export function createDB(config: DBConfig): DB {
 
     let database: DBData;
     let databaseFilePath: string;
+
+    // Private methods
 
     function getProperty(field: string, object: Entry): unknown {
         return field.split('.').reduce((obj, prop) => {
@@ -190,15 +192,61 @@ export function createDB(config: DBConfig): DB {
         filteredEntries.sort((a, b) => compareValuesOrder(a, b, sortingOptions));
     }
 
-    function insert(collectionName: string, data: NewEntry, options?: InsertOptions): number {
+    // Public methods
+
+    async function open(path: string): Promise<void> {
+        clearDatabaseCache();
+
+        try {
+            databaseFilePath = path;
+            database = await fileOperations.read(path);
+
+            dbSchemaValidator.validate(database, config);
+            isDatabaseSizeNotExceeded();
+        } catch (e) {
+            if (e.error === DBTaskError.FileNotFound) {
+                database = {};
+            } else {
+                clearDatabaseCache();
+                throw e;
+            }
+        }
+    }
+
+    async function save(): Promise<void> {
+        try {
+            isDatabaseOpen();
+            dbSchemaValidator.validate(database, config);
+            isDatabaseSizeNotExceeded();
+
+            await fileOperations.write(databaseFilePath, database);
+        } catch {
+            const path = databaseFilePath;
+            clearDatabaseCache();
+
+            await open(path);
+        }
+    }
+
+    function close(): void {
+        clearDatabaseCache();
+    }
+
+    function stats(): string {
+        isDatabaseOpen();
+
+        return calculateDatabaseUsage().toFixed(2);
+    }
+
+    function insert(collectionName: string, data: NewEntry, uniqueFields?: string[]): number {
         isDatabaseOpen();
 
         if (!database[collectionName]) {
             database[collectionName] = [];
         }
 
-        if (options?.unique) {
-            checkValuesUniqueness(collectionName, data, options.unique);
+        if (uniqueFields) {
+            checkValuesUniqueness(collectionName, data, uniqueFields);
         }
 
         const entryId = createId(collectionName);
@@ -243,82 +291,41 @@ export function createDB(config: DBConfig): DB {
         return { data: foundEntries };
     }
 
-    function replace(collectionName: string, id: number, data: Entry, options?: ReplaceOptions): number {
-        isDatabaseOpen();
-        isCollectionCreated(collectionName);
+    function replace(collectionName: string, query: Query[], data: Entry, uniqueFields?: string[]): number {
+        // isDatabaseOpen();
+        // isCollectionCreated(collectionName);
 
-        if (options?.unique) {
-            checkValuesUniqueness(collectionName, data, options.unique)
-        }
+        // if (options?.unique) {
+        //     checkValuesUniqueness(collectionName, data, options.unique)
+        // }
 
-        const entryIndex = findEntryIndex(collectionName, id);
+        // const entryIndex = findEntryIndex(collectionName, id);
 
-        if (entryIndex !== -1) {
-            const newEntry = { ...data };
-            newEntry['_id'] = id;
+        // if (entryIndex !== -1) {
+        //     const newEntry = { ...data };
+        //     newEntry['_id'] = id;
 
-            database[collectionName][entryIndex] = newEntry;
-        }
+        //     database[collectionName][entryIndex] = newEntry;
+        // }
 
-        isDatabaseSizeNotExceeded();
+        // isDatabaseSizeNotExceeded();
 
-        return entryIndex;
+        // return entryIndex;
+        return 0;
     }
 
-    function remove(collectionName: string, id: number): number {
-        isDatabaseOpen();
-        isCollectionCreated(collectionName);
+    function remove(collectionName: string, query: Query[]): number {
+        // isDatabaseOpen();
+        // isCollectionCreated(collectionName);
 
-        const entryIndex = findEntryIndex(collectionName, id);
+        // const entryIndex = findEntryIndex(collectionName, id);
 
-        if (entryIndex !== -1) {
-            database[collectionName].splice(entryIndex, 1);
-        }
+        // if (entryIndex !== -1) {
+        //     database[collectionName].splice(entryIndex, 1);
+        // }
 
-        return entryIndex;
-    }
-
-    async function open(path: string): Promise<void> {
-        if (database) {
-            database = undefined;
-        }
-
-        try {
-            databaseFilePath = path;
-            database = await fileOperations.read(path);
-
-            dbSchemaValidator.validate(database, config);
-            isDatabaseSizeNotExceeded();
-        } catch (e) {
-            if (e.error === DBTaskError.FileNotFound) {
-                database = {};
-            } else {
-                clearDatabaseCache();
-                throw e;
-            }
-        }
-    }
-
-    async function save(): Promise<void> {
-        try {
-            isDatabaseOpen();
-            dbSchemaValidator.validate(database, config);
-            isDatabaseSizeNotExceeded();
-
-            await fileOperations.write(databaseFilePath, database);
-        } finally {
-            clearDatabaseCache();
-        }
-    }
-
-    function close(): void {
-        clearDatabaseCache();
-    }
-
-    function stat(): string {
-        isDatabaseOpen();
-
-        return calculateDatabaseUsage().toFixed(2);
+        // return entryIndex;
+        return 0;
     }
 
     return {
@@ -329,6 +336,6 @@ export function createDB(config: DBConfig): DB {
         open,
         save,
         close,
-        stat
+        stats
     }
 }

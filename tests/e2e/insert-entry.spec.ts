@@ -2,7 +2,7 @@ import { DB } from '../../src/models/interfaces';
 import { DBTaskError } from '../../src/models/enums';
 import hornbeamDB from '../../src/index';
 
-describe.skip('Insert entry', () => {
+describe('Insert entry', () => {
     let db: DB;
 
     beforeEach(() => {
@@ -63,7 +63,7 @@ describe.skip('Insert entry', () => {
             await db.open('tests/e2e/test-db.json');
             db.insert('collection1', { 'name': 'Krzysztof', address: { city: 'Gdańsk' } }, { unique: ['address.main.postal'] });
             await db.save();
-            // expect(true).toBe(false);
+            expect(true).toBe(false);
         } catch (e) {
             console.log(e);
             expect(e.error).toBe(DBTaskError.CollectionNameMismatch);

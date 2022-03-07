@@ -1,5 +1,5 @@
 import { FilterType } from '../models/enums';
-import { InsertOptions, FindOptions, PaginationOptions, Query, SortingOptions, NewEntry, Entry } from '../models/interfaces';
+import { FindOptions, PaginationOptions, Query, SortingOptions, NewEntry, Entry } from '../models/interfaces';
 
 // Guards for JS data types
 
@@ -49,36 +49,16 @@ function isEntry(value: unknown): value is Entry {
     return true;
 }
 
-function isInsertOptionsObject(value: unknown): value is InsertOptions {
-    if (!isObject(value)) {
+function isUniqueFieldsArray(value: unknown): value is string[] {
+    if (!isArray(value)) {
         return false;
     }
 
-    const keys = Object.keys(value);
-
-    if (keys.length !== 1 || !value['unique']) {
+    if (value.length === 0) {
         return false;
     }
 
-    if (!isArray(value['unique']) || value['unique'].length === 0 || value['unique'].findIndex((field) => field === '_id') !== -1 || !value['unique'].every((element) => isString(element))) {
-        return false;
-    }
-
-    return true;
-}
-
-function isReplaceOptionsObject(value: unknown): value is InsertOptions {
-    if (!isObject(value)) {
-        return false;
-    }
-
-    const keys = Object.keys(value);
-
-    if (keys.length !== 1 || !value['unique']) {
-        return false;
-    }
-
-    if (!isArray(value['unique']) || value['unique'].length === 0 || value['unique'].findIndex((field) => field === '_id') !== -1 || !value['unique'].every((element) => isString(element))) {
+    if (value.findIndex((field) => field === '_id') !== -1 || !value.every((element) => isString(element))) {
         return false;
     }
 
@@ -201,8 +181,7 @@ export const typeGuards = {
     isString,
     isNewEntry,
     isEntry,
-    isInsertOptionsObject,
-    isReplaceOptionsObject,
+    isUniqueFieldsArray,
     isFindOptionsObject,
     isQueryArray
 };

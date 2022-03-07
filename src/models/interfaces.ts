@@ -6,27 +6,21 @@ export interface DBConfiguration {
     collectionNameMaxLength: number;
 }
 
-export interface DBAPI {
-    insert(collectionName: unknown, data: unknown, options?: unknown): number;
-    find(collectionName: unknown, query: unknown, options?: unknown): FindResults;
-    findById(collectionName: unknown, id: number): Entry;
-    replace(collectionName: unknown, id: unknown, data: unknown, options?: unknown): number;
-    remove(collectionName: unknown, id: unknown): number;
-    open(path: unknown): Promise<void>;
-    save(): Promise<void>;
-    close(): void;
-    stat(): string;
-}
-
 export interface DB {
-    insert(collectionName: string, data: object, options?: InsertOptions): number;
-    find(collectionName: string, query: Query[], options?: FindOptions): FindResults;
-    replace(collectionName: string, id: number, data: object, options?: ReplaceOptions): number;
-    remove(collectionName: string, id: number): number;
     open(path: string): Promise<void>;
     save(): Promise<void>;
     close(): void;
-    stat(): string;
+    stats(): string;
+    insert(collectionName: string, data: object, uniqueFields?: string[]): number;
+    find(collectionName: string, query: Query[] | [], options?: FindOptions): FindResults;
+    replace(collectionName: string, query: Query[], data: object, uniqueFields?: string[]): number;
+    remove(collectionName: string, query: Query[]): number;
+}
+
+export interface DBAPI extends DB {
+    findById(collectionName: string, id: number): Entry;
+    replaceById(collectionName: string, id: number, data: object, uniqueFields?: string[]): number;
+    removeById(collectionName: string, id: number): number;
 }
 
 export interface DBData {
@@ -53,14 +47,6 @@ export interface PaginationResults {
 export interface FindResults {
     data: Entry[];
     pagination?: PaginationResults;
-}
-
-export interface InsertOptions {
-    unique: string[];
-}
-
-export interface ReplaceOptions {
-    unique: string[];
 }
 
 export interface PaginationOptions {

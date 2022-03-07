@@ -1,6 +1,6 @@
 import { validators } from '../../../src/lib/validators';
 
-describe('Validators', () => {
+describe.skip('Validators', () => {
     describe('validateCollectionName', () => {
         const minLength = 4;
         const maxLength = 12;

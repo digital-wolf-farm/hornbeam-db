@@ -8,7 +8,7 @@
 
 ## API
 
-### Database methods
+### Database operation methods
 
 1. Open (load from file) database
 
@@ -51,6 +51,38 @@
     Possible errors:
     * `DATABASE_NOT_OPEN`
 
+### Data manipulation methods
+
+1. Insert new entry
+
+    ```js
+    insert(collectionName: string, data: NewEntry, uniqueFields?: string[]): number
+    ```
+    Possible errors:
+    * `FUNCTION_ARGUMENT_MISMATCH`
+    * `DATABASE_NOT_OPEN`
+    * `FIELD_VALUE_NOT_UNIQUE`
+    * `DATABASE_SIZE_EXCEEDED`
+
+2. Find entries
+
+    ```js
+    find(collectionName: string, query: Query[], options?: FindOptions): FindResults
+    ```
+    Possible errors:
+    * `FUNCTION_ARGUMENT_MISMATCH`
+    * `DATABASE_NOT_OPEN`
+    * `COLLECTION_NOT_EXISTS`
+
+3. Find entry by id
+
+    ```js
+    findById(collectionName: string, id: number): Entry
+    ```
+    Possible errors:
+    * `FUNCTION_ARGUMENT_MISMATCH`
+    * `DATABASE_NOT_OPEN`
+    * `COLLECTION_NOT_EXISTS`
 
 ## Errors
 

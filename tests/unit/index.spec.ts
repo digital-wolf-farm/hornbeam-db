@@ -1,34 +1,36 @@
-import hornbeamDB from '../../src';
+import { hornbeamDB } from '../../src';
 import { typeGuards } from '../../src/lib/type-guards';
 import { validators } from '../../src/lib/validators';
 import { DBAPI } from '../../src/models/interfaces';
 import { DBConfig } from '../../src/utils/db-config';
-import { createDB } from '../../src/lib/database';
+import createDB from '../../src/lib/database';
 
-describe.only('HornbeamDB', () => {
-    // const openFn = jest.fn();
+const databaseMock = {
+    open: jest.fn()
+};
 
-    // jest.mock('../../src/lib/database', () => ({
-    //     createDB : jest.fn()
-    // }));
+jest.mock('../../src/lib/database', () => {
+    const createDB = jest.fn(() => databaseMock);
 
-    // (createDB as any).mockImplementation(() => ({
-    //     open: openFn
-    // }))
+    return {
+        default: createDB
+    };
+});
 
-    describe('open database', () => {
+describe.skip('HornbeamDB', () => {
+
+    describe('Open database', () => {
         let db: DBAPI;
 
         beforeEach(() => {
             db = hornbeamDB();
         });
 
-        it('should call open function, when path is valid', async () => {
+        it('should call open function when path is valid', async () => {
             const path = 'valid/path/to/file.json';
 
             jest.spyOn(typeGuards, 'isString').mockReturnValueOnce(true);
             jest.spyOn(validators, 'validatePath').mockReturnValueOnce(true);
-            jest.spyOn(createDB.prototype, 'open');
 
             try {
                 await db.open(path);
@@ -36,7 +38,8 @@ describe.only('HornbeamDB', () => {
                 expect(true).toBe(false);
             }
 
-            // expect(openFn).toHaveBeenCalled();
+            expect(createDB).toHaveBeenCalled();
+            expect(databaseMock.open).toHaveBeenCalled();
         });
     });
 

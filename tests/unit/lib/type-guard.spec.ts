@@ -75,47 +75,47 @@ describe.skip('Type Guards', () => {
         });
     });
 
-    describe('isInsertOptionsObject', () => {
-        it('should return true when valid object is passed', () => {
-            expect(typeGuards.isInsertOptionsObject({ unique: ['a', 'b'] })).toBe(true);
-        });
+    // describe('isInsertOptionsObject', () => {
+    //     it('should return true when valid object is passed', () => {
+    //         expect(typeGuards.isInsertOptionsObject({ unique: ['a', 'b'] })).toBe(true);
+    //     });
 
-        it('should return false when invalid value is passed', () => {
-            expect(typeGuards.isInsertOptionsObject(undefined)).toBe(false);
-            expect(typeGuards.isInsertOptionsObject('abc')).toBe(false);
-            expect(typeGuards.isInsertOptionsObject(123)).toBe(false);
-            expect(typeGuards.isInsertOptionsObject({})).toBe(false);
-            expect(typeGuards.isInsertOptionsObject([])).toBe(false);
-            expect(typeGuards.isInsertOptionsObject(() => { })).toBe(false);
-            expect(typeGuards.isInsertOptionsObject({ unique: [] })).toBe(false);
-            expect(typeGuards.isInsertOptionsObject({ unique: [1, 2] })).toBe(false);
-            expect(typeGuards.isInsertOptionsObject({ unique: [{}, {}] })).toBe(false);
-            expect(typeGuards.isInsertOptionsObject({ unique: ['a', 'b'], someProperty: 'someValue' })).toBe(false);
-            expect(typeGuards.isInsertOptionsObject({ someProperty: 'someValue' })).toBe(false);
-            expect(typeGuards.isInsertOptionsObject({ unique: ['_id'] })).toBe(false);
-        });
-    });
+    //     it('should return false when invalid value is passed', () => {
+    //         expect(typeGuards.isInsertOptionsObject(undefined)).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject('abc')).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject(123)).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject({})).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject([])).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject(() => { })).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject({ unique: [] })).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject({ unique: [1, 2] })).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject({ unique: [{}, {}] })).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject({ unique: ['a', 'b'], someProperty: 'someValue' })).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject({ someProperty: 'someValue' })).toBe(false);
+    //         expect(typeGuards.isInsertOptionsObject({ unique: ['_id'] })).toBe(false);
+    //     });
+    // });
 
-    describe('isReplaceOptionsObject', () => {
-        it('should return true when valid object is passed', () => {
-            expect(typeGuards.isReplaceOptionsObject({ unique: ['a', 'b'] })).toBe(true);
-        });
+    // describe('isReplaceOptionsObject', () => {
+    //     it('should return true when valid object is passed', () => {
+    //         expect(typeGuards.isReplaceOptionsObject({ unique: ['a', 'b'] })).toBe(true);
+    //     });
 
-        it('should return false when invalid value is passed', () => {
-            expect(typeGuards.isReplaceOptionsObject(undefined)).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject('abc')).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject(123)).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject({})).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject([])).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject(() => { })).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject({ unique: [] })).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject({ unique: [1, 2] })).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject({ unique: [{}, {}] })).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject({ unique: ['a', 'b'], someProperty: 'someValue' })).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject({ someProperty: 'someValue' })).toBe(false);
-            expect(typeGuards.isReplaceOptionsObject({ unique: ['_id'] })).toBe(false);
-        });
-    });
+    //     it('should return false when invalid value is passed', () => {
+    //         expect(typeGuards.isReplaceOptionsObject(undefined)).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject('abc')).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject(123)).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject({})).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject([])).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject(() => { })).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject({ unique: [] })).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject({ unique: [1, 2] })).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject({ unique: [{}, {}] })).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject({ unique: ['a', 'b'], someProperty: 'someValue' })).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject({ someProperty: 'someValue' })).toBe(false);
+    //         expect(typeGuards.isReplaceOptionsObject({ unique: ['_id'] })).toBe(false);
+    //     });
+    // });
 
     describe('isFindOptionsObject', () => {
         it('should return true when valid object is passed', () => {

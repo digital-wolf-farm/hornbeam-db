@@ -27,6 +27,11 @@ export interface DBData {
     [collectionName: string]: Entry[];
 }
 
+export interface CachedDB {
+    path: string;
+    data: DBData;
+}
+
 export interface NewEntry {
     _id: never;
     [field: string]: unknown;

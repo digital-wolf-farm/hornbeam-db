@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import { fileOperations } from '../../../src/lib/file-operations';
 import { DBTaskError } from '../../../src/models/enums';
 
-describe('File operations', () => {
+describe.skip('File operations', () => {
     const filePath = 'path/to/file.json';
     const data = { collection1: [], collection2: [] };
 

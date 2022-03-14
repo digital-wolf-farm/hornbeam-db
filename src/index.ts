@@ -1,15 +1,15 @@
-import { DBAPI, Entry, FindResults, NewEntry, Query } from './models/interfaces';
+import { DBAPI, Entry, FindOptions, FindResults, NewEntry, Query } from './models/interfaces';
 import { DBConfig } from './utils/db-config';
 import { DBMethod, DBTaskError, FilterType } from './models/enums';
 import { MethodError, TaskError } from './utils/errors';
 import { typeGuards } from './lib/type-guards';
-import { createDB } from './lib/database';
+import createDB from './lib/database';
 import { validators } from './lib/validators';
 
-export default function hornbeamDB(configuration?: DBConfig): DBAPI {
+export const hornbeamDB = (configuration?: DBConfig): DBAPI => {
 
     const config: DBConfig = configuration instanceof DBConfig ? configuration : new DBConfig();
-    const db = createDB(config);
+    const db = createDB();
 
     async function open(path: string): Promise<void> {
         try {
@@ -53,7 +53,7 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
             }
 
             if (!typeGuards.isNewEntry(data)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Data argument must be an object withoud \'_id\' property.');
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Data argument must be an object without \'_id\' property.');
             }
 
             if (uniqueFields !== undefined && !typeGuards.isUniqueFieldsArray(uniqueFields)) {
@@ -68,10 +68,13 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
         }
     }
 
-    function find(collectionName: unknown, query: unknown, options?: unknown): FindResults {
+    function find(collectionName: string, query: Query[], options?: FindOptions): FindResults {
         try {
-            if (!typeGuards.isString(collectionName)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
+            if (
+                !typeGuards.isString(collectionName) ||
+                !validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )
+            ) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name must be a string containing only letters, numbers, hyphens and underscores.');
             }
 
             if (!typeGuards.isQueryArray(query)) {
@@ -82,10 +85,6 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Options argument must be a valid options object.');
             }
 
-            if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
-                throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
-            }
-
             return db.find(collectionName, query, options);
         } catch (e) {
             db.close();
@@ -94,10 +93,13 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
         }
     }
 
-    function findById(collectionName: unknown, id: unknown): Entry {
+    function findById(collectionName: string, id: number): Entry {
         try {
-            if (!typeGuards.isString(collectionName)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
+            if (
+                !typeGuards.isString(collectionName) ||
+                !validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )
+            ) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name must be a string containing only letters, numbers, hyphens and underscores.');
             }
 
             if (!typeGuards.isPositiveInteger(id)) {
@@ -114,8 +116,11 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
 
     function replace(collectionName: unknown, query: Query[], data: unknown, uniqueFields?: string[]): number {
         try {
-            if (!typeGuards.isString(collectionName)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
+            if (
+                !typeGuards.isString(collectionName) ||
+                !validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )
+            ) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name must be a string containing only letters, numbers, hyphens and underscores.');
             }
 
             if (!typeGuards.isEntry(data)) {
@@ -124,10 +129,6 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
 
             if (uniqueFields !== undefined && !typeGuards.isUniqueFieldsArray(uniqueFields)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Unique fields argument must be array of valid strings.');
-            }
-
-            if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
-                throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
             }
 
             return db.replace(collectionName, [], data, uniqueFields);
@@ -140,8 +141,11 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
 
     function replaceById(collectionName: unknown, id: unknown, data: unknown, uniqueFields?: string[]): number {
         try {
-            if (!typeGuards.isString(collectionName)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
+            if (
+                !typeGuards.isString(collectionName) ||
+                !validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )
+            ) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name must be a string containing only letters, numbers, hyphens and underscores.');
             }
 
             if (!typeGuards.isPositiveInteger(id)) {
@@ -156,10 +160,6 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Unique fields argument must be array of valid strings.');
             }
 
-            if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
-                throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
-            }
-
             return db.replace(collectionName, [], data, uniqueFields);
         } catch (e) {
             db.close();
@@ -170,12 +170,11 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
 
     function remove(collectionName: unknown, query: Query[]): number {
         try {
-            if (!typeGuards.isString(collectionName)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
-            }
-
-            if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
-                throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
+            if (
+                !typeGuards.isString(collectionName) ||
+                !validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )
+            ) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name must be a string containing only letters, numbers, hyphens and underscores.');
             }
 
             return db.remove(collectionName, query);
@@ -188,16 +187,15 @@ export default function hornbeamDB(configuration?: DBConfig): DBAPI {
 
     function removeById(collectionName: unknown, id: unknown): number {
         try {
-            if (!typeGuards.isString(collectionName)) {
-                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name argument must be a string.');
+            if (
+                !typeGuards.isString(collectionName) ||
+                !validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )
+            ) {
+                throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Collection name must be a string containing only letters, numbers, hyphens and underscores.');
             }
 
             if (!typeGuards.isPositiveInteger(id)) {
                 throw new TaskError(DBTaskError.FunctionArgumentMismatch, 'Id argument must be an integer greater than 0.');
-            }
-
-            if (!validators.validateCollectionName(collectionName, config.collectionNameMinLength, config.collectionNameMaxLength )) {
-                throw new TaskError(DBTaskError.CollectionNameMismatch, 'Collection name could contains only letters, numbers, hyphens and underscores.');
             }
 
             return db.remove(collectionName, []);

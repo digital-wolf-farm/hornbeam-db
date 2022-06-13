@@ -1,6 +1,6 @@
-import createDB from '../../../src/lib/database';
-import { DBTaskError } from '../../../src/models/enums';
-import { DBData } from '../../../src/models/interfaces';
+import createDB from '../../../src-previous/lib/database';
+import { DBTaskError } from '../../../src-previous/models/enums';
+import { DBData } from '../../../src-previous/models/interfaces';
 
 describe('Database', () => {
 
@@ -46,6 +46,7 @@ describe('Database', () => {
 
             try {
                 db.getData();
+
                 expect(true).toEqual(false);
             } catch (e) {
                 expect(e.error).toBe(DBTaskError.DatabaseNotOpen);
@@ -107,14 +108,13 @@ describe('Database', () => {
         it('should return used space in MB when data cached and function called', () => {
             db.cacheData(examplePath, exampleDB);
 
-            expect(db.getStats()).toEqual('0.00');
+            expect(db.getStats()).toEqual('0.000');
         });
     });
 
     describe('insertEntry()', () => {
         let db: any;
 
-        const exampleDB: DBData = {};
         const examplePath = 'path/to/file';
 
         beforeEach(() => {
@@ -125,7 +125,7 @@ describe('Database', () => {
             db.clearData();
         });
 
-        it('should throw error when no data cached and attmept to insert entry', () => {
+        it('should throw error when no data cached and attempt to insert entry', () => {
             try {
                 db.insertEntry('collection1', {});
 
@@ -135,30 +135,59 @@ describe('Database', () => {
             }
         });
 
-        // it('should add entry without restricted field and id equal to 1 when collection is empty', async () => {
-        //     jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({});
+        it('should add entry with _id = 1 when collection does not exist', () => {
+            db.cacheData(examplePath, {});
 
-        //     await db.open('any/path');
-        //     const result = db.insert('contractors', { name: 'Building Inc.' });
-        //     expect(result).toBe(1);
-        // });
+            const entryId = db.insertEntry('collection1', { name: 'John' });
 
-        // it('should add entry with restricted field and id equal to 1 when collection is empty', async () => {
-        //     jest.spyOn(fileOperations, 'read').mockResolvedValueOnce({});
+            expect(entryId).toBe(1);
+            expect(expect(db.getData()).toEqual({ path: examplePath, data: { collection1: [{ _id: 1, name: 'John' }] } }));
+        });
 
-        //     await db.open('any/path');
-        //     const result = db.insert('contractors', { name: 'Building Inc.' }, { unique: ['name'] });
-        //     expect(result).toBe(1);
-        // });
+        it('should add entry with _id = 1 when collection exists but is empty', () => {
+            db.cacheData(examplePath, { 'collection1': [] });
 
-        // it('should add entry with proper id when no options are provided', async () => {
-        //     const dbTemp = { 'contractors': [{ _id: 100, name: 'Building Inc.' }] };
-        //     jest.spyOn(fileOperations, 'read').mockResolvedValueOnce(dbTemp);
+            const entryId = db.insertEntry('collection1', { name: 'John' });
 
-        //     await db.open('any/path');
-        //     const result = db.insert('contractors', { name: 'Cheaper Building Inc.' });
-        //     expect(result).toBe(101);
-        // });
+            expect(entryId).toBe(1);
+            expect(expect(db.getData()).toEqual({ path: examplePath, data: { collection1: [{ _id: 1, name: 'John' }] } }));
+        });
+
+        it('should add entry with proper _id when collection exists', () => {
+            db.cacheData(examplePath, { 'collection2': [{ _id: 98, label: 'car' }] });
+
+            const entryId = db.insertEntry('collection2', { label: 'bike' });
+
+            expect(entryId).toBe(99);
+            expect(expect(db.getData()).toEqual({ path: examplePath, data: { collection2: [{ _id: 98, label: 'car' }, { _id: 99, label: 'bike' }] } }));
+        });
+
+        it('should add entry with not unique data when no unique field is listed', () => {
+            db.cacheData(examplePath, { 'collection2': [{ _id: 98, label: 'car' }] });
+
+            const entryId = db.insertEntry('collection2', { label: 'car' });
+
+            expect(entryId).toBe(99);
+            expect(expect(db.getData()).toEqual({ path: examplePath, data: { collection2: [{ _id: 98, label: 'car' }, { _id: 99, label: 'car' }] } }));
+        });
+
+        it('should add entry with unique data when unique field is listed', () => {
+            db.cacheData(examplePath, { 'collection2': [{ _id: 98, label: 'car' }] });
+
+            const entryId = db.insertEntry('collection2', { label: 'bike' }, ['label']);
+
+            expect(entryId).toBe(99);
+            expect(expect(db.getData()).toEqual({ path: examplePath, data: { collection2: [{ _id: 98, label: 'car' }, { _id: 99, label: 'bike' }] } }));
+        });
+
+        it('should add entry with not unique data when not existing unique field is listed', () => {
+            db.cacheData(examplePath, { 'collection2': [{ _id: 98, label: 'car' }] });
+
+            const entryId = db.insertEntry('collection2', { label: 'bike' }, ['price']);
+
+            expect(entryId).toBe(99);
+            expect(expect(db.getData()).toEqual({ path: examplePath, data: { collection2: [{ _id: 98, label: 'car' }, { _id: 99, label: 'bike' }] } }));
+        });
 
         // it('should add entry with proper id when restricted not nested field is provided', async () => {
         //     const dbTemp = { 'contractors': [{ _id: 100, name: 'Building Inc.' }] };

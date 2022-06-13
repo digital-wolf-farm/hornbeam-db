@@ -1,36 +1,56 @@
 import { FilterType } from './enums';
 
-export interface DBConfiguration {
-    dbSize: number;
-    collectionNameMinLength: number;
-    collectionNameMaxLength: number;
+export interface Client {
+    open(path: string): Promise<DatabaseAPI>;
 }
 
-export interface DB {
-    open(path: string): Promise<void>;
-    save(): Promise<void>;
-    close(): void;
-    stats(): string;
-    insert(collectionName: string, data: object, uniqueFields?: string[]): number;
-    find(collectionName: string, query: Query[] | [], options?: FindOptions): FindResults;
-    replace(collectionName: string, query: Query[], data: object, uniqueFields?: string[]): number;
-    remove(collectionName: string, query: Query[]): number;
+export interface DatabaseAPI {
+    getCollection(name: string, options: CollectionOptions): Collection;
+    getStats(): DatabaseStats;
+    saveData(): Promise<void>;
 }
 
-export interface DBAPI extends DB {
-    findById(collectionName: string, id: number): Entry;
-    replaceById(collectionName: string, id: number, data: object, uniqueFields?: string[]): number;
-    removeById(collectionName: string, id: number): number;
+export interface DatabaseInfo {
+    path: string;
+    dbSizeLimit: number;
 }
 
-export interface DBData {
+export interface Database {
     [collectionName: string]: Entry[];
 }
 
-export interface CachedDB {
-    path: string;
-    data: DBData;
+export interface DatabaseStats {
+    limit: string;
+    usage: string;
 }
+
+export interface Collection {
+    insert(data: NewEntry, uniqueFields?: string[]): number;
+    find(query: [] | Query[]): Entry[];
+    replace(id: number, data: Entry, uniqueFields?: string[]): number;
+    remove(id: number): number;
+}
+
+export interface CollectionOptions {
+    indexes: string[];
+}
+
+export interface CollectionIndexes {
+    [index: string]: unknown[];
+}
+
+// export interface DBAPI extends DB {
+//     findById(collectionName: string, id: number): Entry;
+//     replaceById(collectionName: string, id: number, data: object, uniqueFields?: string[]): number;
+//     removeById(collectionName: string, id: number): number;
+// }
+
+
+
+// export interface CachedDB {
+//     path: string;
+//     data: DBData;
+// }
 
 export interface NewEntry {
     _id: never;

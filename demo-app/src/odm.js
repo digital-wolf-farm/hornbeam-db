@@ -1,18 +1,29 @@
 const path = require('path');
 
-const hornbeamDB = require('../../dist/lib/cjs/index').default;
+const { createDbClient } = require('../../dist/lib/cjs/index');
 
 module.exports = function odmService() {
 
     // Initializing database
-    const db = hornbeamDB();
+    const client = createDbClient();
+    let db;
 
     // Functions to be called in server's services
     async function getAuthors() {
         try {
-            await db.open(path.resolve(__dirname, '..', 'db-files', 'books.json'));
-            console.log('stats', db.stat());
-            db.close();
+            if (!db) {
+                // db = await client.open(path.resolve(__dirname, '..', 'db-files', 'books.json'));
+                db = await client.open('../some/file.json');
+            }
+            const collection = db.getCollection('abcd');
+            const addedId = collection.insert({ bla: 'bla', xyz: 'abc' });
+            console.log('Added Id', addedId);
+            return collection.find([]);
+            // return db.getStats();
+
+            // client.log();
+            // console.log('stats', db.stat());
+            // db.close();
             // await db.save();
             // const queries = [{
             //     type: 'eq',
@@ -36,7 +47,10 @@ module.exports = function odmService() {
             // db.closeDatabase();
             // return results;
         } catch (e) {
-            console.log('get authors error', e);
+            console.log('error', e.error);
+            console.log('name', e.name);
+            console.log('message', e.message);
+            console.log('stack', e.stack);
             throw e;
         }
     }

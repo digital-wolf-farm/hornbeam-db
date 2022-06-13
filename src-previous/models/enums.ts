@@ -8,7 +8,7 @@ export enum DBMethod {
     RemoveEntry = 'REMOVE_ENTRY'
 }
 
-export enum DatabaseError {
+export enum DBTaskError {
     CollectionNameMismatch = 'COLLECTION_NAME_MISMATCH',
     CollectionNotExists = 'COLLECTION_NOT_EXISTS',
     DatabaseNotOpen = 'DATABASE_NOT_OPEN',

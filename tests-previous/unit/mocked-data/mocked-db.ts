@@ -1,4 +1,4 @@
-import { DBData } from '../../../src/models/interfaces';
+import { DBData } from '../../../src-previous/models/interfaces';
 
 export const mockedDB: DBData = {
     "authors": [

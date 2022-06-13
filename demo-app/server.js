@@ -14,7 +14,8 @@ app.get('/getAuthors', async (req, res) => {
         const data = await odm.getAuthors();
         res.status(200).send(data);
     } catch (e) {
-        res.status(500).send(e);
+        console.log('Serrver error', e);
+        res.status(500).json({error: e.name, message: e.message});
     }
 });
 

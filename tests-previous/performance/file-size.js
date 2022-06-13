@@ -19,7 +19,7 @@ const exampleObject = {
     key2: 'test2'.repeat(1024)
 }
 
-const data = new Array(100000).fill({ ...exampleObject });
+const data = new Array(100).fill({ ...exampleObject });
 
 console.log('Data size in kB: ', Buffer.byteLength(JSON.stringify(data)) / 1024);
 

@@ -1,7 +1,6 @@
-import { DatabaseError } from '../models/enums';
-import { Collection, CollectionIndexes, CollectionOptions, Database, DatabaseAPI, DatabaseInfo, DatabaseStats, Entry } from '../models/interfaces';
-import { CustomError } from '../utils/errors';
-import { utils } from '../utils/utils';
+import { DatabaseError, DBMethod } from '../models/enums';
+import { Collection, CollectionOptions, Database, DatabaseAPI, DatabaseInfo, DatabaseStats, Entry } from '../models/interfaces';
+import { CustomError, InternalError } from '../utils/errors';
 import { collectionValidators } from '../validators/collection-validators';
 import { databaseValidators } from '../validators/database-validators';
 import { collection } from './collection';
@@ -13,7 +12,7 @@ export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => 
     let dbFilePath = options.path;
 
     const calculateDataSize = (): string => {
-        return (Buffer.byteLength(JSON.stringify(data)) / (1024 * 1024)).toFixed(2);
+        return (Buffer.byteLength(JSON.stringify(db)) / (1024 * 1024)).toFixed(2);
     };
 
     const cleanupDatabase = (): void => {
@@ -27,38 +26,53 @@ export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => 
     };
 
     const getCollection = (name: string, options?: CollectionOptions): Collection => {
-        if (typeof name !== 'string') {
-            throw new CustomError(DatabaseError.DatabaseSchemaMismatch, 'Collection name is not a string.');
+        try {
+            if (typeof name !== 'string') {
+                throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Collection name is not a string.');
+            }
+
+            if (!collectionValidators.isCollectionNameValid(name)) {
+                throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Invalid collection name.');
+            }
+
+            if (options && !collectionValidators.isCollectionOptionsValid(options)) {
+                throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Invalid collection options.');
+            }
+
+            if (!db[name]) {
+                db[name] = [];
+            }
+
+            return collection(db[name], options?.indexes);
+        } catch (e) {
+            throw new CustomError(e.name, DBMethod.GetCollection, e.message);
         }
 
-        if (!collectionValidators.isCollectionNameValid(name)) {
-            throw new CustomError(DatabaseError.DatabaseSchemaMismatch, 'Invalid collection name.');
-        }
-
-        if (options && !collectionValidators.isCollectionOptionsValid(options)) {
-            throw new CustomError(DatabaseError.DatabaseSchemaMismatch, 'Invalid collection options.');
-        }
-
-        if (!db[name]) {
-            db[name] = [];
-        }
-
-        return collection(db[name], options?.indexes);
     };
 
     const getStats = (): DatabaseStats => {
-        return {
-            limit: options.dbSizeLimit.toFixed(2),
-            usage: calculateDataSize()
-        };
+        try {
+            return {
+                sizeLimit: options.dbSizeLimit.toFixed(2),
+                inUse: calculateDataSize()
+            };
+        } catch (e) {
+            throw new CustomError(e.name, DBMethod.StatDB, e.message);
+        }
+
     };
 
     const saveData = async (): Promise<void> => {
-        cleanupDatabase();
-        databaseValidators.isDatabaseSizeNotExceeded(db, options.dbSizeLimit);
-        databaseValidators.isDatabaseSchemaValid(db);
+        try {
+            cleanupDatabase();
+            databaseValidators.isDatabaseSizeNotExceeded(db, options.dbSizeLimit);
+            databaseValidators.isDatabaseSchemaValid(db);
 
-        await fileSystem.write(dbFilePath, db);
+            await fileSystem.write(dbFilePath, db);
+        } catch (e) {
+            throw new CustomError(e.name, DBMethod.SaveDB, e.message);
+        }
+
     };
 
     return {

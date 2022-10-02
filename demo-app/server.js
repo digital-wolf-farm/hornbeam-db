@@ -15,7 +15,7 @@ app.get('/getAuthors', async (req, res) => {
         res.status(200).send(data);
     } catch (e) {
         console.log('Serrver error', e);
-        res.status(500).json({error: e.name, message: e.message});
+        res.status(500).json({error: e.name, action: e.action, message: e.message});
     }
 });
 

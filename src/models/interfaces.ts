@@ -1,9 +1,5 @@
 import { FilterType } from './enums';
 
-export interface Client {
-    open(path: string): Promise<DatabaseAPI>;
-}
-
 export interface DatabaseAPI {
     getCollection(name: string, options: CollectionOptions): Collection;
     getStats(): DatabaseStats;
@@ -20,8 +16,8 @@ export interface Database {
 }
 
 export interface DatabaseStats {
-    limit: string;
-    usage: string;
+    sizeLimit: string;
+    inUse: string;
 }
 
 export interface Collection {
@@ -62,40 +58,13 @@ export interface Entry {
     [field: string]: unknown;
 }
 
-export interface PaginationResults {
-    entriesNumber: number;
-    pagesNumber: number;
-    pageNumber: number;
-    pageSize: number;
-}
-
-export interface FindResults {
-    data: Entry[];
-    pagination?: PaginationResults;
-}
-
-export interface PaginationOptions {
-    pageNumber: number;
-    pageSize: number;
-}
-
 export interface SortingOptions {
     field: string;
     order: 1 | -1;
 }
 
-export interface FindOptions {
-    page?: PaginationOptions;
-    sort?: SortingOptions[];
-}
-
 export interface Query {
-    type: FilterType;
-    field: string;
-    value: unknown;
-}
-
-export interface CollectionNameConfig {
-    minLength: number;
-    maxLength: number;
+    field: {
+        [key in FilterType]: unknown
+    }
 }

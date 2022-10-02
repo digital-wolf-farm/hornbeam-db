@@ -8,34 +8,6 @@ import { entryValidators } from '../validators/entry-validators';
 
 export const collection = (collection: Entry[], indexList: string[]): Collection => {
 
-    // Private methods
-
-    // TODO: Use indexes instead this method
-    const checkValuesUniqueness = (data: NewEntry | Entry, uniqueFields: string[]): void => {
-        collection.forEach((entry) => {
-            if (entry['_id'] === data['_id']) {
-                return;
-            }
-
-            uniqueFields.forEach((field) => {
-                const insertedValue = utils.getPropertyByPath(data, field);
-                const storedValue = utils.getPropertyByPath(entry, field);
-
-                // if (insertedValue === Object(insertedValue) || storedValue === Object(storedValue)) {
-                //     return;
-                // }
-
-                if (insertedValue && storedValue && insertedValue === storedValue) {
-                    throw new CustomError(DatabaseError.FieldValueNotUnique, `Added entry must contain unique value for field: ${field}`);
-                }
-            });
-
-
-        });
-    };
-
-    // Public methods
-
     const insert = (data: NewEntry): number => {
         if (!entryValidators.isNewEntryValid(data)) {
             throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid added entry.');
@@ -49,6 +21,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
         if (indexList) {
             const indexes = utils.extractIndexes(collection, indexList);
+
             Object.keys(indexes).forEach((index) => {
                 const value = utils.getPropertyByPath(data, index);
 
@@ -82,21 +55,50 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
     };
 
     const replace = (id: number, data: Entry): number => {
-        //  validate inputs
+        if (!basicTypesValidators.isPositiveInteger(id)) {
+            throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid id.');
+        }
+
+        if (!entryValidators.isEntryValid(data)) {
+            throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid replacing entry.');
+        }
 
         if (collection.length === 0) {
             return -1;
-            // or throw error
         }
 
-        // find first matching entry
-        // replace entry
-        // return _id of replaced entry
+        const index = collection.findIndex((entry) => entry['_id'] === id);
+
+        if (index === -1) {
+            return -1;
+        }
+
+        const oldEntry = collection.splice(index, 1)[0];
+
+        if (indexList) {
+            const indexes = utils.extractIndexes(collection, indexList);
+
+            Object.keys(indexes).forEach((index) => {
+                const value = utils.getPropertyByPath(data, index);
+
+                if (indexes[index].includes(value)) {
+                    collection.push({ ...oldEntry });
+                    collection.sort((entryA, entryB) => entryA['_id'] - entryB['_id']);
+
+                    throw new CustomError(DatabaseError.FieldValueNotUnique, `Replacing entry must contain unique value for field: ${index}`);
+                }
+            })
+        }
+
+        collection.push({ ...data, ...{ _id: id } });
+        collection.sort((entryA, entryB) => entryA['_id'] - entryB['_id']);
+
+        return oldEntry['_id'];
     };
 
     const remove = (id: number): number => {
         if (!basicTypesValidators.isPositiveInteger(id)) {
-            throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid id.');
+            throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid entry id.');
         }
 
         if (collection.length === 0) {

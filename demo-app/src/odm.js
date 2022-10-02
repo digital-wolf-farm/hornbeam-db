@@ -1,23 +1,22 @@
 const path = require('path');
 
-const { createDbClient } = require('../../dist/lib/cjs/index');
+const { openDB } = require('../../dist/lib/cjs/index');
 
 module.exports = function odmService() {
 
     // Initializing database
-    const client = createDbClient();
     let db;
 
     // Functions to be called in server's services
     async function getAuthors() {
         try {
             if (!db) {
-                // db = await client.open(path.resolve(__dirname, '..', 'db-files', 'books.json'));
-                db = await client.open('../some/file.json');
+                db = await openDB(path.resolve(__dirname, '..', 'db-files', 'books.json'));
+                // db = await openDB('../some/file.json');
             }
-            const collection = db.getCollection('abcd');
-            const addedId = collection.insert({ bla: 'bla', xyz: 'abc' });
-            console.log('Added Id', addedId);
+            const collection = db.getCollection(1);
+            // const addedId = collection.insert({ bla: 'bla', xyz: 'abc' });
+            console.log('Added Id', db.getStats());
             return collection.find([]);
             // return db.getStats();
 

@@ -21,10 +21,13 @@ export interface DatabaseStats {
 }
 
 export interface Collection {
-    insert(data: NewEntry, uniqueFields?: string[]): number;
-    find(query: [] | Query[]): Entry[];
-    replace(id: number, data: Entry, uniqueFields?: string[]): number;
+    insert(data: NewEntry): number;
+    insertMultiple(data: NewEntry[]): number[];
+    find(id: number): Entry;
+    findMultiple(query: Query[]): Entry[];
+    replace(data: Entry): number;
     remove(id: number): number;
+    removeMultiple(ids: number[]): number[];
 }
 
 export interface CollectionOptions {
@@ -34,19 +37,6 @@ export interface CollectionOptions {
 export interface CollectionIndexes {
     [index: string]: unknown[];
 }
-
-// export interface DBAPI extends DB {
-//     findById(collectionName: string, id: number): Entry;
-//     replaceById(collectionName: string, id: number, data: object, uniqueFields?: string[]): number;
-//     removeById(collectionName: string, id: number): number;
-// }
-
-
-
-// export interface CachedDB {
-//     path: string;
-//     data: DBData;
-// }
 
 export interface NewEntry {
     _id: never;

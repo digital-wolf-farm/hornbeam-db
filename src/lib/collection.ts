@@ -1,4 +1,4 @@
-import { DatabaseError } from '../models/enums';
+import { DatabaseError, DBMethod } from '../models/enums';
 import { Collection, CollectionIndexes, Entry, NewEntry, Query } from '../models/interfaces';
 import { CustomError } from '../utils/errors';
 import { utils } from '../utils/utils';
@@ -9,115 +9,161 @@ import { entryValidators } from '../validators/entry-validators';
 export const collection = (collection: Entry[], indexList: string[]): Collection => {
 
     const insert = (data: NewEntry): number => {
-        if (!entryValidators.isNewEntryValid(data)) {
-            throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid added entry.');
+        try {
+            if (!entryValidators.isNewEntryValid(data)) {
+                throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid format of inserted entry.');
+            }
+
+            if (collection.length === 0) {
+                collection.push({ _id: 1, ...data });
+
+                return 1;
+            }
+
+            if (indexList) {
+                const indexes = utils.extractIndexes(collection, indexList);
+
+                Object.keys(indexes).forEach((index) => {
+                    const value = utils.getPropertyByPath(data, index);
+
+                    if (indexes[index].includes(value)) {
+                        throw new CustomError(DatabaseError.FieldValueNotUnique, `Added entry must contain unique value for field: ${index}`);
+                    }
+                })
+            }
+
+            const id = collection[collection.length - 1]['_id'] + 1;
+
+            collection.push({ _id: id, ...data });
+
+            return id;
+        } catch (e) {
+            throw new CustomError(e.name, DBMethod.InsertEntry, e.message);
         }
-
-        if (collection.length === 0) {
-            collection.push({ _id: 1, ...data });
-
-            return 1;
-        }
-
-        if (indexList) {
-            const indexes = utils.extractIndexes(collection, indexList);
-
-            Object.keys(indexes).forEach((index) => {
-                const value = utils.getPropertyByPath(data, index);
-
-                if (indexes[index].includes(value)) {
-                    throw new CustomError(DatabaseError.FieldValueNotUnique, `Added entry must contain unique value for field: ${index}`);
-                }
-            })
-        }
-
-        const id = collection[collection.length - 1]['_id'] + 1;
-
-        collection.push({ _id: id, ...data });
-
-        return id;
     };
 
-    const find = (query: Query[]): Entry[] => {
-        //  validate inputs
-
-        if (collection.length === 0) {
+    const insertMultiple = (data: NewEntry[]): number[] => {
+        try {
             return [];
+        } catch (e) {
+            throw new CustomError(e.name, DBMethod.InsertEntries, e.message);
         }
-
-        if (!query) {
-            // return whole collection (cloneDeep collection!)
-        }
-
-        return collection;
-
-        // return results of finding + methods: result(), sort(), split() 
     };
 
-    const replace = (id: number, data: Entry): number => {
-        if (!basicTypesValidators.isPositiveInteger(id)) {
-            throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid id.');
+    const find = (id: number): Entry => {
+        try {
+            //  validate inputs
+
+            if (collection.length === 0) {
+                return undefined;
+            }
+
+            // if (!query) {
+                // return whole collection (cloneDeep collection!)
+            // }
+
+            // return collection[0];
+
+            // return results of finding + methods: sort()
+            return undefined;
+        } catch (e) {
+            throw new CustomError(e.name, DBMethod.FindEntry, e.message);
         }
 
-        if (!entryValidators.isEntryValid(data)) {
-            throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid replacing entry.');
+    };
+
+    const findMultiple = (query: Query[]): Entry[] => {
+        try {
+            return [];
+        } catch (e) {
+            throw new CustomError(e.name, DBMethod.FindEntries, e.message);
         }
+    };
 
-        if (collection.length === 0) {
-            return -1;
+    const replace = (data: Entry): number => {
+        try {
+            if (!basicTypesValidators.isPositiveInteger(data['_id'])) {
+                throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid id.');
+            }
+
+            if (!entryValidators.isEntryValid(data)) {
+                throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid replacing entry.');
+            }
+
+            if (collection.length === 0) {
+                return -1;
+            }
+
+            const index = collection.findIndex((entry) => entry['_id'] === data['_id']);
+
+            if (index === -1) {
+                return -1;
+            }
+
+            const oldEntry = collection.splice(index, 1)[0];
+
+            if (indexList) {
+                const indexes = utils.extractIndexes(collection, indexList);
+
+                Object.keys(indexes).forEach((index) => {
+                    const value = utils.getPropertyByPath(data, index);
+
+                    if (indexes[index].includes(value)) {
+                        collection.push({ ...oldEntry });
+                        collection.sort((entryA, entryB) => entryA['_id'] - entryB['_id']);
+
+                        throw new CustomError(DatabaseError.FieldValueNotUnique, `Replacing entry must contain unique value for field: ${index}`);
+                    }
+                })
+            }
+
+            collection.push({ ...data, ...{ _id: data['_id'] } });
+            collection.sort((entryA, entryB) => entryA['_id'] - entryB['_id']);
+
+            return oldEntry['_id'];
+
+        } catch (e) {
+            throw new CustomError(e.name, DBMethod.ReplaceEntry, e.message);
         }
-
-        const index = collection.findIndex((entry) => entry['_id'] === id);
-
-        if (index === -1) {
-            return -1;
-        }
-
-        const oldEntry = collection.splice(index, 1)[0];
-
-        if (indexList) {
-            const indexes = utils.extractIndexes(collection, indexList);
-
-            Object.keys(indexes).forEach((index) => {
-                const value = utils.getPropertyByPath(data, index);
-
-                if (indexes[index].includes(value)) {
-                    collection.push({ ...oldEntry });
-                    collection.sort((entryA, entryB) => entryA['_id'] - entryB['_id']);
-
-                    throw new CustomError(DatabaseError.FieldValueNotUnique, `Replacing entry must contain unique value for field: ${index}`);
-                }
-            })
-        }
-
-        collection.push({ ...data, ...{ _id: id } });
-        collection.sort((entryA, entryB) => entryA['_id'] - entryB['_id']);
-
-        return oldEntry['_id'];
     };
 
     const remove = (id: number): number => {
-        if (!basicTypesValidators.isPositiveInteger(id)) {
-            throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid entry id.');
+        try {
+            if (!basicTypesValidators.isPositiveInteger(id)) {
+                throw new CustomError(DatabaseError.FunctionArgumentMismatch, 'Invalid entry id.');
+            }
+
+            if (collection.length === 0) {
+                return -1;
+            }
+
+            const index = collection.findIndex((entry) => entry['_id'] === id);
+
+            if (index === -1) {
+                return -1;
+            }
+
+            return collection.splice(index, 1)[0]['_id'];
+        } catch (e) {
+            throw new CustomError(e.name, DBMethod.RemoveEntry, e.message);
         }
+    };
 
-        if (collection.length === 0) {
-            return -1;
+    const removeMultiple = (ids: number[]): number[] => {
+        try {
+            return [];
+        } catch (e) {
+            throw new CustomError(e.name, DBMethod.RemoveEntries, e.message);
         }
-
-        const index = collection.findIndex((entry) => entry['_id'] === id);
-
-        if (index === -1) {
-            return -1;
-        }
-
-        return collection.splice(index, 1)[0]['_id'];
     };
 
     return {
         insert,
+        insertMultiple,
         find,
+        findMultiple,
         replace,
-        remove
+        remove,
+        removeMultiple
     };
 };

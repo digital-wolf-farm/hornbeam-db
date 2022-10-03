@@ -3,10 +3,13 @@ export enum DBMethod {
     SaveDB = 'SAVE_DATABASE',
     StatDB = 'STAT_DATABASE',
     GetCollection = 'GET_COLLECTION',
-    AddEntry = 'ADD_ENTRY',
+    InsertEntry = 'INSERT_ENTRY',
+    InsertEntries = 'INSERT_ENTRIES',
+    FindEntry = 'FIND_ENTRY',
     FindEntries = 'FIND_ENTRIES',
     ReplaceEntry = 'REPLACE_ENTRY',
-    RemoveEntry = 'REMOVE_ENTRY'
+    RemoveEntry = 'REMOVE_ENTRY',
+    RemoveEntries = 'REMOVE_ENTRIES'
 }
 
 export enum DatabaseError {

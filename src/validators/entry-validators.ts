@@ -9,6 +9,14 @@ const isEntryValid = (value: unknown): boolean => {
         return false;
     }
 
+    if (!basicTypesValidators.isPositiveInteger(value['_id'])) {
+        return false;
+    }
+
+    if (Object.keys(value).length < 2) {
+        return false;
+    }
+
     return true;
 }
 
@@ -18,6 +26,10 @@ const isNewEntryValid = (value: unknown): boolean => {
     }
 
     if (value['_id']) {
+        return false;
+    }
+
+    if (Object.keys(value).length < 2) {
         return false;
     }
 

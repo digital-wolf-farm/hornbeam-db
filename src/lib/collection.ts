@@ -57,30 +57,41 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
         }
     };
 
-    const find = (id: number): Entry => {
+    const find = (entryId: number): Entry => {
         try {
-            //  validate inputs
+            if (!basicTypesValidators.isPositiveInteger(entryId)) {
+                throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Invalid entry id.');
+            }
 
             if (collection.length === 0) {
                 return undefined;
             }
 
-            // if (!query) {
-                // return whole collection (cloneDeep collection!)
-            // }
+            const index = collection.findIndex((entry) => entry['_id'] === entryId);
 
-            // return collection[0];
+            if (index === -1) {
+                return undefined;
+            }
 
-            // return results of finding + methods: sort()
-            return undefined;
+            return collection[index];
         } catch (e) {
             throw new CustomError(e.name, DBMethod.FindEntry, e.message);
         }
 
     };
 
-    const findMultiple = (query: Query[]): Entry[] => {
+    // return { sort(), result() } instead of Entry[]
+    const findMultiple = (query?: Query[]): Entry[] => {
         try {
+            if (!query) {
+                return collection;
+            }
+
+            // validate input
+
+            const foundEntries: Entry[] = [];
+
+            // 
             return collection;
         } catch (e) {
             throw new CustomError(e.name, DBMethod.FindEntries, e.message);

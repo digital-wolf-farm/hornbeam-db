@@ -24,7 +24,7 @@ export interface Collection {
     insert(data: NewEntry): number;
     insertMultiple(data: NewEntry[]): number[];
     find(id: number): Entry;
-    findMultiple(query: Query[]): Entry[];
+    findMultiple(query?: Query[]): Entry[];
     replace(data: Entry): number;
     remove(id: number): number;
     removeMultiple(ids: number[]): number[];

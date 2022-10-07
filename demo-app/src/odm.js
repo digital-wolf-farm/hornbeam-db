@@ -21,6 +21,19 @@ module.exports = function odmService() {
         }
     }
 
+    async function findBook(id) {
+        try {
+            if (!db) {
+                db = await openDB(path.resolve(__dirname, '..', 'db-files', 'books.json'));
+            }
+            const collection = db.getCollection('books');
+            return collection.find(id);
+        } catch (e) {
+            console.log('findBook error', e);
+            throw e;
+        }
+    }
+
     async function addBook(book) {
         try {
             if (!db) {
@@ -99,6 +112,7 @@ module.exports = function odmService() {
 
     return {
         getBooks,
+        findBook,
         addBook,
         addBooks,
         editBook,

@@ -34,7 +34,7 @@ app.post('/add-book', async (req, res) => {
         const data = await odm.addBook(req.body);
         res.status(200).send({ id: data });
     } catch (e) {
-        res.status(500).send(e);
+        res.status(500).json({ error: e.name, action: e.action, message: e.message });
     }
 });
 
@@ -43,7 +43,7 @@ app.post('/add-books', async (req, res) => {
         const data = await odm.addBooks(req.body);
         res.status(200).send(data);
     } catch (e) {
-        res.status(500).send(e);
+        res.status(500).json({ error: e.name, action: e.action, message: e.message });
     }
 });
 
@@ -52,7 +52,7 @@ app.put('/edit-book', async (req, res) => {
         const data = await odm.editBook(req.body);
         res.status(200).send({ id: data });
     } catch (e) {
-        res.status(500).send(e);
+        res.status(500).json({ error: e.name, action: e.action, message: e.message });
     }
 });
 
@@ -61,7 +61,7 @@ app.post('/remove-book', async (req, res) => {
         const data = await odm.removeBook(req.body.id);
         res.status(200).send({ id: data });
     } catch (e) {
-        res.status(500).send(e);
+        res.status(500).json({ error: e.name, action: e.action, message: e.message });
     }
 });
 
@@ -70,7 +70,7 @@ app.post('/remove-books', async (req, res) => {
         const data = await odm.removeBooks(req.body);
         res.status(200).send(data);
     } catch (e) {
-        res.status(500).send(e);
+        res.status(500).json({ error: e.name, action: e.action, message: e.message });
     }
 });
 

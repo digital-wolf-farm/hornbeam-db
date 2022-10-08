@@ -3,6 +3,7 @@ import { Collection, Entry, NewEntry, Query } from '../models/interfaces';
 import { CustomError, InternalError } from '../utils/errors';
 import { utils } from '../utils/utils';
 import { basicTypesValidators } from '../validators/basic-types-validators';
+import { collectionValidators } from '../validators/collection-validators';
 import { entryValidators } from '../validators/entry-validators';
 
 export const collection = (collection: Entry[], indexList: string[]): Collection => {
@@ -10,7 +11,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
     const insert = (data: NewEntry): number => {
         try {
             if (!entryValidators.isNewEntryValid(data)) {
-                throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Invalid format of inserted entry.');
+                throw new InternalError(DatabaseError.EntryFormatError, 'Invalid format of inserted entry.');
             }
 
             if (collection.length === 0) {
@@ -43,7 +44,9 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const insertMultiple = (dataList: NewEntry[]): number[] => {
         try {
-            // validate array of numbers
+            if (!collectionValidators.isEntriesListValid(dataList)) {
+                throw new InternalError(DatabaseError.EntryFormatError, 'Invalid list of entries.');
+            }
             
             const ids: number[] = [];
 
@@ -60,7 +63,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
     const find = (entryId: number): Entry => {
         try {
             if (!basicTypesValidators.isPositiveInteger(entryId)) {
-                throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Invalid entry id.');
+                throw new InternalError(DatabaseError.EntryIdError, 'Invalid entry id.');
             }
 
             if (collection.length === 0) {
@@ -101,7 +104,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
     const replace = (data: Entry): number => {
         try {
             if (!entryValidators.isEntryValid(data)) {
-                throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Invalid replacing entry.');
+                throw new InternalError(DatabaseError.EntryFormatError, 'Invalid replacing entry.');
             }
 
             if (collection.length === 0) {
@@ -143,7 +146,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
     const remove = (entryId: number): number => {
         try {
             if (!basicTypesValidators.isPositiveInteger(entryId)) {
-                throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Invalid entry id.');
+                throw new InternalError(DatabaseError.EntryIdError, 'Invalid entry id.');
             }
 
             if (collection.length === 0) {
@@ -164,7 +167,10 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const removeMultiple = (entriesId: number[]): number[] => {
         try {
-            // validate array of numbers
+            if (!collectionValidators.isIdsListValid(entriesId)) {
+                throw new InternalError(DatabaseError.EntryIdError, 'Invalid list of entry ids.');
+            }
+
             const ids: number[] = [];
 
             entriesId.forEach((id) => {

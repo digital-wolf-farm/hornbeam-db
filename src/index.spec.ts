@@ -46,13 +46,13 @@ describe('HornbeamDB', () => {
             const path = 'invalid/path/to/file.json';
 
             jest.spyOn(databaseValidators, 'isFilePathValid').mockImplementation(() => {
-                throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Invalid path');
+                throw new InternalError(DatabaseError.FilePathError, 'Invalid path');
             });
 
             try {
                 await openDB(path);
             } catch (e) {
-                expect(e).toBe(DatabaseError.FunctionArgumentMismatch);
+                expect(e).toBe(DatabaseError.FilePathError);
             }
 
             expect(databaseFn.database).toThrow();

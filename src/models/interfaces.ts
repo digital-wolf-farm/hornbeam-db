@@ -48,10 +48,10 @@ export interface Entry {
     [field: string]: unknown;
 }
 
-export interface SortingOptions {
-    field: string;
-    order: 1 | -1;
-}
+// export interface SortingOptions {
+//     field: string;
+//     order: 1 | -1;
+// }
 
 export interface Query {
     field: {

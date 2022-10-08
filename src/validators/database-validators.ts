@@ -65,11 +65,11 @@ const isDatabaseSizeNotExceeded = (data: unknown, sizeLimit: number): void => {
 
 const isFilePathValid = (path: string): void => {
     if (typeof path !== 'string' ) {
-        throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Database file path is not a string.');
+        throw new InternalError(DatabaseError.FilePathError, 'Database file path is not a string.');
     }
 
     if (!/^(?:[a-z]:)?[/\\]{0,2}(?:[./\\ ](?![./\\\n])|[^<>:"|?*./\\ \n])+$/i.test(path)) {
-        throw new InternalError(DatabaseError.FunctionArgumentMismatch, 'Database file path is invalid.');
+        throw new InternalError(DatabaseError.FilePathError, 'Database file path is invalid.');
     }
 };
 

@@ -13,18 +13,17 @@ export enum DBMethod {
 }
 
 export enum DatabaseError {
-    CollectionNameMismatch = 'COLLECTION_NAME_MISMATCH',
-    CollectionNotExists = 'COLLECTION_NOT_EXISTS',
-    DatabaseNotOpen = 'DATABASE_NOT_OPEN',
+    CollectionNameError = 'COLLECTION_NAME_ERROR',
+    CollectionOptionsError = 'COLLECTION_OPTIONS_ERROR',
     DatabaseSchemaMismatch = 'DATABASE_SCHEMA_MISMATCH',
     DatabaseSizeExceeded = 'DATABASE_SIZE_EXCEEDED',
-    FieldNotFound = 'FIELD_NOT_FOUND',
+    EntryFormatError = 'ENTRY_FORMAT_ERROR',
+    EntryIdError = 'ENTRY_ID_ERROR',
     FieldValueNotUnique = 'FIELD_VALUE_NOT_UNIQUE',
     FileNotFound = 'FILE_NOT_FOUND',
+    FilePathError = 'FILE_PATH_ERROR',
     FileReadError = 'FILE_READ_ERROR',
-    FileWriteError = 'FILE_WRITE_ERROR',
-    FunctionArgumentMismatch = 'FUNCTION_ARGUMENT_MISMATCH',
-    SortDataTypeError = 'SORT_DATA_TYPE_ERROR'
+    FileWriteError = 'FILE_WRITE_ERROR'
 }
 
 export enum FilterType {

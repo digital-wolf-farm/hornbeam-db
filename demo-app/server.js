@@ -29,6 +29,16 @@ app.post('/find-book', async (req, res) => {
     }
 });
 
+app.post('/find-books', async (req, res) => {
+    try {
+        const data = await odm.findBooks(req.body);
+        res.status(200).send(data);
+    } catch (e) {
+        console.log('Server error', e);
+        res.status(500).json({ error: e.name, action: e.action, message: e.message });
+    }
+});
+
 app.post('/add-book', async (req, res) => {
     try {
         const data = await odm.addBook(req.body);

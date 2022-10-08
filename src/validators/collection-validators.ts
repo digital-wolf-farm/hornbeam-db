@@ -1,4 +1,5 @@
-import { CollectionOptions, Entry } from '../models/interfaces';
+import { FilterType } from '../models/enums';
+import { CollectionOptions, Entry, Query } from '../models/interfaces';
 import { basicTypesValidators } from './basic-types-validators';
 import { entryValidators } from './entry-validators';
 
@@ -63,55 +64,49 @@ const isIdsListValid = (entriesId: number[]): boolean => {
     return true;
 };
 
-// const isQueryArrayValid = (value: Query[]): boolean => {
-//     if (!basicTypesValidators.isArray(value)) {
-//         return false;
-//     }
+const isQueryValid = (query: Query): boolean => {
+    if (!basicTypesValidators.isObject(query)) {
+        return false;
+    }
 
-//     if (value.length === 0) {
-//         return true;
-//     }
+    const keys = Object.keys(query);
 
-//     if (!value.every((element) => isQueryObjectValid(element))) {
-//         return false;
-//     }
+    if (keys.length !== 1) {
+        return false;
+    }
 
-//     return true;
-// }
+    // TODO: Add validator to (nested) field name
+    if (!basicTypesValidators.isString(keys[0])) {
+        return false;
+    }
 
-// const isQueryObjectValid = (value: Query): boolean => {
-//     if (!basicTypesValidators.isObject(value)) {
-//         return false;
-//     }
+    const condition = query[keys[0]];
 
-//     const keys = Object.keys(value);
+    if (!basicTypesValidators.isObject(condition)) {
+        return false;
+    }
 
-//     if (keys.length !== 3) {
-//         return false;
-//     }
+    const conditionKeys = Object.keys(query[keys[0]]);
 
-//     if(!keys.every((key) => ['type', 'field', 'value'].findIndex((item) => item === key) !== -1)) {
-//         return false;
-//     }
+    if (conditionKeys.length !== 1) {
+        return false;
+    }
 
-//     if (!basicTypesValidators.isString(value['type']) || !Object.keys(FilterType).map((type) => FilterType[type]).includes(value['type'])) {
-//         return false;
-//     }
+    if (!Object.keys(FilterType).map((type) => FilterType[type]).includes(conditionKeys[0])) {
+        return false;
+    }
 
-//     if (!basicTypesValidators.isString(value['field'])) {
-//         return false;
-//     }
+    if (condition[conditionKeys[0]] === Object(condition[conditionKeys[0]])) {
+        return false;
+    }
 
-//     if (value['value'] === Object(value['value'])) {
-//         return false;
-//     }
-
-//     return true;
-// }
+    return true;
+}
 
 export const collectionValidators = {
     isCollectionNameValid,
     isCollectionOptionsValid,
     isEntriesListValid,
-    isIdsListValid
+    isIdsListValid,
+    isQueryValid
 };

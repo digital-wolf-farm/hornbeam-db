@@ -76,6 +76,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
                 return undefined;
             }
 
+            // return deep clone of entry
             return collection[index];
         } catch (e) {
             throw new CustomError(e.name, DBMethod.FindEntry, e.message);
@@ -84,17 +85,20 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
     };
 
     // return { sort(), result() } instead of Entry[]
-    const findMultiple = (query?: Query[]): Entry[] => {
+    const findMultiple = (query?: Query): Entry[] => {
         try {
             if (!query) {
+                // return deep clone of collection
                 return collection;
             }
 
-            // validate input
+            if (!collectionValidators.isQueryValid(query)) {
+                throw new InternalError(DatabaseError.FindQueryError, 'Invalid query.');
+            }
 
             const foundEntries: Entry[] = [];
 
-            // 
+            // return deep clone of collection
             return collection;
         } catch (e) {
             throw new CustomError(e.name, DBMethod.FindEntries, e.message);

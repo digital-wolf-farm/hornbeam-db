@@ -23,7 +23,8 @@ export enum DatabaseError {
     FileNotFound = 'FILE_NOT_FOUND',
     FilePathError = 'FILE_PATH_ERROR',
     FileReadError = 'FILE_READ_ERROR',
-    FileWriteError = 'FILE_WRITE_ERROR'
+    FileWriteError = 'FILE_WRITE_ERROR',
+    FindQueryError = 'FIND_QUERY_ERROR'
 }
 
 export enum FilterType {

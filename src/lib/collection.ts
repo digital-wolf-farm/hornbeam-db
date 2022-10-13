@@ -5,6 +5,7 @@ import { utils } from '../utils/utils';
 import { basicTypesValidators } from '../validators/basic-types-validators';
 import { collectionValidators } from '../validators/collection-validators';
 import { entryValidators } from '../validators/entry-validators';
+import { filters } from './filters';
 
 export const collection = (collection: Entry[], indexList: string[]): Collection => {
 
@@ -86,9 +87,10 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     // return { sort(), result() } instead of Entry[]
     const findMultiple = (query?: Query): Entry[] => {
+        // TODO: check how behaves when empty collection
         try {
             if (!query) {
-                // return deep clone of collection
+                // TODO: return deep clone of collection
                 return collection;
             }
 
@@ -96,10 +98,14 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
                 throw new InternalError(DatabaseError.FindQueryError, 'Invalid query.');
             }
 
-            const foundEntries: Entry[] = [];
-
-            // return deep clone of collection
-            return collection;
+            const field = Object.keys(query)[0];
+            const filterName = Object.keys(query[field])[0];
+            const referenceValue = query[field][filterName];
+            
+            console.log('Params', field, filterName, referenceValue);
+            
+            // TODO: return deep clone of collection
+            return collection.filter((entry) => filters[filterName](utils.getPropertyByPath(entry, field), referenceValue));
         } catch (e) {
             throw new CustomError(e.name, DBMethod.FindEntries, e.message);
         }

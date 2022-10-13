@@ -40,6 +40,7 @@ module.exports = function odmService() {
                 db = await openDB(path.resolve(__dirname, '..', 'db-files', 'books.json'));
             }
             const collection = db.getCollection('books');
+            console.log('HERE <--', query);
             return collection.findMultiple(query);
         } catch (e) {
             console.log('findBooks error', e);

@@ -24,10 +24,26 @@ export interface Collection {
     insert(data: NewEntry): number;
     insertMultiple(data: NewEntry[]): number[];
     find(id: number): Entry;
-    findMultiple(query?: Query): Entry[];
+    findMultiple(query?: Query): FindMethods;
     replace(data: Entry): number;
     remove(id: number): number;
     removeMultiple(ids: number[]): number[];
+}
+
+// TODO: Make interfaces DRY
+export interface LimitMethods {
+    results(): FindResults;
+}
+
+export interface SortMethods {
+    results(): FindResults;
+    limit(resultsSize: number, skippedEntries: number): LimitMethods;
+}
+
+export interface FindMethods {
+    results(): FindResults;
+    sort(param: SortingField, languageCode?: string): SortMethods;
+    limit(resultsSize: number, skippedEntries: number): LimitMethods;
 }
 
 export interface CollectionOptions {
@@ -48,13 +64,19 @@ export interface Entry {
     [field: string]: unknown;
 }
 
-// export interface SortingOptions {
-//     field: string;
-//     order: 1 | -1;
-// }
-
 export interface Query {
     field: {
         [key in FilterType]: unknown
     }
 }
+
+export interface FindResults {
+    data: Entry[];
+    info?: {
+        total: number;
+        size: number;
+        skipped: number;
+    };
+}
+
+export type SortingField = `${string}:${'-1' | '+1'}`;

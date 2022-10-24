@@ -14,7 +14,7 @@ module.exports = function odmService() {
                 db = await openDB(path.resolve(__dirname, '..', 'db-files', 'books.json'));
             }
             const collection = db.getCollection('books');
-            return collection.findMultiple();
+            return collection.findMultiple().results();
         } catch (e) {
             console.log('getAuthors error', e);
             throw e;
@@ -40,8 +40,7 @@ module.exports = function odmService() {
                 db = await openDB(path.resolve(__dirname, '..', 'db-files', 'books.json'));
             }
             const collection = db.getCollection('books');
-            console.log('HERE <--', query);
-            return collection.findMultiple(query);
+            return collection.findMultiple().sort('_id:-1', ).limit(2, 4).results();
         } catch (e) {
             console.log('findBooks error', e);
             throw e;

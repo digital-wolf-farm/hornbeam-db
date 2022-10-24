@@ -1,11 +1,12 @@
 import { DatabaseError, DBMethod } from '../models/enums';
-import { Collection, Entry, NewEntry, Query } from '../models/interfaces';
+import { Collection, Entry, FindMethods, NewEntry, Query } from '../models/interfaces';
 import { CustomError, InternalError } from '../utils/errors';
 import { utils } from '../utils/utils';
 import { basicTypesValidators } from '../validators/basic-types-validators';
 import { collectionValidators } from '../validators/collection-validators';
 import { entryValidators } from '../validators/entry-validators';
 import { filters } from './filters';
+import { findResults } from './find-results';
 
 export const collection = (collection: Entry[], indexList: string[]): Collection => {
 
@@ -77,21 +78,17 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
                 return undefined;
             }
 
-            // return deep clone of entry
-            return collection[index];
+            return JSON.parse(JSON.stringify(collection[index]));
         } catch (e) {
             throw new CustomError(e.name, DBMethod.FindEntry, e.message);
         }
 
     };
 
-    // return { sort(), result() } instead of Entry[]
-    const findMultiple = (query?: Query): Entry[] => {
-        // TODO: check how behaves when empty collection
+    const findMultiple = (query?: Query): FindMethods => {
         try {
             if (!query) {
-                // TODO: return deep clone of collection
-                return collection;
+                return findResults(collection);
             }
 
             if (!collectionValidators.isQueryValid(query)) {
@@ -101,11 +98,8 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
             const field = Object.keys(query)[0];
             const filterName = Object.keys(query[field])[0];
             const referenceValue = query[field][filterName];
-            
-            console.log('Params', field, filterName, referenceValue);
-            
-            // TODO: return deep clone of collection
-            return collection.filter((entry) => filters[filterName](utils.getPropertyByPath(entry, field), referenceValue));
+
+            return findResults(collection.filter((entry) => filters[filterName](utils.getPropertyByPath(entry, field), referenceValue)));
         } catch (e) {
             throw new CustomError(e.name, DBMethod.FindEntries, e.message);
         }

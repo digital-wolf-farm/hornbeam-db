@@ -1,3 +1,4 @@
+import { filters } from '../filters/filters';
 import { DatabaseError, DBMethod } from '../models/enums';
 import { Collection, Entry, FindMethods, NewEntry, Query } from '../models/interfaces';
 import { CustomError, InternalError } from '../utils/errors';
@@ -5,7 +6,6 @@ import { utils } from '../utils/utils';
 import { basicTypesValidators } from '../validators/basic-types-validators';
 import { collectionValidators } from '../validators/collection-validators';
 import { entryValidators } from '../validators/entry-validators';
-import { filters } from './filters';
 import { findResults } from './find-results';
 
 export const collection = (collection: Entry[], indexList: string[]): Collection => {

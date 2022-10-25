@@ -1,6 +1,6 @@
 import { FiltersList } from '../models/types';
 
-export const filters: FiltersList = {
+export const comparisonFilters: any = {
     eq: (entryValue: unknown, reference: unknown) => entryValue === reference,
     eqi: (entryValue: unknown, reference: unknown) => (typeof entryValue === 'string' && typeof reference === 'string') ? entryValue.toLowerCase() === reference.toLowerCase() : entryValue === reference,
     neq: (entryValue: unknown, reference: unknown) => entryValue !== reference,
@@ -8,6 +8,5 @@ export const filters: FiltersList = {
     gt: (entryValue: unknown, reference: unknown) => (typeof entryValue === 'number' && typeof reference === 'number') ? entryValue > reference : false,
     gte: (entryValue: unknown, reference: unknown) => (typeof entryValue === 'number' && typeof reference === 'number') ? entryValue >= reference : false,
     lt: (entryValue: unknown, reference: unknown) => (typeof entryValue === 'number' && typeof reference === 'number') ? entryValue < reference : false,
-    lte: (entryValue: unknown, reference: unknown) => (typeof entryValue === 'number' && typeof reference === 'number') ? entryValue <= reference : false,
-    exist: (entryValue: unknown, reference: unknown) => (typeof reference === 'boolean') ? !!entryValue === reference : false,
+    lte: (entryValue: unknown, reference: unknown) => (typeof entryValue === 'number' && typeof reference === 'number') ? entryValue <= reference : false
 };

@@ -1,4 +1,4 @@
-import { CollectionIndexes, Entry, SortingField } from '../models/interfaces';
+import { CollectionIndexes, Entry } from '../models/interfaces';
 
 function compareValuesOrder(a: Entry, b: Entry, field: string, order: string, languageCode: string): number {
     const valueA = getPropertyByPath(a, field);
@@ -12,20 +12,7 @@ function compareValuesOrder(a: Entry, b: Entry, field: string, order: string, la
     } else {
         return compareDifferentTypes(valueA, valueB, order);
     }
-
-    // // const valueA = getStringOfFieldValue(a, field);
-    // // const valueB = getStringOfFieldValue(b, field);
-
-    // if (valueA === undefined || valueB === undefined) {
-    //     return 0;
-    // }
-
-    // if (order === '+1') {
-    //     return valueA.localeCompare(valueB, languageCode ?? 'en', { sensitivity: 'base', numeric: true });
-    // } else {
-    //     return valueB.localeCompare(valueA, languageCode ?? 'en', { sensitivity: 'base', numeric: true });
-    // }
-}
+};
 
 const extractIndexes = (collection: Entry[], indexList: string[]): CollectionIndexes => {
     const indexes: CollectionIndexes = {};
@@ -57,32 +44,6 @@ const getPropertyByPath = (object: Entry, field: string): unknown => {
     }, object as any);
 };
 
-function getStringOfFieldValue(entry: Entry, field: string): string {
-    let rawValue: unknown;
-
-    rawValue = getPropertyByPath(entry, field);
-
-    if (rawValue === Object(rawValue)) {
-        throw 'It is not a primitive value!';
-    }
-
-    let value: string;
-
-    if (rawValue == null) {
-        value = '';
-    } else if (rawValue === true) {
-        value = '0'
-    } else if (rawValue === false) {
-        value = '1';
-    } else if (typeof rawValue === 'string') {
-        value = rawValue;
-    } else {
-        value = String(rawValue);
-    }
-
-    return value;
-};
-
 const getValueType = (value: unknown): string => {
     if (
         typeof value === 'string' ||
@@ -104,11 +65,74 @@ const getValueType = (value: unknown): string => {
 };
 
 const compareSameTypes = (a: unknown, b: unknown, order: string, languageCode: string): number => {
-    return;
+    if (typeof a === 'string' && typeof b === 'string') {
+        return compareStrings(a, b, order, languageCode);
+    }
+
+    if (typeof a === 'number' && typeof b === 'number') {
+        return compareNumbers(a, b, order);
+    }
+
+    if (typeof a === 'boolean' && typeof b === 'boolean') {
+        return compareBooleans(a, b, order);
+    }
+
+    return 0;
 };
 
 const compareDifferentTypes = (a: unknown, b: unknown, order: string): number => {
-    return;
+    let aTypeIndex = getValueTypeIndex(a);
+    let bTypeIndex = getValueTypeIndex(b);
+
+    return compareNumbers(aTypeIndex, bTypeIndex, order);
+};
+
+const compareStrings = (a: string, b: string, order: string, languageCode: string): number => {
+    if (order === '+1') {
+        return a.localeCompare(b, languageCode ?? 'en', { sensitivity: 'base', numeric: true });
+    } else {
+        return b.localeCompare(a, languageCode ?? 'en', { sensitivity: 'base', numeric: true });
+    }
+};
+
+const compareNumbers = (a: number, b: number, order: string): number => {
+    if (order === '+1') {
+        return a - b;
+    } else {
+        return b - a;
+    }
+};
+
+const compareBooleans = (a: boolean, b: boolean, order: string): number => {
+    if (order === '+1') {
+        return (a === b) ? 0 : a ? -1 : 1;
+    } else {
+        return (a === b) ? 0 : a ? 1 : -1;
+    }
+};
+
+const getValueTypeIndex = (value: unknown): number => {
+    if (value === null) {
+        return 1;
+    }
+
+    if (typeof value === 'boolean') {
+        return 2;
+    }
+
+    if (typeof value === 'number') {
+        return 3;
+    }
+
+    if (typeof value === 'string') {
+        return 4;
+    }
+
+    if (Array.isArray(value)) {
+        return 5;
+    }
+
+    return 6;
 };
 
 export const utils = {

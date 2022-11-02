@@ -3,7 +3,7 @@ import { DatabaseError, DBMethod } from '../models/enums';
 import { Collection, Entry, FindMethods, NewEntry, Query } from '../models/interfaces';
 import { CustomError, InternalError } from '../utils/errors';
 import { utils } from '../utils/utils';
-import { basicTypesValidators } from '../validators/basic-types-validators';
+import { typesValidators } from '../validators/types-validators';
 import { collectionValidators } from '../validators/collection-validators';
 import { entryValidators } from '../validators/entry-validators';
 import { findResults } from './find-results';
@@ -64,7 +64,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const find = (entryId: number): Entry => {
         try {
-            if (!basicTypesValidators.isPositiveInteger(entryId)) {
+            if (!typesValidators.isPositiveInteger(entryId)) {
                 throw new InternalError(DatabaseError.EntryIdError, 'Invalid entry id.');
             }
 
@@ -149,7 +149,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const remove = (entryId: number): number => {
         try {
-            if (!basicTypesValidators.isPositiveInteger(entryId)) {
+            if (!typesValidators.isPositiveInteger(entryId)) {
                 throw new InternalError(DatabaseError.EntryIdError, 'Invalid entry id.');
             }
 

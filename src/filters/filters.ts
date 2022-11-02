@@ -1,8 +1,10 @@
 import { FiltersList } from '../models/types';
-import { comparisonFilters } from './comparison-filters';
-import { elementFilters } from './element-filters';
+import { arrayFilters } from './array-filters';
+import { basicFilters } from './basic-filters';
+import { numberFilters } from './number-filters';
 
 export const filters: FiltersList = {
-    ...comparisonFilters,
-    ...elementFilters
+    ...basicFilters,
+    ...numberFilters,
+    ...arrayFilters,
 };

@@ -35,6 +35,10 @@ const extractIndexes = (collection: Entry[], indexList: string[]): CollectionInd
 };
 
 const getPropertyByPath = (object: Entry, field: string): unknown => {
+    if (field === '_entry') {
+        return object;
+    }
+
     return field.split('.').reduce((obj, prop) => {
         if (!obj || !Object.prototype.hasOwnProperty.call(obj, prop)) {
             return undefined;

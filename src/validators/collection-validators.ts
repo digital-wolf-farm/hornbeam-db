@@ -1,6 +1,6 @@
 import { FilterType } from '../models/enums';
 import { CollectionOptions, Entry, Query } from '../models/interfaces';
-import { basicTypesValidators } from './basic-types-validators';
+import { typesValidators } from './types-validators';
 import { entryValidators } from './entry-validators';
 
 const isCollectionNameValid = (name: string): boolean => {
@@ -8,7 +8,7 @@ const isCollectionNameValid = (name: string): boolean => {
 };
 
 const isCollectionOptionsValid = (options: CollectionOptions): boolean => {
-    if (!basicTypesValidators.isObject(options)) {
+    if (!typesValidators.isObject(options)) {
         return false;
     }
 
@@ -21,7 +21,7 @@ const isCollectionOptionsValid = (options: CollectionOptions): boolean => {
         return false;
     }
 
-    if (!basicTypesValidators.isArray(options['indexes'])) {
+    if (!typesValidators.isArray(options['indexes'])) {
         return false;
     }
 
@@ -33,7 +33,7 @@ const isCollectionOptionsValid = (options: CollectionOptions): boolean => {
 }
 
 const isEntriesListValid = (entriesData: Entry[]): boolean => {
-    if (!basicTypesValidators.isArray(entriesData)) {
+    if (!typesValidators.isArray(entriesData)) {
         return false;
     }
 
@@ -49,7 +49,7 @@ const isEntriesListValid = (entriesData: Entry[]): boolean => {
 };
 
 const isIdsListValid = (entriesId: number[]): boolean => {
-    if (!basicTypesValidators.isArray(entriesId)) {
+    if (!typesValidators.isArray(entriesId)) {
         return false;
     }
 
@@ -57,7 +57,7 @@ const isIdsListValid = (entriesId: number[]): boolean => {
         return false;
     }
 
-    if (!entriesId.every((entryId) => basicTypesValidators.isPositiveInteger(entryId))) {
+    if (!entriesId.every((entryId) => typesValidators.isPositiveInteger(entryId))) {
         return false;
     }
 
@@ -65,7 +65,7 @@ const isIdsListValid = (entriesId: number[]): boolean => {
 };
 
 const isQueryValid = (query: Query): boolean => {
-    if (!basicTypesValidators.isObject(query)) {
+    if (!typesValidators.isObject(query)) {
         return false;
     }
 
@@ -76,13 +76,13 @@ const isQueryValid = (query: Query): boolean => {
     }
 
     // TODO: Add validator to (nested) field name
-    if (!basicTypesValidators.isString(keys[0])) {
+    if (!typesValidators.isString(keys[0])) {
         return false;
     }
 
     const condition = query[keys[0]];
 
-    if (!basicTypesValidators.isObject(condition)) {
+    if (!typesValidators.isObject(condition)) {
         return false;
     }
 

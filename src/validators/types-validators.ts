@@ -2,6 +2,10 @@ const isArray = (value: unknown): boolean => {
     return Array.isArray(value);
 };
 
+const isBoolean = (value: unknown): boolean => {
+    return typeof value === 'boolean';
+}
+
 const isNumber = (value: unknown): boolean => {
     return typeof value === 'number';
 };
@@ -14,14 +18,20 @@ const isPositiveInteger = (value: unknown): boolean => {
     return (Number.isInteger(value) && value > 0);
 };
 
+const isPrimitive = (value: unknown): boolean => {
+    return value !== Object(value);
+};
+
 const isString = (value: unknown): boolean => {
     return typeof value === 'string';
 };
 
-export const basicTypesValidators = {
+export const typesValidators = {
     isArray,
+    isBoolean,
     isNumber,
     isObject,
     isPositiveInteger,
+    isPrimitive,
     isString
 };

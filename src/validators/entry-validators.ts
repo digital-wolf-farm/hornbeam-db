@@ -1,7 +1,7 @@
-import { basicTypesValidators } from './basic-types-validators';
+import { typesValidators } from './types-validators';
 
 const isEntryValid = (value: unknown): boolean => {
-    if (!basicTypesValidators.isObject(value)) {
+    if (!typesValidators.isObject(value)) {
         return false;
     }
 
@@ -9,7 +9,7 @@ const isEntryValid = (value: unknown): boolean => {
         return false;
     }
 
-    if (!basicTypesValidators.isPositiveInteger(value['_id'])) {
+    if (!typesValidators.isPositiveInteger(value['_id'])) {
         return false;
     }
 
@@ -21,7 +21,7 @@ const isEntryValid = (value: unknown): boolean => {
 }
 
 const isNewEntryValid = (value: unknown): boolean => {
-    if (!basicTypesValidators.isObject(value)) {
+    if (!typesValidators.isObject(value)) {
         return false;
     }
 
@@ -37,7 +37,7 @@ const isNewEntryValid = (value: unknown): boolean => {
 }
 
 const isUniqueFieldsArrayValid = (value: string[]): boolean => {
-    if (!basicTypesValidators.isArray(value)) {
+    if (!typesValidators.isArray(value)) {
         return false;
     }
 
@@ -45,7 +45,7 @@ const isUniqueFieldsArrayValid = (value: string[]): boolean => {
         return false;
     }
 
-    if (value.findIndex((field) => field === '_id') !== -1 || !value.every((element) => basicTypesValidators.isString(element))) {
+    if (value.findIndex((field) => field === '_id') !== -1 || !value.every((element) => typesValidators.isString(element))) {
         return false;
     }
 

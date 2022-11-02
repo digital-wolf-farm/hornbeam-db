@@ -27,14 +27,34 @@ export enum DatabaseError {
     FindQueryError = 'FIND_QUERY_ERROR'
 }
 
-export enum FilterType {
+export enum BasicFilters {
+    Exist = 'exist',
     Equal = 'eq',
-    Equali = 'eqi',
+    EqualI = 'eqi',
     NotEqual = 'neq',
-    NotEquali = 'neqi',
+    NotEqualI = 'neqi'
+}
+
+export enum NumberFilters {
     Greater = 'gt',
     GreaterOrEqual = 'gte',
     LessThan = 'lt',
     LessThanOrEqual = 'lte',
-    Exist = 'exist'
 }
+
+export enum ArrayFilters {
+    All = 'all',
+    Size = 'size',
+    Contain = 'contain'
+}
+
+export enum TextFilters {
+    Text = 'text',
+}
+
+export const Filters = {
+    ...BasicFilters,
+    ...NumberFilters,
+    ...ArrayFilters,
+    ...TextFilters
+};

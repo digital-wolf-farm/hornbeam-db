@@ -1,10 +1,10 @@
 import { DatabaseError } from '../models/enums';
 import { InternalError } from '../utils/errors';
-import { basicTypesValidators } from './basic-types-validators';
 import { collectionValidators } from './collection-validators';
+import { typesValidators } from './types-validators';
 
 const isDatabaseSchemaValid = (db: unknown): void => {
-    if (!basicTypesValidators.isObject(db)) {
+    if (!typesValidators.isObject(db)) {
         throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Database is not an object.');
     }
 
@@ -15,7 +15,7 @@ const isDatabaseSchemaValid = (db: unknown): void => {
     });
 
     Object.values(db).forEach((collection) => {
-        if (!basicTypesValidators.isArray(collection)) {
+        if (!typesValidators.isArray(collection)) {
             throw new InternalError(DatabaseError.DatabaseSchemaMismatch, `Collection is not an array.`);
         }
 
@@ -24,7 +24,7 @@ const isDatabaseSchemaValid = (db: unknown): void => {
         }
 
         collection.forEach((entry: unknown) => {
-            if (!basicTypesValidators.isObject(entry)) {
+            if (!typesValidators.isObject(entry)) {
                 throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Entry is not an object.');
             }
 
@@ -32,7 +32,7 @@ const isDatabaseSchemaValid = (db: unknown): void => {
                 throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Entry _id field missing..');
             }
 
-            if(!basicTypesValidators.isPositiveInteger(entry['_id'])) {
+            if(!typesValidators.isPositiveInteger(entry['_id'])) {
                 throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Entry _id field is not a positive integer.');
             }
 
@@ -74,7 +74,7 @@ const isFilePathValid = (path: string): void => {
 };
 
 const isSizeLimitValid = (size: number): boolean => {
-    if (!size || typeof size !== 'number' || !basicTypesValidators.isPositiveInteger(size) || size > 1000) {
+    if (!size || typeof size !== 'number' || !typesValidators.isPositiveInteger(size) || size > 1000) {
         return false;
     }
 

@@ -1,4 +1,4 @@
-import { FilterType } from './enums';
+import { ArrayFilters, BasicFilters, NumberFilters, TextFilters } from './enums';
 
 export interface DatabaseAPI {
     getCollection(name: string, options: CollectionOptions): Collection;
@@ -66,7 +66,7 @@ export interface Entry {
 
 export interface Query {
     field: {
-        [key in FilterType]: unknown
+        [key in BasicFilters | NumberFilters | ArrayFilters | TextFilters]: unknown
     }
 }
 

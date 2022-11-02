@@ -1,4 +1,4 @@
-import { FilterType } from '../models/enums';
+import { Filters } from '../models/enums';
 import { CollectionOptions, Entry, Query } from '../models/interfaces';
 import { typesValidators } from './types-validators';
 import { entryValidators } from './entry-validators';
@@ -92,7 +92,7 @@ const isQueryValid = (query: Query): boolean => {
         return false;
     }
 
-    if (!Object.keys(FilterType).map((type) => FilterType[type]).includes(conditionKeys[0])) {
+    if (!Object.keys(Filters).map((type) => Filters[type]).includes(conditionKeys[0])) {
         return false;
     }
 

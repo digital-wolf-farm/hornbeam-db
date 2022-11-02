@@ -32,6 +32,7 @@ const neq = (entryValue: unknown, reference: unknown): boolean => {
 
     return entryValue !== reference;
 };
+
 const neqi = (entryValue: unknown, reference: unknown): boolean => {
     if (!typesValidators.isPrimitive(entryValue) || !typesValidators.isPrimitive(reference)) {
         return false;

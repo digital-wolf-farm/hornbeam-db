@@ -5,6 +5,7 @@
         "build": "tsc --build tsconfig.es6.json && tsc --build tsconfig.cjs.json",
         "lint": "eslint . --ext .ts",
         "test": "jest ./src",
+        "test:watch": "jest ./src --watchAll",
         "test:e2e": "jest ./tests/e2e"
     },
     "repository": {

@@ -52,7 +52,7 @@ describe('HornbeamDB', () => {
             try {
                 await openDB(path);
             } catch (e) {
-                expect(e).toBe(DatabaseError.FilePathError);
+                expect(e.name).toBe(DatabaseError.FilePathError);
             }
 
             expect(databaseFn.database).toThrow();

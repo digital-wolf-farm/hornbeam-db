@@ -2,11 +2,15 @@ import { TextFiltersList } from '../models/types';
 import { typesValidators } from '../validators/types-validators';
 
 const text = (entryValue: unknown, reference: unknown): boolean => {
+    // INFO: Escaping special characters is up to server
+    // INFO: Searching for text is case insensitive
+    // INFO: Searching for text is diacritic sensitive
+
     if (entryValue == null) {
         return false;
     }
     
-    if (!typesValidators.isString(reference)) {
+    if (!typesValidators.isString(reference) || reference === '') {
         return false;
     }
 
@@ -15,7 +19,7 @@ const text = (entryValue: unknown, reference: unknown): boolean => {
     }
 
     if (typesValidators.isString(entryValue)) {
-        return (entryValue as string).includes(reference as string);
+        return (entryValue as string).toLowerCase().includes((reference as string).toLowerCase());
     }
 
     if (typesValidators.isNumber(entryValue)) {

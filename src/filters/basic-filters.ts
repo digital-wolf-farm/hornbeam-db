@@ -1,4 +1,4 @@
-import { FiltersList } from '../models/types';
+import { BasicFiltersList } from '../models/types';
 import { typesValidators } from '../validators/types-validators';
 
 const exist = (entryValue: unknown, reference: unknown): boolean => {
@@ -45,6 +45,6 @@ const neqi = (entryValue: unknown, reference: unknown): boolean => {
     return entryValue !== reference;
 };
 
-export const basicFilters: any = {
+export const basicFilters: BasicFiltersList = {
     exist, eq, eqi, neq, neqi
 };

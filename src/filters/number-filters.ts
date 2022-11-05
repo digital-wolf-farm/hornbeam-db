@@ -1,3 +1,4 @@
+import { NumberFiltersList } from '../models/types';
 import { typesValidators } from '../validators/types-validators';
 
 const gt = (entryValue: unknown, reference: unknown): boolean => {
@@ -32,6 +33,6 @@ const lte = (entryValue: unknown, reference: unknown): boolean => {
     return entryValue <= reference;
 };
 
-export const numberFilters: any = {
+export const numberFilters: NumberFiltersList = {
     gt, gte, lt, lte
 };

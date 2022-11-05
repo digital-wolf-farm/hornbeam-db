@@ -1,3 +1,4 @@
+import { TextFiltersList } from '../models/types';
 import { typesValidators } from '../validators/types-validators';
 
 const text = (entryValue: unknown, reference: unknown): boolean => {
@@ -48,6 +49,6 @@ const text = (entryValue: unknown, reference: unknown): boolean => {
     return false;
 };
 
-export const textFilters: any = {
+export const textFilters: TextFiltersList = {
     text
 };

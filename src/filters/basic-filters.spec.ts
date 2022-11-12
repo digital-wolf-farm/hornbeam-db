@@ -111,4 +111,80 @@ describe('BasicFilters', () => {
             expect(basicFilters.eqi('WOLF', 'wolf')).toBe(true);
         });
     });
+
+    describe('neq', () => {
+        it('returns true when compared elements are primitive values and are different', () => {
+            expect(basicFilters.neq('wolf', 'fox')).toBe(true);
+            expect(basicFilters.neq(1, 2)).toBe(true);
+            expect(basicFilters.neq(true, false)).toBe(true);
+        });
+
+        it('returns false when compared elements are primitive values and are the same', () => {
+            expect(basicFilters.neq('wolf', 'wolf')).toBe(false);
+            expect(basicFilters.neq(1, 1)).toBe(false);
+            expect(basicFilters.neq(true, true)).toBe(false);
+        });
+
+        it('returns true when at least one of values is not primitive', () => {
+            expect(basicFilters.neq({}, '')).toBe(true);
+            expect(basicFilters.neq([], 0)).toBe(true);
+            expect(basicFilters.neq('1', {})).toBe(true);
+            expect(basicFilters.neq(true, [])).toBe(true);
+            expect(basicFilters.neq([], [])).toBe(true);
+            expect(basicFilters.neq({}, {})).toBe(true);
+        });
+
+        it('returns false when one of values is a string and another is a number and after coercion are equal', () => {
+            expect(basicFilters.neq('101', 101)).toBe(false);
+            expect(basicFilters.neq(99, '99')).toBe(false);
+        });
+
+        it('returns true when one of values is a string and another is a number and after coercion are not equal', () => {
+            expect(basicFilters.neq('101', 102)).toBe(true);
+            expect(basicFilters.neq(98, '99')).toBe(true);
+        });
+
+        it('returns true when both values are string but with different letter case', () => {
+            expect(basicFilters.neq('wolf', 'Wolf')).toBe(true);
+            expect(basicFilters.neq('WOLF', 'wolf')).toBe(true);
+        });
+    });
+
+    describe('neqi', () => {
+        it('returns true when compared elements are primitive values and are different', () => {
+            expect(basicFilters.neqi('wolf', 'fox')).toBe(true);
+            expect(basicFilters.neqi(1, 2)).toBe(true);
+            expect(basicFilters.neqi(true, false)).toBe(true);
+        });
+
+        it('returns false when compared elements are primitive values and are the same', () => {
+            expect(basicFilters.neqi('wolf', 'wolf')).toBe(false);
+            expect(basicFilters.neqi(1, 1)).toBe(false);
+            expect(basicFilters.neqi(true, true)).toBe(false);
+        });
+
+        it('returns true when at least one of values is not primitive', () => {
+            expect(basicFilters.neqi({}, '')).toBe(true);
+            expect(basicFilters.neqi([], 0)).toBe(true);
+            expect(basicFilters.neqi('1', {})).toBe(true);
+            expect(basicFilters.neqi(true, [])).toBe(true);
+            expect(basicFilters.neqi([], [])).toBe(true);
+            expect(basicFilters.neqi({}, {})).toBe(true);
+        });
+
+        it('returns false when one of values is a string and another is a number and after coercion are equal', () => {
+            expect(basicFilters.neqi('101', 101)).toBe(false);
+            expect(basicFilters.neqi(99, '99')).toBe(false);
+        });
+
+        it('returns true when one of values is a string and another is a number and after coercion are not equal', () => {
+            expect(basicFilters.neqi('101', 102)).toBe(true);
+            expect(basicFilters.neqi(98, '99')).toBe(true);
+        });
+
+        it('returns false when both values are string but with different letter case', () => {
+            expect(basicFilters.neqi('wolf', 'Wolf')).toBe(false);
+            expect(basicFilters.neqi('WOLF', 'wolf')).toBe(false);
+        });
+    });
 });

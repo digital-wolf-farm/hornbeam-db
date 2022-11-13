@@ -44,8 +44,8 @@ export enum NumberFilters {
 
 export enum ArrayFilters {
     All = 'all',
-    Size = 'size',
-    Contain = 'contain'
+    Part = 'part',
+    Size = 'size'
 }
 
 export enum TextFilters {

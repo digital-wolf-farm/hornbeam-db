@@ -1,13 +1,10 @@
 import { CollectionIndexes, Entry } from '../models/interfaces';
 
-function compareValuesOrder(a: Entry, b: Entry, field: string, order: string, languageCode: string): number {
+const compareValuesOrder = (a: Entry, b: Entry, field: string, order: string, languageCode: string): number => {
     const valueA = getPropertyByPath(a, field);
     const valueB = getPropertyByPath(b, field);
 
-    const valueAType = getValueType(valueA);
-    const valueBType = getValueType(valueB);
-
-    if (valueAType === valueBType) {
+    if (getValueType(valueA) === getValueType(valueB)) {
         return compareSameTypes(valueA, valueB, order, languageCode);
     } else {
         return compareDifferentTypes(valueA, valueB, order);
@@ -15,27 +12,38 @@ function compareValuesOrder(a: Entry, b: Entry, field: string, order: string, la
 };
 
 const extractIndexes = (collection: Entry[], indexList: string[]): CollectionIndexes => {
+    // INFO: Args validation should be done before calling this function
     const indexes: CollectionIndexes = {};
 
-    collection.forEach((entry) => {
-        indexList.forEach((index) => {
-            if (index !== '_id') {
-                if (!indexes[index]) {
-                    indexes[index] = [];
-                }
+    indexList.forEach((index) => {
+        if (indexes[index]) {
+            return;
+        }
 
+        const indexValues: unknown[] = [];
+
+        collection.forEach((entry) => {
+            if (index !== '_id') {
                 const value = getPropertyByPath(entry, index);
 
-                indexes[index].push(value);
+                if (value) {
+                    indexValues.push(value);
+                }
             }
         });
+
+        if (indexValues.length > 0) {
+            indexes[index] = indexValues;
+        }
     });
 
     return indexes;
 };
 
 const getPropertyByPath = (object: Entry, field: string): unknown => {
-    if (field === '_entry') {
+    // INFO: Args validation should be done before calling this function
+
+    if (field === '_') {
         return object;
     }
 

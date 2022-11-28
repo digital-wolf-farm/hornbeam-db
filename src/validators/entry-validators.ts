@@ -29,7 +29,7 @@ const isNewEntryValid = (value: unknown): boolean => {
         return false;
     }
 
-    if (Object.keys(value).length < 2) {
+    if (Object.keys(value).length < 1) {
         return false;
     }
 

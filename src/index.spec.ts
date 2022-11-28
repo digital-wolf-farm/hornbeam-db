@@ -53,6 +53,7 @@ describe('HornbeamDB', () => {
                 await openDB(path);
             } catch (e) {
                 expect(e.name).toBe(DatabaseError.FilePathError);
+                expect(e.message).toBe('Invalid path');
             }
 
             expect(databaseFn.database).toThrow();

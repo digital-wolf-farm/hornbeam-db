@@ -17,7 +17,7 @@ export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => 
 
     const cleanupDatabase = (): void => {
         for (const collection in db) {
-            if (Object.prototype.hasOwnProperty.call(db, collection) && collection.length === 0) {
+            if (Object.prototype.hasOwnProperty.call(db, collection) && db[collection].length === 0) {
                 delete db[collection];
             }
         }

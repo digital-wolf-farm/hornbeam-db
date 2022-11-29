@@ -1,9 +1,16 @@
 import { database } from './lib/database';
 import { fileSystem } from './lib/file-system';
 import { DatabaseError, DBMethod } from './models/enums';
-import { Database, DatabaseAPI } from './models/interfaces';
 import { CustomError } from './utils/errors';
 import { databaseValidators } from './validators/database-validators';
+
+import {
+    DatabaseAPI, DatabaseInfo, Database, DatabaseStats,
+    Collection, CollectionOptions, CollectionIndexes,
+    Query,
+    FindResults, LimitMethods, SortMethods, FindMethods,
+    NewEntry, Entry
+} from './models/interfaces';
 
 export const openDB = async (path: string, sizeLimit?: number): Promise<DatabaseAPI> => {
     let dbSizeLimit: number = databaseValidators.isSizeLimitValid(sizeLimit) ? sizeLimit : 10;
@@ -23,3 +30,11 @@ export const openDB = async (path: string, sizeLimit?: number): Promise<Database
         }
     }
 };
+
+export {
+    DatabaseAPI, DatabaseInfo, Database, DatabaseStats,
+    Collection, CollectionOptions, CollectionIndexes,
+    Query,
+    FindResults, LimitMethods, SortMethods, FindMethods,
+    NewEntry, Entry
+}

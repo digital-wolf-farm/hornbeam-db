@@ -1,7 +1,7 @@
 import { ArrayFilters, BasicFilters, NumberFilters, TextFilters } from './enums';
 
 export interface DatabaseAPI {
-    getCollection(name: string, options: CollectionOptions): Collection;
+    getCollection(name: string, options?: CollectionOptions): Collection;
     getStats(): DatabaseStats;
     saveData(): Promise<void>;
 }

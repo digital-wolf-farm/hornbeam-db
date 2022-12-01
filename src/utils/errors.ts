@@ -9,12 +9,9 @@ export class InternalError extends Error {
 }
 
 export class HornbeamError extends Error {
-    public action: string;
-
     public constructor(errorName: DatabaseError, actionName: string, message = 'No message') {
-        super(message);
+        super(`Action: ${actionName}, error: ${errorName}, details: ${message}`);
 
         this.name = errorName;
-        this.action = actionName;
     }
 }

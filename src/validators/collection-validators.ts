@@ -4,8 +4,12 @@ import { typesValidators } from './types-validators';
 import { entryValidators } from './entry-validators';
 import { InternalError } from '../utils/errors';
 
-const isCollectionNameValid = (name: string): boolean => {
-    if (!(new RegExp(`^([a-z][a-z0-9-_]{2,31})$`, 'g').test(name))) {
+const isCollectionNameValid = (name: unknown): boolean => {
+    if (!typesValidators.isString(name)) {
+        throw new InternalError(DatabaseError.CollectionNameError, 'Collection name is not a string');
+    }
+
+    if (!(new RegExp(`^([a-z][a-z0-9-_]{2,31})$`, 'g').test(name as string))) {
         throw new InternalError(DatabaseError.CollectionNameError, 'Collection name does not meet the pattern');
     }
 

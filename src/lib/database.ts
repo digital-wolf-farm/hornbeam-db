@@ -25,16 +25,10 @@ export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => 
 
     const getCollection = (name: string, options?: CollectionOptions): Collection => {
         try {
-            if (typeof name !== 'string') {
-                throw new InternalError(DatabaseError.CollectionNameError, 'Collection name is not a string.');
-            }
+            collectionValidators.isCollectionNameValid(name);
 
-            if (!collectionValidators.isCollectionNameValid(name)) {
-                throw new InternalError(DatabaseError.CollectionNameError, 'Invalid collection name.');
-            }
-
-            if (options && !collectionValidators.isCollectionOptionsValid(options)) {
-                throw new InternalError(DatabaseError.CollectionOptionsError, 'Invalid collection options.');
+            if (options) {
+                collectionValidators.isCollectionOptionsValid(options)
             }
 
             if (!db[name]) {

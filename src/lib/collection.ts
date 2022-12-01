@@ -12,9 +12,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const insert = (data: NewEntry): number => {
         try {
-            if (!entryValidators.isNewEntryValid(data)) {
-                throw new InternalError(DatabaseError.EntryFormatError, 'Invalid format of inserted entry.');
-            }
+            entryValidators.isNewEntryValid(data);
 
             if (collection.length === 0) {
                 collection.push({ _id: 1, ...data });
@@ -46,9 +44,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const insertMultiple = (dataList: NewEntry[]): number[] => {
         try {
-            if (!collectionValidators.isEntriesListValid(dataList)) {
-                throw new InternalError(DatabaseError.EntryFormatError, 'Invalid list of entries.');
-            }
+            collectionValidators.isEntriesListValid(dataList);
             
             const ids: number[] = [];
 
@@ -64,9 +60,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const find = (entryId: number): Entry => {
         try {
-            if (!typesValidators.isPositiveInteger(entryId)) {
-                throw new InternalError(DatabaseError.EntryIdError, 'Invalid entry id.');
-            }
+            typesValidators.isPositiveInteger(entryId);
 
             if (collection.length === 0) {
                 return undefined;
@@ -91,9 +85,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
                 return findResults(collection);
             }
 
-            if (!collectionValidators.isQueryValid(query)) {
-                throw new InternalError(DatabaseError.FindQueryError, 'Invalid query.');
-            }
+            collectionValidators.isQueryValid(query);
 
             const field = Object.keys(query)[0];
             const filterName = Object.keys(query[field])[0];
@@ -107,9 +99,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const replace = (data: Entry): number => {
         try {
-            if (!entryValidators.isEntryValid(data)) {
-                throw new InternalError(DatabaseError.EntryFormatError, 'Invalid replacing entry.');
-            }
+            entryValidators.isEntryValid(data);
 
             if (collection.length === 0) {
                 return -1;
@@ -149,9 +139,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const remove = (entryId: number): number => {
         try {
-            if (!typesValidators.isPositiveInteger(entryId)) {
-                throw new InternalError(DatabaseError.EntryIdError, 'Invalid entry id.');
-            }
+            typesValidators.isPositiveInteger(entryId);
 
             if (collection.length === 0) {
                 return -1;
@@ -171,9 +159,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const removeMultiple = (entriesId: number[]): number[] => {
         try {
-            if (!collectionValidators.isIdsListValid(entriesId)) {
-                throw new InternalError(DatabaseError.EntryIdError, 'Invalid list of entry ids.');
-            }
+            collectionValidators.isIdsListValid(entriesId);
 
             const ids: number[] = [];
 

@@ -55,7 +55,7 @@ export interface CollectionIndexes {
 }
 
 export interface NewEntry {
-    _id: never;
+    _id?: never;
     [field: string]: unknown;
 }
 

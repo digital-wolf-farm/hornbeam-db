@@ -1,64 +1,68 @@
-import { Filters } from '../models/enums';
-import { CollectionOptions, Entry, Query } from '../models/interfaces';
+import { DatabaseError, Filters } from '../models/enums';
+import { CollectionOptions, NewEntry, Query } from '../models/interfaces';
 import { typesValidators } from './types-validators';
 import { entryValidators } from './entry-validators';
+import { InternalError } from '../utils/errors';
 
 const isCollectionNameValid = (name: string): boolean => {
-    return new RegExp(`^([a-z][a-z0-9-_]{2,31})$`, 'g').test(name);
+    if (!(new RegExp(`^([a-z][a-z0-9-_]{2,31})$`, 'g').test(name))) {
+        throw new InternalError(DatabaseError.CollectionNameError, 'Collection name does not meet the pattern');
+    }
+
+    return true;
 };
 
 const isCollectionOptionsValid = (options: CollectionOptions): boolean => {
     if (!typesValidators.isObject(options)) {
-        return false;
+        throw new InternalError(DatabaseError.CollectionOptionsError, 'Options are not an object');
     }
 
     if (Object.keys(options).length === 0) {
-        return false;
+        throw new InternalError(DatabaseError.CollectionOptionsError, 'Options are empty object');
     }
 
     // [].include(key) is better?
     if (!Object.keys(options).every((key) => ['indexes'].findIndex((item) => item === key) !== -1)) {
-        return false;
+        throw new InternalError(DatabaseError.CollectionOptionsError, 'Options object contains unknown property');
     }
 
     if (!typesValidators.isArray(options['indexes'])) {
-        return false;
+        throw new InternalError(DatabaseError.CollectionOptionsError, 'Indexes list is not an array');
     }
 
     if (!options['indexes'].every((index) => typeof index === 'string')) {
-        return false;
-    }
-
-    return true;
-}
-
-const isEntriesListValid = (entriesData: Entry[]): boolean => {
-    if (!typesValidators.isArray(entriesData)) {
-        return false;
-    }
-
-    if (entriesData.length < 1) {
-        return false;
-    }
-
-    if (!entriesData.every((entry) => entryValidators.isNewEntryValid(entry))) {
-        return false;
+        throw new InternalError(DatabaseError.CollectionOptionsError, 'Index(es) is/are not a string');
     }
 
     return true;
 };
 
+const isEntriesListValid = (entriesData: NewEntry[]): boolean => {
+    if (!typesValidators.isArray(entriesData)) {
+        throw new InternalError(DatabaseError.EntriesListFormatError, 'List of entries is not an array');
+    }
+
+    if (entriesData.length < 1) {
+        throw new InternalError(DatabaseError.EntriesListFormatError, 'List of entries is empty');
+    }
+
+    entriesData.every((entry) => entryValidators.isNewEntryValid(entry))
+
+    return true;
+};
+
+
 const isIdsListValid = (entriesId: number[]): boolean => {
     if (!typesValidators.isArray(entriesId)) {
-        return false;
+        throw new InternalError(DatabaseError.EntriesIdListError, 'List of ids is not an array');
     }
 
     if (entriesId.length < 1) {
-        return false;
+        throw new InternalError(DatabaseError.EntriesIdListError, 'List of ids is empty');
     }
 
     if (!entriesId.every((entryId) => typesValidators.isPositiveInteger(entryId))) {
-        return false;
+        throw new InternalError(DatabaseError.EntriesIdListError, 'At least one id is not a positive integer');
     }
 
     return true;
@@ -66,38 +70,38 @@ const isIdsListValid = (entriesId: number[]): boolean => {
 
 const isQueryValid = (query: Query): boolean => {
     if (!typesValidators.isObject(query)) {
-        return false;
+        throw new InternalError(DatabaseError.FindQueryError, 'Query is not an object');
     }
 
     const keys = Object.keys(query);
 
     if (keys.length !== 1) {
-        return false;
+        throw new InternalError(DatabaseError.FindQueryError, 'Query has more than one property');
     }
 
     // TODO: Add validator to (nested) field name
     if (!typesValidators.isString(keys[0])) {
-        return false;
+        throw new InternalError(DatabaseError.FindQueryError, 'Field is not a string');
     }
 
     const condition = query[keys[0]];
 
     if (!typesValidators.isObject(condition)) {
-        return false;
+        throw new InternalError(DatabaseError.FindQueryError, 'Condition is not an object');
     }
 
     const conditionKeys = Object.keys(query[keys[0]]);
 
     if (conditionKeys.length !== 1) {
-        return false;
+        throw new InternalError(DatabaseError.FindQueryError, 'Condition has more than one property');
     }
 
     if (!Object.keys(Filters).map((type) => Filters[type]).includes(conditionKeys[0])) {
-        return false;
+        throw new InternalError(DatabaseError.FindQueryError, 'Filter name is not known');
     }
 
     if (condition[conditionKeys[0]] === Object(condition[conditionKeys[0]])) {
-        return false;
+        throw new InternalError(DatabaseError.FindQueryError, 'Value of condition is not primitive');
     }
 
     return true;

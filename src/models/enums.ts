@@ -19,6 +19,8 @@ export enum DatabaseError {
     DatabaseSizeExceeded = 'DATABASE_SIZE_EXCEEDED',
     EntryFormatError = 'ENTRY_FORMAT_ERROR',
     EntryIdError = 'ENTRY_ID_ERROR',
+    EntriesIdListError = 'ENTRIES_ID_LIST_ERROR',
+    EntriesListFormatError = 'ENTRIES_LIST_FORMAT_ERROR',
     FieldValueNotUnique = 'FIELD_VALUE_NOT_UNIQUE',
     FileNotFound = 'FILE_NOT_FOUND',
     FilePathError = 'FILE_PATH_ERROR',

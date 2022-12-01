@@ -1,7 +1,7 @@
 import { filters } from '../filters/filters';
 import { DatabaseError, DBMethod } from '../models/enums';
 import { Collection, Entry, FindMethods, NewEntry, Query } from '../models/interfaces';
-import { CustomError, InternalError } from '../utils/errors';
+import { HornbeamError, InternalError } from '../utils/errors';
 import { utils } from '../utils/utils';
 import { typesValidators } from '../validators/types-validators';
 import { collectionValidators } from '../validators/collection-validators';
@@ -40,7 +40,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
             return id;
         } catch (e) {
-            throw new CustomError(e.name, DBMethod.InsertEntry, e.message);
+            throw new HornbeamError(e.name, DBMethod.InsertEntry, e.message);
         }
     };
 
@@ -58,7 +58,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
             return ids;
         } catch (e) {
-            throw new CustomError(e.name, DBMethod.InsertEntries, e.message);
+            throw new HornbeamError(e.name, DBMethod.InsertEntries, e.message);
         }
     };
 
@@ -80,7 +80,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
             return JSON.parse(JSON.stringify(collection[index]));
         } catch (e) {
-            throw new CustomError(e.name, DBMethod.FindEntry, e.message);
+            throw new HornbeamError(e.name, DBMethod.FindEntry, e.message);
         }
 
     };
@@ -101,7 +101,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
             return findResults(collection.filter((entry) => filters[filterName](utils.getPropertyByPath(entry, field), referenceValue)));
         } catch (e) {
-            throw new CustomError(e.name, DBMethod.FindEntries, e.message);
+            throw new HornbeamError(e.name, DBMethod.FindEntries, e.message);
         }
     };
 
@@ -143,7 +143,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
             return oldEntry['_id'];
         } catch (e) {
-            throw new CustomError(e.name, DBMethod.ReplaceEntry, e.message);
+            throw new HornbeamError(e.name, DBMethod.ReplaceEntry, e.message);
         }
     };
 
@@ -165,7 +165,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
             return collection.splice(index, 1)[0]['_id'];
         } catch (e) {
-            throw new CustomError(e.name, DBMethod.RemoveEntry, e.message);
+            throw new HornbeamError(e.name, DBMethod.RemoveEntry, e.message);
         }
     };
 
@@ -187,7 +187,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
             return ids;
         } catch (e) {
-            throw new CustomError(e.name, DBMethod.RemoveEntries, e.message);
+            throw new HornbeamError(e.name, DBMethod.RemoveEntries, e.message);
         }
     };
 

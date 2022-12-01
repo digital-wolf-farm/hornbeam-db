@@ -1,7 +1,7 @@
 import { database } from './lib/database';
 import { fileSystem } from './lib/file-system';
 import { DatabaseError, DBMethod } from './models/enums';
-import { CustomError } from './utils/errors';
+import { HornbeamError } from './utils/errors';
 import { databaseValidators } from './validators/database-validators';
 
 import {
@@ -26,7 +26,7 @@ export const openDB = async (path: string, sizeLimit?: number): Promise<Database
         if (e.name === DatabaseError.FileNotFound) {
             return database({}, { path, dbSizeLimit });
         } else {
-            throw new CustomError(e.name, DBMethod.OpenDB, e.message);
+            throw new HornbeamError(e.name, DBMethod.OpenDB, e.message);
         }
     }
 };

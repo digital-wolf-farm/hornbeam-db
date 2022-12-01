@@ -1,6 +1,8 @@
+import { Entry } from '..';
 import { DatabaseError } from '../models/enums';
 import { InternalError } from '../utils/errors';
 import { collectionValidators } from './collection-validators';
+import { entryValidators } from './entry-validators';
 import { typesValidators } from './types-validators';
 
 const isDatabaseSchemaValid = (db: unknown): void => {
@@ -8,11 +10,13 @@ const isDatabaseSchemaValid = (db: unknown): void => {
         throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Database is not an object.');
     }
 
-    Object.keys(db).forEach((collectionName) => {
-        if (!collectionValidators.isCollectionNameValid(collectionName)) {
-            throw new InternalError(DatabaseError.DatabaseSchemaMismatch, `Invalid collection name: ${collectionName}.`);
-        }
-    });
+    try {
+        Object.keys(db).forEach((collectionName) => {
+            collectionValidators.isCollectionNameValid(collectionName);
+        });
+    } catch (e) {
+        throw new InternalError(DatabaseError.DatabaseSchemaMismatch, e.message);
+    }
 
     Object.values(db).forEach((collection) => {
         if (!typesValidators.isArray(collection)) {
@@ -23,25 +27,16 @@ const isDatabaseSchemaValid = (db: unknown): void => {
             throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Collection must contain at least one entry.');
         }
 
-        collection.forEach((entry: unknown) => {
-            if (!typesValidators.isObject(entry)) {
-                throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Entry is not an object.');
-            }
+        try {
+            collection.forEach((entry: unknown) => {
+                entryValidators.isEntryValid(entry);
+            });
+        } catch (e) {
+            throw new InternalError(DatabaseError.DatabaseSchemaMismatch, e.message);
+        }
 
-            if(!entry['_id']) {
-                throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Entry _id field missing..');
-            }
-
-            if(!typesValidators.isPositiveInteger(entry['_id'])) {
-                throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Entry _id field is not a positive integer.');
-            }
-
-            if (Object.keys(entry).length < 2) {
-                throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Entry must contain at least one custom field.');
-            }
-        });
-
-        const idsArray = collection.map((entry) => entry['_id']);
+        // TODO: Fix type
+        const idsArray = (collection as Entry[]).map((entry) => entry['_id']);
 
         if (new Set(idsArray).size !== idsArray.length) {
             throw new InternalError(DatabaseError.DatabaseSchemaMismatch, 'Entry _id is not unique.');

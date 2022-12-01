@@ -1,4 +1,4 @@
-import { CollectionIndexes, Entry } from '../models/interfaces';
+import { CollectionIndexes, Entry, NewEntry } from '../models/interfaces';
 
 const compareValuesOrder = (a: Entry, b: Entry, field: string, order: string, languageCode: string): number => {
     const valueA = getPropertyByPath(a, field);
@@ -40,7 +40,7 @@ const extractIndexes = (collection: Entry[], indexList: string[]): CollectionInd
     return indexes;
 };
 
-const getPropertyByPath = (object: Entry, field: string): unknown => {
+const getPropertyByPath = (object: Entry | NewEntry, field: string): unknown => {
     // INFO: Args validation should be done before calling this function
 
     if (field === '_') {

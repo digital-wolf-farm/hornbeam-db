@@ -1,6 +1,6 @@
 import { DatabaseError, DBMethod } from '../models/enums';
 import { Collection, CollectionOptions, Database, DatabaseAPI, DatabaseInfo, DatabaseStats, Entry } from '../models/interfaces';
-import { CustomError, InternalError } from '../utils/errors';
+import { HornbeamError, InternalError } from '../utils/errors';
 import { collectionValidators } from '../validators/collection-validators';
 import { databaseValidators } from '../validators/database-validators';
 import { collection } from './collection';
@@ -43,7 +43,7 @@ export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => 
 
             return collection(db[name], options?.indexes);
         } catch (e) {
-            throw new CustomError(e.name, DBMethod.GetCollection, e.message);
+            throw new HornbeamError(e.name, DBMethod.GetCollection, e.message);
         }
 
     };
@@ -55,7 +55,7 @@ export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => 
                 inUse: calculateDataSize()
             };
         } catch (e) {
-            throw new CustomError(e.name, DBMethod.StatDB, e.message);
+            throw new HornbeamError(e.name, DBMethod.StatDB, e.message);
         }
 
     };
@@ -68,7 +68,7 @@ export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => 
 
             await fileSystem.write(dbFilePath, db);
         } catch (e) {
-            throw new CustomError(e.name, DBMethod.SaveDB, e.message);
+            throw new HornbeamError(e.name, DBMethod.SaveDB, e.message);
         }
 
     };

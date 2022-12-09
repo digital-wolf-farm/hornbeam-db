@@ -15,8 +15,9 @@ export enum DBMethod {
 export enum DatabaseError {
     CollectionNameError = 'COLLECTION_NAME_ERROR',
     CollectionOptionsError = 'COLLECTION_OPTIONS_ERROR',
-    DatabaseSchemaMismatch = 'DATABASE_SCHEMA_MISMATCH',
-    DatabaseSizeExceeded = 'DATABASE_SIZE_EXCEEDED',
+    DataSchemaMismatch = 'DATA_SCHEMA_MISMATCH',
+    DataSizeExceeded = 'DATA_SIZE_EXCEEDED',
+    DataSizeLimitFormatError = 'DATA_SIZE_LIMIT_FORMAT_ERROR',
     EntryFormatError = 'ENTRY_FORMAT_ERROR',
     EntryIdError = 'ENTRY_ID_ERROR',
     EntriesIdListError = 'ENTRIES_ID_LIST_ERROR',

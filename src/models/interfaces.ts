@@ -3,15 +3,10 @@ import { ArrayFilters, BasicFilters, NumberFilters, TextFilters } from './enums'
 export interface DatabaseAPI {
     getCollection(name: string, options?: CollectionOptions): Collection;
     getStats(): DatabaseStats;
-    saveData(): Promise<void>;
+    returnData(): DatabaseData;
 }
 
-export interface DatabaseInfo {
-    path: string;
-    dbSizeLimit: number;
-}
-
-export interface Database {
+export interface DatabaseData {
     [collectionName: string]: Entry[];
 }
 

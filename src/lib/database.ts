@@ -1,15 +1,13 @@
-import { DatabaseError, DBMethod } from '../models/enums';
-import { Collection, CollectionOptions, Database, DatabaseAPI, DatabaseInfo, DatabaseStats, Entry } from '../models/interfaces';
-import { HornbeamError, InternalError } from '../utils/errors';
+import { DBMethod } from '../models/enums';
+import { Collection, CollectionOptions, DatabaseData, DatabaseAPI, DatabaseStats, Entry } from '../models/interfaces';
+import { HornbeamError } from '../utils/errors';
 import { collectionValidators } from '../validators/collection-validators';
-import { databaseValidators } from '../validators/database-validators';
+import { dataValidators } from '../validators/data-validators';
 import { collection } from './collection';
-import { fileSystem } from './file-system';
 
-export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => {
+export const database = (data: DatabaseData, dataSizeLimit: number): DatabaseAPI => {
 
     let db = data;
-    let dbFilePath = options.path;
 
     const calculateDataSize = (): string => {
         return (Buffer.byteLength(JSON.stringify(db)) / (1024 * 1024)).toFixed(2);
@@ -45,7 +43,7 @@ export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => 
     const getStats = (): DatabaseStats => {
         try {
             return {
-                sizeLimit: options.dbSizeLimit.toFixed(2),
+                sizeLimit: dataSizeLimit.toString() ?? '',
                 inUse: calculateDataSize()
             };
         } catch (e) {
@@ -54,13 +52,15 @@ export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => 
 
     };
 
-    const saveData = async (): Promise<void> => {
+    const returnData = (): DatabaseData => {
         try {
             cleanupDatabase();
-            databaseValidators.isDatabaseSizeNotExceeded(db, options.dbSizeLimit);
-            databaseValidators.isDatabaseSchemaValid(db);
+            if (dataSizeLimit) {
+                dataValidators.isDataSizeNotExceeded(db, dataSizeLimit);
+            }
+            dataValidators.isDataSchemaValid(db);
 
-            await fileSystem.write(dbFilePath, db);
+            return db;
         } catch (e) {
             throw new HornbeamError(e.name, DBMethod.SaveDB, e.message);
         }
@@ -70,6 +70,6 @@ export const database = (data: Database, options: DatabaseInfo): DatabaseAPI => 
     return {
         getCollection,
         getStats,
-        saveData
+        returnData
     };
 };

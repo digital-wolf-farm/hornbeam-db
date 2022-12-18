@@ -1,7 +1,8 @@
-import { ArrayFilters, BasicFilters, NumberFilters, TextFilters } from './enums';
+import { ArrayFilters, BasicFilters, LogicalFilters, NumberFilters, TextFilters } from './enums';
+import { Query, SortingField } from './types';
 
 export interface DatabaseAPI {
-    getCollection(name: string, options?: CollectionOptions): Collection;
+    getCollection(name: string, uniqueFields?: string[]): Collection;
     getStats(): DatabaseStats;
     returnData(): DatabaseData;
 }
@@ -41,10 +42,6 @@ export interface FindMethods {
     limit(resultsSize: number, skippedEntries: number): LimitMethods;
 }
 
-export interface CollectionOptions {
-    indexes: string[];
-}
-
 export interface CollectionIndexes {
     [index: string]: unknown[];
 }
@@ -59,7 +56,7 @@ export interface Entry {
     [field: string]: unknown;
 }
 
-export interface Query {
+export interface QueryExpression {
     field: {
         [key in BasicFilters | NumberFilters | ArrayFilters | TextFilters]: unknown
     }
@@ -73,5 +70,3 @@ export interface FindResults {
         skipped: number;
     };
 }
-
-export type SortingField = `${string}:${'-1' | '+1'}`;

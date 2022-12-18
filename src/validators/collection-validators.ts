@@ -1,60 +1,19 @@
-import { DatabaseError, Filters } from '../models/enums';
-import { CollectionOptions, NewEntry, Query } from '../models/interfaces';
+import { DatabaseError, Filters, LogicalFilters } from '../models/enums';
 import { typesValidators } from './types-validators';
-import { entryValidators } from './entry-validators';
 import { InternalError } from '../utils/errors';
+import { Query } from '../models/types';
 
-const isCollectionNameValid = (name: unknown): boolean => {
-    if (!typesValidators.isString(name)) {
-        throw new InternalError(DatabaseError.CollectionNameError, 'Collection name is not a string');
+const areCollectionIndexesValid = (indexes: unknown): boolean => {
+    if (!typesValidators.isArray(indexes)) {
+        throw new InternalError(DatabaseError.CollectionOptionsError, 'Indexes argument is not an array');
     }
 
-    if (!(new RegExp(`^([a-z][a-z0-9-_]{2,31})$`, 'g').test(name as string))) {
-        throw new InternalError(DatabaseError.CollectionNameError, 'Collection name does not meet the pattern');
-    }
-
-    return true;
-};
-
-const isCollectionOptionsValid = (options: CollectionOptions): boolean => {
-    if (!typesValidators.isObject(options)) {
-        throw new InternalError(DatabaseError.CollectionOptionsError, 'Options are not an object');
-    }
-
-    if (Object.keys(options).length === 0) {
-        throw new InternalError(DatabaseError.CollectionOptionsError, 'Options are empty object');
-    }
-
-    // [].include(key) is better?
-    if (!Object.keys(options).every((key) => ['indexes'].findIndex((item) => item === key) !== -1)) {
-        throw new InternalError(DatabaseError.CollectionOptionsError, 'Options object contains unknown property');
-    }
-
-    if (!typesValidators.isArray(options['indexes'])) {
-        throw new InternalError(DatabaseError.CollectionOptionsError, 'Indexes list is not an array');
-    }
-
-    if (!options['indexes'].every((index) => typeof index === 'string')) {
-        throw new InternalError(DatabaseError.CollectionOptionsError, 'Index(es) is/are not a string');
+    if (!(indexes as unknown[]).every((field) => typeof field === 'string')) {
+        throw new InternalError(DatabaseError.CollectionOptionsError, 'At least one of provided indexes is not a string');
     }
 
     return true;
 };
-
-const isEntriesListValid = (entriesData: NewEntry[]): boolean => {
-    if (!typesValidators.isArray(entriesData)) {
-        throw new InternalError(DatabaseError.EntriesListFormatError, 'List of entries is not an array');
-    }
-
-    if (entriesData.length < 1) {
-        throw new InternalError(DatabaseError.EntriesListFormatError, 'List of entries is empty');
-    }
-
-    entriesData.every((entry) => entryValidators.isNewEntryValid(entry))
-
-    return true;
-};
-
 
 const isIdsListValid = (entriesId: number[]): boolean => {
     if (!typesValidators.isArray(entriesId)) {
@@ -80,41 +39,58 @@ const isQueryValid = (query: Query): boolean => {
     const keys = Object.keys(query);
 
     if (keys.length !== 1) {
-        throw new InternalError(DatabaseError.FindQueryError, 'Query has more than one property');
+        throw new InternalError(DatabaseError.FindQueryError, 'Query contains other number than one logical operator');
     }
 
-    // TODO: Add validator to (nested) field name
-    if (!typesValidators.isString(keys[0])) {
-        throw new InternalError(DatabaseError.FindQueryError, 'Field is not a string');
+    if (!(Object.values(LogicalFilters) as unknown[]).includes(keys[0])) {
+        throw new InternalError(DatabaseError.FindQueryError, 'Query contains invalid logical operators');
     }
 
-    const condition = query[keys[0]];
-
-    if (!typesValidators.isObject(condition)) {
-        throw new InternalError(DatabaseError.FindQueryError, 'Condition is not an object');
+    if (!typesValidators.isArray(query[keys[0]])) {
+        throw new InternalError(DatabaseError.FindQueryError, 'Expressions list is not an array');
     }
 
-    const conditionKeys = Object.keys(query[keys[0]]);
+    (query[keys[0]] as unknown[]).forEach((expression) => {
+        if (!typesValidators.isObject(expression)) {
+            throw new InternalError(DatabaseError.FindQueryError, 'At least one expression is not an object');
+        }
 
-    if (conditionKeys.length !== 1) {
-        throw new InternalError(DatabaseError.FindQueryError, 'Condition has more than one property');
-    }
+        const keys = Object.keys(expression);
 
-    if (!Object.keys(Filters).map((type) => Filters[type]).includes(conditionKeys[0])) {
-        throw new InternalError(DatabaseError.FindQueryError, 'Filter name is not known');
-    }
+        if (keys.length !== 1) {
+            throw new InternalError(DatabaseError.FindQueryError, 'Expression has other number than one field');
+        }
 
-    if (condition[conditionKeys[0]] === Object(condition[conditionKeys[0]])) {
-        throw new InternalError(DatabaseError.FindQueryError, 'Value of condition is not primitive');
-    }
+        if (!typesValidators.isString(keys[0])) {
+            throw new InternalError(DatabaseError.FindQueryError, 'Expression field is not a string');
+        }
+
+        const condition = expression[keys[0]];
+
+        if (!typesValidators.isObject(condition)) {
+            throw new InternalError(DatabaseError.FindQueryError, 'Condition is not an object');
+        }
+
+        const conditionKeys = Object.keys(expression[keys[0]]);
+
+        if (conditionKeys.length !== 1) {
+            throw new InternalError(DatabaseError.FindQueryError, 'Condition has other number than one field');
+        }
+
+        if (!Object.keys(Filters).map((type) => Filters[type]).includes(conditionKeys[0])) {
+            throw new InternalError(DatabaseError.FindQueryError, 'Filter name is not known');
+        }
+
+        if (condition[conditionKeys[0]] === Object(condition[conditionKeys[0]])) {
+            throw new InternalError(DatabaseError.FindQueryError, 'Value of condition is not primitive');
+        }
+    });
 
     return true;
 }
 
 export const collectionValidators = {
-    isCollectionNameValid,
-    isCollectionOptionsValid,
-    isEntriesListValid,
+    areCollectionIndexesValid,
     isIdsListValid,
     isQueryValid
 };

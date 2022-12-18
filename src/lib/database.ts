@@ -1,8 +1,9 @@
-import { DBMethod } from '../models/enums';
-import { Collection, CollectionOptions, DatabaseData, DatabaseAPI, DatabaseStats, Entry } from '../models/interfaces';
-import { HornbeamError } from '../utils/errors';
+import { DatabaseError, DBMethod } from '../models/enums';
+import { Collection, DatabaseData, DatabaseAPI, DatabaseStats } from '../models/interfaces';
+import { HornbeamError, InternalError } from '../utils/errors';
 import { collectionValidators } from '../validators/collection-validators';
 import { dataValidators } from '../validators/data-validators';
+import { typesValidators } from '../validators/types-validators';
 import { collection } from './collection';
 
 export const database = (data: DatabaseData, dataSizeLimit: number): DatabaseAPI => {
@@ -21,50 +22,51 @@ export const database = (data: DatabaseData, dataSizeLimit: number): DatabaseAPI
         }
     };
 
-    const getCollection = (name: string, options?: CollectionOptions): Collection => {
+    const getCollection = (name: string, indexes?: string[]): Collection => {
         try {
-            collectionValidators.isCollectionNameValid(name);
+            if (!typesValidators.isString(name)) {
+                throw new InternalError(DatabaseError.CollectionNameError, 'Collection name is not a string');
+            }
 
-            if (options) {
-                collectionValidators.isCollectionOptionsValid(options)
+            if (indexes) {
+                collectionValidators.areCollectionIndexesValid(indexes);
             }
 
             if (!db[name]) {
                 db[name] = [];
             }
 
-            return collection(db[name], options?.indexes);
+            return collection(db[name], indexes);
         } catch (e) {
             throw new HornbeamError(e.name, DBMethod.GetCollection, e.message);
         }
-
     };
 
     const getStats = (): DatabaseStats => {
         try {
             return {
-                sizeLimit: dataSizeLimit.toString() ?? '',
+                sizeLimit: dataSizeLimit ? dataSizeLimit.toString() : '',
                 inUse: calculateDataSize()
             };
         } catch (e) {
             throw new HornbeamError(e.name, DBMethod.StatDB, e.message);
         }
-
     };
 
     const returnData = (): DatabaseData => {
         try {
             cleanupDatabase();
+
             if (dataSizeLimit) {
                 dataValidators.isDataSizeNotExceeded(db, dataSizeLimit);
             }
+
             dataValidators.isDataSchemaValid(db);
 
             return db;
         } catch (e) {
-            throw new HornbeamError(e.name, DBMethod.SaveDB, e.message);
+            throw new HornbeamError(e.name, DBMethod.ReturnDB, e.message);
         }
-
     };
 
     return {

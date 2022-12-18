@@ -16,7 +16,7 @@ const exampleObject = {
     key2: 'test2'.repeat(1024)
 }
 
-const fileSizeInMB = 25;
+const fileSizeInMB = 20;
 const data = new Array(fileSizeInMB * 102.4).fill({ ...exampleObject });
 
 console.log('Data size in MB: ', Buffer.byteLength(JSON.stringify(data)) / (1024 * 1024));

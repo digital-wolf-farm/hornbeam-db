@@ -22,6 +22,20 @@ const isEntryValid = (value: unknown): boolean => {
     return true;
 };
 
+const isNewEntriesListValid = (entriesData: unknown): boolean => {
+    if (!typesValidators.isArray(entriesData)) {
+        throw new InternalError(DatabaseError.EntriesListFormatError, 'List of entries is not an array');
+    }
+
+    if ((entriesData as unknown[]).length < 1) {
+        throw new InternalError(DatabaseError.EntriesListFormatError, 'List of entries is empty');
+    }
+
+    (entriesData as unknown[]).every((entry) => entryValidators.isNewEntryValid(entry))
+
+    return true;
+};
+
 const isNewEntryValid = (value: unknown): boolean => {
     if (!typesValidators.isObject(value)) {
         throw new InternalError(DatabaseError.EntryFormatError, 'Added entry is not an object');
@@ -40,5 +54,6 @@ const isNewEntryValid = (value: unknown): boolean => {
 
 export const entryValidators = {
     isEntryValid,
+    isNewEntriesListValid,
     isNewEntryValid
 };

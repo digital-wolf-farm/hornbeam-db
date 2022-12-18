@@ -1,6 +1,6 @@
 export enum DBMethod {
     OpenDB = 'OPEN_DATABASE',
-    SaveDB = 'SAVE_DATABASE',
+    ReturnDB = 'RETURN_DATABASE',
     StatDB = 'STAT_DATABASE',
     GetCollection = 'GET_COLLECTION',
     InsertEntry = 'INSERT_ENTRY',
@@ -28,6 +28,11 @@ export enum DatabaseError {
     FileReadError = 'FILE_READ_ERROR',
     FileWriteError = 'FILE_WRITE_ERROR',
     FindQueryError = 'FIND_QUERY_ERROR'
+}
+
+export enum LogicalFilters {
+    And = 'and',
+    Or = 'or'
 }
 
 export enum BasicFilters {

@@ -1,14 +1,16 @@
 import { filters } from '../filters/filters';
 import { DatabaseError, DBMethod } from '../models/enums';
-import { Collection, Entry, FindMethods, NewEntry, Query } from '../models/interfaces';
+import { Collection, Entry, FindMethods, NewEntry } from '../models/interfaces';
 import { HornbeamError, InternalError } from '../utils/errors';
 import { utils } from '../utils/utils';
 import { typesValidators } from '../validators/types-validators';
 import { collectionValidators } from '../validators/collection-validators';
 import { entryValidators } from '../validators/entry-validators';
 import { findResults } from './find-results';
+import { Query } from '../models/types';
+import { logicalFilters } from '../filters/logical-filters';
 
-export const collection = (collection: Entry[], indexList: string[]): Collection => {
+export const collection = (collection: Entry[], indexes: string[]): Collection => {
 
     const insert = (data: NewEntry): number => {
         try {
@@ -20,14 +22,14 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
                 return 1;
             }
 
-            if (indexList) {
-                const indexes = utils.extractIndexes(collection, indexList);
+            if (indexes) {
+                const indexedValues = utils.extractIndexes(collection, indexes);
 
-                Object.keys(indexes).forEach((index) => {
+                Object.keys(indexedValues).forEach((index) => {
                     const value = utils.getPropertyByPath(data, index);
 
-                    if (indexes[index].includes(value)) {
-                        throw new InternalError(DatabaseError.FieldValueNotUnique, `Added entry must contain unique value for field: ${index}`);
+                    if (indexedValues[index].includes(value)) {
+                        throw new InternalError(DatabaseError.FieldValueNotUnique, `Added entry contains non-unique value for field: ${index}`);
                     }
                 })
             }
@@ -44,7 +46,7 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
     const insertMultiple = (dataList: NewEntry[]): number[] => {
         try {
-            collectionValidators.isEntriesListValid(dataList);
+            entryValidators.isNewEntriesListValid(dataList);
             
             const ids: number[] = [];
 
@@ -87,11 +89,10 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
             collectionValidators.isQueryValid(query);
 
-            const field = Object.keys(query)[0];
-            const filterName = Object.keys(query[field])[0];
-            const referenceValue = query[field][filterName];
+            const logicalOperator = Object.keys(query)[0];
+            const queryExpressions = query[logicalOperator];
 
-            return findResults(collection.filter((entry) => filters[filterName](utils.getPropertyByPath(entry, field), referenceValue)));
+            return findResults(collection.filter((entry) => logicalFilters[logicalOperator](entry, queryExpressions)));
         } catch (e) {
             throw new HornbeamError(e.name, DBMethod.FindEntries, e.message);
         }
@@ -113,13 +114,13 @@ export const collection = (collection: Entry[], indexList: string[]): Collection
 
             const oldEntry = collection.splice(index, 1)[0];
 
-            if (indexList) {
-                const indexes = utils.extractIndexes(collection, indexList);
+            if (indexes) {
+                const indexedValues = utils.extractIndexes(collection, indexes);
 
-                Object.keys(indexes).forEach((index) => {
+                Object.keys(indexedValues).forEach((index) => {
                     const value = utils.getPropertyByPath(data, index);
 
-                    if (indexes[index].includes(value)) {
+                    if (indexedValues[index].includes(value)) {
                         collection.push({ ...oldEntry });
                         collection.sort((entryA, entryB) => entryA['_id'] - entryB['_id']);
 

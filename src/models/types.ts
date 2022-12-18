@@ -1,4 +1,16 @@
-import { ArrayFilters, BasicFilters, NumberFilters, TextFilters } from './enums';
+import { Entry } from '..';
+import { ArrayFilters, BasicFilters, LogicalFilters, NumberFilters, TextFilters } from './enums';
+import { QueryExpression } from './interfaces';
+
+export type SortingField = `${string}:${'-1' | '+1'}`;
+
+export type Query = {
+    [key in LogicalFilters]: QueryExpression[];
+}
+
+export type LogicalFiltersList = {
+    [key in LogicalFilters]: (entry: Entry, filters: FiltersList[]) => boolean;
+}
 
 export type BasicFiltersList = {
     [key in BasicFilters]: (entryValue: unknown, reference: unknown) => boolean;

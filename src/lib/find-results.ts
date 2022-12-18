@@ -1,4 +1,5 @@
-import { Entry, FindMethods, FindResults, LimitMethods, SortingField, SortMethods } from '../models/interfaces';
+import { Entry, FindMethods, FindResults, LimitMethods, SortMethods } from '../models/interfaces';
+import { SortingField } from '../models/types';
 import { utils } from '../utils/utils';
 
 export const findResults = (foundEntries: Entry[]): FindMethods => {

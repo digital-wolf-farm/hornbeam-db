@@ -1,7 +1,6 @@
 import { Entry } from '..';
 import { DatabaseError } from '../models/enums';
 import { InternalError } from '../utils/errors';
-import { collectionValidators } from './collection-validators';
 import { entryValidators } from './entry-validators';
 import { typesValidators } from './types-validators';
 
@@ -12,7 +11,7 @@ const isDataSchemaValid = (db: unknown): void => {
 
     try {
         Object.keys(db).forEach((collectionName) => {
-            collectionValidators.isCollectionNameValid(collectionName);
+            typesValidators.isString(collectionName);
         });
     } catch (e) {
         throw new InternalError(DatabaseError.DataSchemaMismatch, e.message);
@@ -24,7 +23,7 @@ const isDataSchemaValid = (db: unknown): void => {
         }
 
         if (collection.length === 0) {
-            throw new InternalError(DatabaseError.DataSchemaMismatch, 'Collection must contain at least one entry');
+            throw new InternalError(DatabaseError.DataSchemaMismatch, 'Collection cannot be empty');
         }
 
         try {

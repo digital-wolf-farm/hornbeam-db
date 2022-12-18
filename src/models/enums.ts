@@ -23,11 +23,9 @@ export enum DatabaseError {
     EntriesIdListError = 'ENTRIES_ID_LIST_ERROR',
     EntriesListFormatError = 'ENTRIES_LIST_FORMAT_ERROR',
     FieldValueNotUnique = 'FIELD_VALUE_NOT_UNIQUE',
-    FileNotFound = 'FILE_NOT_FOUND',
-    FilePathError = 'FILE_PATH_ERROR',
-    FileReadError = 'FILE_READ_ERROR',
-    FileWriteError = 'FILE_WRITE_ERROR',
-    FindQueryError = 'FIND_QUERY_ERROR'
+    FindQueryError = 'FIND_QUERY_ERROR',
+    LimitArgumentsError = 'LIMIT_ARGUMENTS_ERROR',
+    SortArgumentsError = 'SORT_ARGUMENTS_ERROR'
 }
 
 export enum LogicalFilters {

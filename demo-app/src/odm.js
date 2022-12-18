@@ -66,8 +66,8 @@ module.exports = function odmService() {
             const collection = db.getCollection('authors');
             return collection
                 .findMultiple({ or: [{ 'country': { eq: 'pl' } }, { 'surname': { eq: 'King' } }] })
-                // .sort('_id:-1',)
-                // .limit(2, 1)
+                .sort('_id:-1')
+                .limit(2, 1)
                 .results();
         } catch (e) {
             console.log('findBooks error', e);

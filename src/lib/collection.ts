@@ -62,7 +62,9 @@ export const collection = (collection: Entry[], indexes: string[]): Collection =
 
     const find = (entryId: number): Entry => {
         try {
-            typesValidators.isPositiveInteger(entryId);
+            if (!typesValidators.isPositiveInteger(entryId)) {
+                throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a positive integer');
+            }
 
             if (collection.length === 0) {
                 return undefined;
@@ -140,7 +142,9 @@ export const collection = (collection: Entry[], indexes: string[]): Collection =
 
     const remove = (entryId: number): number => {
         try {
-            typesValidators.isPositiveInteger(entryId);
+            if (!typesValidators.isPositiveInteger(entryId)) {
+                throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a positive integer');
+            }
 
             if (collection.length === 0) {
                 return -1;

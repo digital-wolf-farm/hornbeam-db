@@ -1,6 +1,10 @@
+import { DatabaseError } from '../models/enums';
 import { Entry, FindMethods, FindResults, LimitMethods, SortMethods } from '../models/interfaces';
 import { SortingField } from '../models/types';
+import { InternalError } from '../utils/errors';
 import { utils } from '../utils/utils';
+import { findResultsValidators } from '../validators/find-results-validators';
+import { typesValidators } from '../validators/types-validators';
 
 export const findResults = (foundEntries: Entry[]): FindMethods => {
 
@@ -21,11 +25,15 @@ export const findResults = (foundEntries: Entry[]): FindMethods => {
         };
     };
 
-    const sort = (param: SortingField, languageCode: string): SortMethods => {
-        // TODO: Add argument verifier
+    const sort = (sortingField: SortingField, languageCode?: string): SortMethods => {
+        findResultsValidators.isSortingFieldValid(sortingField);
 
-        const field = param.split(':')[0];
-        const order = param.split(':')[1];
+        if (languageCode && !typesValidators.isString(languageCode)) {
+            throw new InternalError(DatabaseError.SortArgumentsError, 'Language code argument is not a string');
+        }
+
+        const field = sortingField.split(':')[0];
+        const order = sortingField.split(':')[1];
 
         result.sort((a, b) => utils.compareValuesOrder(a, b, field, order, languageCode));
 
@@ -36,7 +44,13 @@ export const findResults = (foundEntries: Entry[]): FindMethods => {
     };
 
     const limit = (resultsSize: number, skippedEntries: number): LimitMethods => {
-        // TODO: Add arguments verifiers and interface
+        if (!typesValidators.isPositiveInteger(resultsSize)) {
+            throw new InternalError(DatabaseError.LimitArgumentsError, 'Results size argument is not a positive integer');
+        }
+
+        if (!typesValidators.isPositiveInteger(skippedEntries)) {
+            throw new InternalError(DatabaseError.LimitArgumentsError, 'Skipped entries argument is not a positive integer');
+        }
 
         result = result.slice(skippedEntries, skippedEntries + resultsSize);
 

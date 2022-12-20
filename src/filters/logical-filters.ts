@@ -1,9 +1,10 @@
 import { Entry } from '..';
-import { FiltersList, LogicalFiltersList } from '../models/types';
+import { QueryExpression } from '../models/interfaces';
+import { LogicalFiltersList } from '../models/types';
 import { utils } from '../utils/utils';
 import { filters } from './filters';
 
-const and = (entry: Entry, queryExpressions: FiltersList[]): boolean => {
+const and = (entry: Entry, queryExpressions: QueryExpression[]): boolean => {
     return queryExpressions.every((expression) => {
         const field = Object.keys(expression)[0];
         const filterName = Object.keys(expression[field])[0];
@@ -13,7 +14,7 @@ const and = (entry: Entry, queryExpressions: FiltersList[]): boolean => {
     });
 };
 
-const or = (entry: Entry, queryExpressions: FiltersList[]): boolean => {
+const or = (entry: Entry, queryExpressions: QueryExpression[]): boolean => {
     return queryExpressions.some((expression) => {
         const field = Object.keys(expression)[0];
         const filterName = Object.keys(expression[field])[0];

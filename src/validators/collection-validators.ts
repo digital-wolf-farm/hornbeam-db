@@ -2,9 +2,13 @@ import { DatabaseError, Filters, LogicalFilters } from '../models/enums';
 import { typesValidators } from './types-validators';
 import { InternalError } from '../utils/errors';
 
-const areCollectionIndexesValid = (indexes: unknown): boolean => {
+const isCollectionIndexesListValid = (indexes: unknown): boolean => {
     if (!typesValidators.isArray(indexes)) {
         throw new InternalError(DatabaseError.CollectionOptionsError, 'Indexes argument is not an array');
+    }
+
+    if ((indexes as unknown[]).length === 0) {
+        throw new InternalError(DatabaseError.CollectionOptionsError, 'List of indexes is empty');
     }
 
     if (!(indexes as unknown[]).every((field) => typeof field === 'string')) {
@@ -19,7 +23,7 @@ const isIdsListValid = (entriesId: unknown): boolean => {
         throw new InternalError(DatabaseError.EntriesIdListError, 'List of ids is not an array');
     }
 
-    if ((entriesId as unknown[]).length < 1) {
+    if ((entriesId as unknown[]).length === 0) {
         throw new InternalError(DatabaseError.EntriesIdListError, 'List of ids is empty');
     }
 
@@ -47,6 +51,10 @@ const isQueryValid = (query: unknown): boolean => {
 
     if (!typesValidators.isArray(query[keys[0]])) {
         throw new InternalError(DatabaseError.FindQueryError, 'Expressions list is not an array');
+    }
+
+    if ((query[keys[0]] as unknown[]).length === 0) {
+        throw new InternalError(DatabaseError.FindQueryError, 'Expressions list is empty');
     }
 
     (query[keys[0]] as unknown[]).forEach((expression) => {
@@ -89,7 +97,7 @@ const isQueryValid = (query: unknown): boolean => {
 }
 
 export const collectionValidators = {
-    areCollectionIndexesValid,
+    isCollectionIndexesListValid,
     isIdsListValid,
     isQueryValid
 };

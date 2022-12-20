@@ -57,8 +57,8 @@ export interface Entry {
 }
 
 export interface QueryExpression {
-    field: {
-        [key in BasicFilters | NumberFilters | ArrayFilters | TextFilters]: unknown
+    [field: string]: {
+        [key in BasicFilters | NumberFilters | ArrayFilters | TextFilters]?: unknown
     }
 }
 

@@ -9,7 +9,7 @@ export type Query = {
 }
 
 export type LogicalFiltersList = {
-    [key in LogicalFilters]: (entry: Entry, filters: FiltersList[]) => boolean;
+    [key in LogicalFilters]: (entry: Entry, filters: QueryExpression[]) => boolean;
 }
 
 export type BasicFiltersList = {

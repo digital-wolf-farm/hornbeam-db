@@ -29,7 +29,7 @@ export const database = (data: DatabaseData, dataSizeLimit: number): DatabaseAPI
             }
 
             if (indexes) {
-                collectionValidators.areCollectionIndexesValid(indexes);
+                collectionValidators.isCollectionIndexesListValid(indexes);
             }
 
             if (!db[name]) {

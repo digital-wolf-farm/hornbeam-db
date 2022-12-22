@@ -78,18 +78,18 @@ const isQueryValid = (query: unknown): boolean => {
             throw new InternalError(DatabaseError.FindQueryError, 'Condition is not an object');
         }
 
-        const conditionKeys = Object.keys(expression[keys[0]]);
+        const conditionFilter = Object.keys(expression[keys[0]]);
 
-        if (conditionKeys.length !== 1) {
-            throw new InternalError(DatabaseError.FindQueryError, 'Condition has other number than one field');
+        if (conditionFilter.length !== 1) {
+            throw new InternalError(DatabaseError.FindQueryError, 'Condition has other number than one filter');
         }
 
-        if (!Object.keys(Filters).map((type) => Filters[type]).includes(conditionKeys[0])) {
+        if (!Object.keys(Filters).map((type) => Filters[type]).includes(conditionFilter[0])) {
             throw new InternalError(DatabaseError.FindQueryError, 'Filter name is not known');
         }
 
-        if (condition[conditionKeys[0]] === Object(condition[conditionKeys[0]])) {
-            throw new InternalError(DatabaseError.FindQueryError, 'Value of condition is not primitive');
+        if (condition[conditionFilter[0]] === Object(condition[conditionFilter[0]])) {
+            throw new InternalError(DatabaseError.FindQueryError, 'Reference value is not primitive');
         }
     });
 

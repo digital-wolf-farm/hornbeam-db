@@ -5,7 +5,7 @@ import { QueryExpression } from './interfaces';
 export type SortingField = `${string}:${'-1' | '+1'}`;
 
 export type Query = {
-    [key in LogicalFilters]: QueryExpression[];
+    [key in LogicalFilters]?: QueryExpression[];
 }
 
 export type LogicalFiltersList = {

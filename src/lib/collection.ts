@@ -100,18 +100,18 @@ export const collection = (collection: Entry[], indexes: string[]): Collection =
         }
     };
 
-    const replace = (data: Entry): number => {
+    const replace = (data: Entry): number | undefined => {
         try {
             entryValidators.isEntryValid(data);
 
             if (collection.length === 0) {
-                return -1;
+                return undefined;
             }
 
             const index = collection.findIndex((entry) => entry['_id'] === data['_id']);
 
             if (index === -1) {
-                return -1;
+                return undefined;
             }
 
             const oldEntry = collection.splice(index, 1)[0];
@@ -140,20 +140,20 @@ export const collection = (collection: Entry[], indexes: string[]): Collection =
         }
     };
 
-    const remove = (entryId: number): number => {
+    const remove = (entryId: number): number | undefined => {
         try {
             if (!typesValidators.isPositiveInteger(entryId)) {
                 throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a positive integer');
             }
 
             if (collection.length === 0) {
-                return -1;
+                return undefined;
             }
 
             const index = collection.findIndex((entry) => entry['_id'] === entryId);
 
             if (index === -1) {
-                return -1;
+                return undefined;
             }
 
             return collection.splice(index, 1)[0]['_id'];
@@ -171,7 +171,7 @@ export const collection = (collection: Entry[], indexes: string[]): Collection =
             entriesId.forEach((id) => {
                 const removedEntryId = remove(id);
 
-                if (removedEntryId !== -1) {
+                if (removedEntryId !== undefined) {
                     ids.push(removedEntryId);
                 }
             });

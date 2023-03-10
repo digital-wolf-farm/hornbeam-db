@@ -9,6 +9,7 @@ const isDataSchemaValid = (db: unknown): void => {
         throw new InternalError(DatabaseError.DataSchemaMismatch, 'Data is not an object');
     }
 
+    // TODO: Check if this is necessary.
     try {
         Object.keys(db).forEach((collectionName) => {
             typesValidators.isString(collectionName);
@@ -22,6 +23,7 @@ const isDataSchemaValid = (db: unknown): void => {
             throw new InternalError(DatabaseError.DataSchemaMismatch, 'Collection is not an array');
         }
 
+        // TODO: Decide if should be left
         if (collection.length === 0) {
             throw new InternalError(DatabaseError.DataSchemaMismatch, 'Collection cannot be empty');
         }

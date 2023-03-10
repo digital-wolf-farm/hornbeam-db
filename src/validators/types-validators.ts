@@ -18,6 +18,10 @@ const isPositiveInteger = (value: unknown): boolean => {
     return (Number.isInteger(value) && value > 0);
 };
 
+const isNonNegativeInteger = (value: unknown): boolean => {
+    return (Number.isInteger(value) && value >= 0);
+};
+
 const isPrimitive = (value: unknown): boolean => {
     return value !== Object(value);
 };
@@ -32,6 +36,7 @@ export const typesValidators = {
     isNumber,
     isObject,
     isPositiveInteger,
+    isNonNegativeInteger,
     isPrimitive,
     isString
 };

@@ -18,12 +18,10 @@ export interface DatabaseStats {
 
 export interface Collection {
     insert(data: NewEntry): number;
-    insertMultiple(data: NewEntry[]): number[];
-    find(id: number): Entry;
-    findMultiple(query?: Query): FindMethods;
+    get(id: number): Entry;
+    find(query?: Query): FindMethods;
     replace(data: Entry): number;
     remove(id: number): number;
-    removeMultiple(ids: number[]): number[];
 }
 
 // TODO: Make interfaces DRY

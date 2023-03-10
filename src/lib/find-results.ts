@@ -48,8 +48,8 @@ export const findResults = (foundEntries: Entry[]): FindMethods => {
             throw new InternalError(DatabaseError.LimitArgumentsError, 'Results size argument is not a positive integer');
         }
 
-        if (!typesValidators.isPositiveInteger(skippedEntries)) {
-            throw new InternalError(DatabaseError.LimitArgumentsError, 'Skipped entries argument is not a positive integer');
+        if (!typesValidators.isNonNegativeInteger(skippedEntries)) {
+            throw new InternalError(DatabaseError.LimitArgumentsError, 'Skipped entries argument is neither zero nor a positive integer');
         }
 
         result = result.slice(skippedEntries, skippedEntries + resultsSize);

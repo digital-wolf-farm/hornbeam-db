@@ -14,7 +14,7 @@ export const database = (data: DatabaseData, dataSizeLimit: number): DatabaseAPI
         return (Buffer.byteLength(JSON.stringify(db)) / (1024 * 1024)).toFixed(2);
     };
 
-    const cleanupDatabase = (): void => {
+    const cleanUpDatabase = (): void => {
         for (const collection in db) {
             if (Object.prototype.hasOwnProperty.call(db, collection) && db[collection].length === 0) {
                 delete db[collection];
@@ -55,7 +55,7 @@ export const database = (data: DatabaseData, dataSizeLimit: number): DatabaseAPI
 
     const returnData = (): DatabaseData => {
         try {
-            cleanupDatabase();
+            cleanUpDatabase();
 
             if (dataSizeLimit) {
                 dataValidators.isDataSizeNotExceeded(db, dataSizeLimit);

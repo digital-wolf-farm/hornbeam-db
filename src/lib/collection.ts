@@ -1,4 +1,3 @@
-import { filters } from '../filters/filters';
 import { DatabaseError, DBMethod } from '../models/enums';
 import { Collection, Entry, FindMethods, NewEntry } from '../models/interfaces';
 import { HornbeamError, InternalError } from '../utils/errors';
@@ -31,7 +30,7 @@ export const collection = (collection: Entry[], indexes: string[]): Collection =
                     if (indexedValues[index].includes(value)) {
                         throw new InternalError(DatabaseError.FieldValueNotUnique, `Added entry contains non-unique value for field: ${index}`);
                     }
-                })
+                });
             }
 
             const id = collection[collection.length - 1]['_id'] + 1;
@@ -44,23 +43,7 @@ export const collection = (collection: Entry[], indexes: string[]): Collection =
         }
     };
 
-    const insertMultiple = (dataList: NewEntry[]): number[] => {
-        try {
-            entryValidators.isNewEntriesListValid(dataList);
-            
-            const ids: number[] = [];
-
-            dataList.forEach((data) => {
-                ids.push(insert(data));
-            });
-
-            return ids;
-        } catch (e) {
-            throw new HornbeamError(e.name, DBMethod.InsertEntries, e.message);
-        }
-    };
-
-    const find = (entryId: number): Entry => {
+    const get = (entryId: number): Entry => {
         try {
             if (!typesValidators.isPositiveInteger(entryId)) {
                 throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a positive integer');
@@ -80,10 +63,9 @@ export const collection = (collection: Entry[], indexes: string[]): Collection =
         } catch (e) {
             throw new HornbeamError(e.name, DBMethod.FindEntry, e.message);
         }
-
     };
 
-    const findMultiple = (query?: Query): FindMethods => {
+    const find = (query?: Query): FindMethods => {
         try {
             if (!query) {
                 return findResults(collection);
@@ -162,33 +144,11 @@ export const collection = (collection: Entry[], indexes: string[]): Collection =
         }
     };
 
-    const removeMultiple = (entriesId: number[]): number[] => {
-        try {
-            collectionValidators.isIdsListValid(entriesId);
-
-            const ids: number[] = [];
-
-            entriesId.forEach((id) => {
-                const removedEntryId = remove(id);
-
-                if (removedEntryId !== undefined) {
-                    ids.push(removedEntryId);
-                }
-            });
-
-            return ids;
-        } catch (e) {
-            throw new HornbeamError(e.name, DBMethod.RemoveEntries, e.message);
-        }
-    };
-
     return {
         insert,
-        insertMultiple,
+        get,
         find,
-        findMultiple,
         replace,
-        remove,
-        removeMultiple
+        remove
     };
 };

@@ -1,6 +1,6 @@
 {
     "name": "@dwf/hornbeam-db",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Simple database using JSON files for Node.js app",
     "main": "lib/cjs/index.js",
     "module": "lib/es6/index.js",

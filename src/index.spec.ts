@@ -1,57 +1,88 @@
-import { openDatabase } from '.';
+import { DatabaseData, openDatabase } from '.';
 import * as databaseFn from './lib/database';
 import { DatabaseError } from './models/enums';
+import { InternalError } from './utils/errors';
 import { dataValidators } from './validators/data-validators';
 
 describe('HornbeamDB', () => {
 
-    it('should pass', () => {
-        expect(true).toBe(true);
+    const validDatabase = { collection1: [{ _id: 1, name: 'Adam' }] };
+    const invalidDatabase = { collection1: { _id: 1, name: 'Adam' } };
+
+    afterEach(() => {
+        jest.resetAllMocks();
     });
-//     const exampleDatabase = { collection1: [{ _id: 1, name: 'Adam' }] };
-//     // const defaultDBSize = 10;
 
-//     // const databaseMock = {
-//     //     database: jest.fn()
-//     // };
+    it('opens database when valid data passed and no size limit set', async () => {
+        jest.spyOn(dataValidators, 'isDataSchemaValid').mockReturnValueOnce();
+        jest.spyOn(databaseFn, 'database');
 
-//     // jest.mock('./lib/database', () => {
-//     //     const database = jest.fn();
+        try {
+            openDatabase(validDatabase);
+        } catch (e) {
+            expect(true).toBe(false);
+        }
 
-//     //     return database;
-//     // });
+        expect(databaseFn.database).toHaveBeenCalledWith(validDatabase, undefined);
+    });
 
-//     describe('openDatabase', () => {
-//         it('opens database with default size limit when valid and no additional argument passed', async () => {
+    it('opens database when valid data and size are passed', async () => {
+        jest.spyOn(dataValidators, 'isSizeLimitValid').mockReturnValueOnce(true);
+        jest.spyOn(dataValidators, 'isDataSizeNotExceeded').mockReturnValueOnce();
+        jest.spyOn(dataValidators, 'isDataSchemaValid').mockReturnValueOnce();
+        jest.spyOn(databaseFn, 'database');
 
-//             jest.spyOn(databaseValidators, 'isDatabaseSizeNotExceeded').mockReturnValueOnce();
-//             jest.spyOn(databaseValidators, 'isDatabaseSchemaValid').mockReturnValueOnce();
-//             jest.spyOn(databaseFn, 'database');
+        try {
+            openDatabase(validDatabase, 20);
+        } catch (e) {
+            expect(true).toBe(false);
+        }
 
-//             try {
-//                 await openDatabase(path);
-//             } catch (e) {
-//                 expect(true).toBe(false);
-//             }
+        expect(databaseFn.database).toHaveBeenCalledWith(validDatabase, 20);
+    });
 
-//             expect(databaseFn.database).toHaveBeenCalledWith(exampleDatabase, expectedOptionsObject);
-//         });
+    it('throws error when opening database with invalid data passed and no size limit set', async () => {
+        jest.spyOn(dataValidators, 'isDataSchemaValid').mockImplementationOnce(() => {
+            throw new InternalError(DatabaseError.DataSchemaMismatch, 'Collection is not an array');
+        });
 
-//         it('throw error when opening database with invalid path', async () => {
-//             const path = 'invalid/path/to/file.json';
+        try {
+            openDatabase(invalidDatabase as unknown as DatabaseData);
+        } catch (e) {
+            console.log('invalid schema', e);
+            expect(e.name).toBe(DatabaseError.DataSchemaMismatch);
+            expect(e.message).toContain('Collection is not an array');
+        }
+    });
 
-//             // jest.spyOn(databaseValidators, 'isFilePathValid').mockImplementation(() => {
-//             //     throw new InternalError(DatabaseError.FilePathError, 'Invalid path');
-//             // });
+    it('throws error when opening database with valid data and invalid size limit passed', async () => {
+        jest.spyOn(dataValidators, 'isSizeLimitValid').mockImplementationOnce(() => {
+            throw new InternalError(DatabaseError.DataSizeLimitFormatError, 'Data size limit is not a positive integer');
+        });
 
-//             try {
-//                 await openDatabase(path);
-//             } catch (e) {
-//                 expect(e.name).toBe(DatabaseError.FilePathError);
-//                 expect(e.message).toContain('Invalid path');
-//             }
+        try {
+            openDatabase(validDatabase, -20);
+        } catch (e) {
+            console.log('invalid size', e);
+            expect(e.name).toBe(DatabaseError.DataSizeLimitFormatError);
+            expect(e.message).toContain('Data size limit is not a positive integer');
+        }
+    });
 
-//             expect(databaseFn.database).toThrow();
-//         });
-//     });
+    it('throws error when opening database with valid data passed but data exceeds passed limit', async () => {
+        const sizeLimit = 1;
+
+        jest.spyOn(dataValidators, 'isSizeLimitValid').mockReturnValueOnce(true);
+        jest.spyOn(dataValidators, 'isDataSizeNotExceeded').mockImplementationOnce(() => {
+            throw new InternalError(DatabaseError.DataSizeExceeded, `Database size exceeds limit: ${sizeLimit}MB`);
+        });
+
+        try {
+            openDatabase(validDatabase, sizeLimit);
+        } catch (e) {
+            console.log('exceeded size', e);
+            expect(e.name).toBe(DatabaseError.DataSizeExceeded);
+            expect(e.message).toContain(`Database size exceeds limit: ${sizeLimit}MB`);
+        }
+    });
 });

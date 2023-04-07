@@ -18,10 +18,10 @@ export interface DatabaseStats {
 
 export interface Collection {
     insert(data: NewEntry): number;
-    get(id: number): Entry;
+    get(id: number): Entry | undefined;
     find(query?: Query): FindMethods;
-    replace(data: Entry): number;
-    remove(id: number): number;
+    replace(data: Entry): number | undefined;
+    remove(id: number): number | undefined;
 }
 
 // TODO: Make interfaces DRY

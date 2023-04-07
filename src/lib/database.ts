@@ -6,7 +6,7 @@ import { dataValidators } from '../validators/data-validators';
 import { typesValidators } from '../validators/types-validators';
 import { collection } from './collection';
 
-export const database = (data: DatabaseData, dataSizeLimit: number): DatabaseAPI => {
+export const database = (data: DatabaseData, dataSizeLimit?: number): DatabaseAPI => {
 
     let db = data;
 

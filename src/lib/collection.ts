@@ -9,7 +9,7 @@ import { findResults } from './find-results';
 import { Query } from '../models/types';
 import { logicalFilters } from '../filters/logical-filters';
 
-export const collection = (collection: Entry[], indexes: string[]): Collection => {
+export const collection = (collection: Entry[], indexes?: string[]): Collection => {
 
     const insert = (data: NewEntry): number => {
         try {
@@ -43,7 +43,7 @@ export const collection = (collection: Entry[], indexes: string[]): Collection =
         }
     };
 
-    const get = (entryId: number): Entry => {
+    const get = (entryId: number): Entry | undefined => {
         try {
             if (!typesValidators.isPositiveInteger(entryId)) {
                 throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a positive integer');

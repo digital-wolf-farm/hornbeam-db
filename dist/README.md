@@ -2,13 +2,64 @@
 
 ## Concept
 
-## Definitions
+Lightweight alternative to NoSQL databases. Initially developed as persistent data storage in Electron app. Evolved to library handling data stored in JSON format working in all environments (browser, server, desktop).
+
+Database in library is a set of collections. Collection is a list of entries. Every entry contains fields with their values.
 
 ## First steps
 
-## Features
+1. Install library
+
+```js
+    npm install @dwf/hornbeam-db
+```
+
+2. Import entry file
+
+```js
+    import { hornbeamDb } from '@dwf/hornbeam-db';
+```
+
+3. Load database
+
+```js
+    const db = hornbeamDb.loadData(myData);
+```
+
+4. Get collection
+
+```js
+    const collection = db.getCollection('name', 'optionalUniqueField');
+```
+
+5. Basic CRUD operation on data
+
+```js
+    const insertedEntryId = collection.insert(newEntry);
+    const wholeCollection = collection.find().results();
+    const foundCollectionSubset = collection.find(query).sort('sortParams', 'optionalLang').limit(25, 50).results();
+```
+
+6. Finally, export modified database
+
+```js
+    const dataToSave = db.exportData();
+```
+
+## What library do (features)
+
+- Validation schema of imported/exported databases.
+- Cleaning up (removing empty collections) databases before export.
+- Basic validation of inputs (read more: 'What library cannot do').
+- Setting unique field (index) on collections.
+- Basic CRUD operation on data.
+- Sorting and/or paginating found lists of entries.
 
 ## What library cannot do (your app responsibilities)
+
+- Reading/writing files with data.
+- Security stuff (eg. sanitization of inputs).
+- Check size of databases, collections, entries to keep proper performance.
 
 ## Errors
 

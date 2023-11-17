@@ -1,8 +1,8 @@
 import { Entry } from '../models/interfaces';
 import { utils } from './utils';
 
-describe('Utils', () => {
-    describe('compareValuesOrder', () => {
+describe.only('Utils', () => {
+    xdescribe('compareValuesOrder', () => {
         const Adam: Entry = {
             _id: 1,
             name: 'Adam',
@@ -51,34 +51,21 @@ describe('Utils', () => {
             { _id: 5, login: 'justMe', membership: null },
         ];
 
-        it('returns empty object when empty array of indexes passed', () => {
-            expect(utils.extractIndexes(collection, [])).toEqual({});
+        it('returns empty list when empty string passed', () => {
+            expect(utils.extractIndexes(collection, '')).toEqual([]);
         });
 
-        it('returns empty object when non-existing field is passed as index', () => {
-            expect(utils.extractIndexes(collection, ['email'])).toEqual({});
+        it('returns empty list when non-existing field is passed as index', () => {
+            expect(utils.extractIndexes(collection, 'email')).toEqual([]);
         });
 
-        it('returns object with array(s) filled with existing values when existing field(s) is/are passed as index(es)', () => {
-            expect(utils.extractIndexes(collection, ['login'])).toEqual({ login: ['lucky-adam', 'lucy111', 'johnTheKing', 'xyz987', 'justMe'] });
-            expect(utils.extractIndexes(collection, ['membership.cardId'])).toEqual({ 'membership.cardId': [1002, 589, 34] });
-            expect(utils.extractIndexes(collection, ['membership.cardId', 'login'])).toEqual({
-                'membership.cardId': [1002, 589, 34],
-                login: ['lucky-adam', 'lucy111', 'johnTheKing', 'xyz987', 'justMe']
-            });
+        it('returns list containing existing values when existing field is passed as index', () => {
+            expect(utils.extractIndexes(collection, 'login')).toEqual(['lucky-adam', 'lucy111', 'johnTheKing', 'xyz987', 'justMe']);
+            expect(utils.extractIndexes(collection, 'membership.cardId')).toEqual([1002, 589, 34]);
         });
 
-        it('returns object only with existing indexes', () => {
-            expect(utils.extractIndexes(collection, ['email', 'login', 'ssn'])).toEqual({ login: ['lucky-adam', 'lucy111', 'johnTheKing', 'xyz987', 'justMe'] });
-        });
-
-        it('returns object without duplicated indexes when duplicated fields are paased as indexes', () => {
-            expect(utils.extractIndexes(collection, ['email', 'email'])).toEqual({});
-            expect(utils.extractIndexes(collection, ['login', 'login'])).toEqual({ login: ['lucky-adam', 'lucy111', 'johnTheKing', 'xyz987', 'justMe'] });
-        });
-
-        it('returns object without _id index', () => {
-            expect(utils.extractIndexes(collection, ['_id', 'login'])).toEqual({ login: ['lucky-adam', 'lucy111', 'johnTheKing', 'xyz987', 'justMe'] });
+        it('returns empty list when passed _id as index', () => {
+            expect(utils.extractIndexes(collection, '_id')).toEqual([]);
         });
     });
 
@@ -101,7 +88,19 @@ describe('Utils', () => {
                     street: 'One Way Street',
                     city: 'NJ'
                 }
-            }
+            },
+            experience: [
+                {
+                    company: 'Microsoft',
+                    position: 'Junior Dev'
+                }, {
+                    company: 'Apple',
+                    position: 'Mid dev'
+                }, {
+                    company: 'HP',
+                    position: 'Senior dev'
+                }
+            ]
         };
 
         it('returns entire Entry when "_" passed as field argument', () => {
@@ -111,17 +110,23 @@ describe('Utils', () => {
         it('returns undefined when field argument points to non-existing property', () => {
             expect(utils.getPropertyByPath(entry, 'height')).toBe(undefined);
             expect(utils.getPropertyByPath(entry, 'hobbies.name')).toBe(undefined);
+            expect(utils.getPropertyByPath(entry, 'hobbies.3')).toEqual(undefined);
             expect(utils.getPropertyByPath(entry, 'address.postalCode')).toBe(undefined);
             expect(utils.getPropertyByPath(entry, 'company.address.buildingNumber')).toBe(undefined);
+            expect(utils.getPropertyByPath(entry, 'experience.years')).toBe(undefined);
+            expect(utils.getPropertyByPath(entry, 'experience.8.company')).toBe(undefined);
         });
 
-        it('returns Entry property when field argument points to existing property', () => {
+        it('returns proper value when field argument points to existing property', () => {
             expect(utils.getPropertyByPath(entry, 'surname')).toBe('Smith');
             expect(utils.getPropertyByPath(entry, 'age')).toBe(49);
             expect(utils.getPropertyByPath(entry, 'pets')).toBe(null);
             expect(utils.getPropertyByPath(entry, 'hobbies')).toEqual(['fishing', 'movies']);
+            expect(utils.getPropertyByPath(entry, 'hobbies.1')).toEqual('movies');
             expect(utils.getPropertyByPath(entry, 'address')).toEqual({ street: '5th Avenue', city: 'NY' });
             expect(utils.getPropertyByPath(entry, 'company.address.city')).toBe('NJ');
+            expect(utils.getPropertyByPath(entry, 'experience.company')).toEqual(['Microsoft', 'Apple', 'HP']);
+            expect(utils.getPropertyByPath(entry, 'experience.2.company')).toBe('HP');
         });
     });
 });

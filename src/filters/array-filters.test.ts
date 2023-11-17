@@ -1,6 +1,6 @@
 import { arrayFilters } from './array-filters';
 
-describe.only('ArrayFilters', () => {
+describe('ArrayFilters', () => {
     describe('all', () => {
         it('returns false when checked value is not an array', () => {
             expect(arrayFilters.all('checkedValue', ['books', 'cooking'])).toBe(false);

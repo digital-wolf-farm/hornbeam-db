@@ -1,26 +1,20 @@
 import { ArrayFilters, BasicFilters, LogicalFilters, NumberFilters, TextFilters } from './enums';
 import { Query, SortingField } from './types';
 
-export interface DatabaseAPI {
-    getCollection(name: string, uniqueFields?: string[]): Collection;
-    getStats(): DatabaseStats;
-    returnData(): DatabaseData;
+export interface HornbeamAPI {
+    getCollection(name: string, uniqueField?: string): Collection;
+    exportData(): HornbeamData;
 }
 
-export interface DatabaseData {
+export interface HornbeamData {
     [collectionName: string]: Entry[];
 }
 
-export interface DatabaseStats {
-    sizeLimit: string;
-    inUse: string;
-}
-
 export interface Collection {
-    insert(data: NewEntry): number;
+    insert(entry: InsertedEntry): number;
     get(id: number): Entry | undefined;
     find(query?: Query): FindMethods;
-    replace(data: Entry): number | undefined;
+    replace(entry: Entry): number | undefined;
     remove(id: number): number | undefined;
 }
 
@@ -40,11 +34,7 @@ export interface FindMethods {
     limit(resultsSize: number, skippedEntries: number): LimitMethods;
 }
 
-export interface CollectionIndexes {
-    [index: string]: unknown[];
-}
-
-export interface NewEntry {
+export interface InsertedEntry {
     _id?: never;
     [field: string]: unknown;
 }

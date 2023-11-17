@@ -4,8 +4,9 @@
     "scripts": {
         "build": "tsc --build tsconfig.es6.json && tsc --build tsconfig.cjs.json",
         "lint": "eslint . --ext .ts",
-        "test": "jest ./src",
-        "test:watch": "jest ./src --watchAll",
+        "test": "vitest --run --config ./vitest.config.js",
+        "test:watch": "vitest --config ./vitest.config.js",
+        "test:coverage": "vitest run --coverage --config ./vitest.config.js",
         "test:e2e": "jest ./tests/e2e"
     },
     "repository": {
@@ -29,9 +30,11 @@
         "@types/promise-fs": "^2.1.2",
         "@typescript-eslint/eslint-plugin": "^5.1.0",
         "@typescript-eslint/parser": "^5.1.0",
+        "@vitest/coverage-istanbul": "^0.34.6",
         "eslint": "^8.0.1",
         "jest": "^27.3.0",
         "ts-jest": "^27.0.7",
-        "typescript": "^4.4.3"
+        "typescript": "^4.4.3",
+        "vitest": "^0.34.6"
     }
 }

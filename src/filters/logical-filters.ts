@@ -25,5 +25,6 @@ const or = (entry: Entry, queryExpressions: QueryExpression[]): boolean => {
 };
 
 export const logicalFilters: LogicalFiltersList = {
-    and, or
+    and,
+    or
 };

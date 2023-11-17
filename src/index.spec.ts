@@ -1,88 +1,37 @@
-import { DatabaseData, openDatabase } from '.';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { HornbeamData, hornbeamDb } from '.';
 import * as databaseFn from './lib/database';
-import { DatabaseError } from './models/enums';
-import { InternalError } from './utils/errors';
+import { DBMethod, DatabaseError } from './models/enums';
+import { HornbeamError, InternalError } from './utils/errors';
 import { dataValidators } from './validators/data-validators';
 
 describe('HornbeamDB', () => {
-
     const validDatabase = { collection1: [{ _id: 1, name: 'Adam' }] };
     const invalidDatabase = { collection1: { _id: 1, name: 'Adam' } };
 
+    vi.spyOn(databaseFn, 'database');
+
     afterEach(() => {
-        jest.resetAllMocks();
+        vi.resetAllMocks();
     });
 
-    it('opens database when valid data passed and no size limit set', async () => {
-        jest.spyOn(dataValidators, 'isDataSchemaValid').mockReturnValueOnce();
-        jest.spyOn(databaseFn, 'database');
+    it('opens database when valid data is loaded', () => {
+        vi.spyOn(dataValidators, 'isDataSchemaValid').mockImplementation(() => {});
 
-        try {
-            openDatabase(validDatabase);
-        } catch (e) {
-            expect(true).toBe(false);
-        }
+        hornbeamDb.loadData(validDatabase);
 
-        expect(databaseFn.database).toHaveBeenCalledWith(validDatabase, undefined);
+        expect(databaseFn.database).toHaveBeenCalledWith(validDatabase);
     });
 
-    it('opens database when valid data and size are passed', async () => {
-        jest.spyOn(dataValidators, 'isSizeLimitValid').mockReturnValueOnce(true);
-        jest.spyOn(dataValidators, 'isDataSizeNotExceeded').mockReturnValueOnce();
-        jest.spyOn(dataValidators, 'isDataSchemaValid').mockReturnValueOnce();
-        jest.spyOn(databaseFn, 'database');
-
-        try {
-            openDatabase(validDatabase, 20);
-        } catch (e) {
-            expect(true).toBe(false);
-        }
-
-        expect(databaseFn.database).toHaveBeenCalledWith(validDatabase, 20);
-    });
-
-    it('throws error when opening database with invalid data passed and no size limit set', async () => {
-        jest.spyOn(dataValidators, 'isDataSchemaValid').mockImplementationOnce(() => {
+    it('throws error when loading invalid data', () => {
+        const expectedError = new HornbeamError(DatabaseError.DataSchemaMismatch, DBMethod.LoadData, 'Collection is not an array')
+        vi.spyOn(dataValidators, 'isDataSchemaValid').mockImplementation(() => {
             throw new InternalError(DatabaseError.DataSchemaMismatch, 'Collection is not an array');
         });
 
-        try {
-            openDatabase(invalidDatabase as unknown as DatabaseData);
-        } catch (e) {
-            console.log('invalid schema', e);
-            expect(e.name).toBe(DatabaseError.DataSchemaMismatch);
-            expect(e.message).toContain('Collection is not an array');
-        }
-    });
+        const resultFn = () => { hornbeamDb.loadData(invalidDatabase as unknown as HornbeamData) };
 
-    it('throws error when opening database with valid data and invalid size limit passed', async () => {
-        jest.spyOn(dataValidators, 'isSizeLimitValid').mockImplementationOnce(() => {
-            throw new InternalError(DatabaseError.DataSizeLimitFormatError, 'Data size limit is not a positive integer');
-        });
-
-        try {
-            openDatabase(validDatabase, -20);
-        } catch (e) {
-            console.log('invalid size', e);
-            expect(e.name).toBe(DatabaseError.DataSizeLimitFormatError);
-            expect(e.message).toContain('Data size limit is not a positive integer');
-        }
-    });
-
-    it('throws error when opening database with valid data passed but data exceeds passed limit', async () => {
-        const sizeLimit = 1;
-
-        jest.spyOn(dataValidators, 'isSizeLimitValid').mockReturnValueOnce(true);
-        jest.spyOn(dataValidators, 'isDataSizeNotExceeded').mockImplementationOnce(() => {
-            throw new InternalError(DatabaseError.DataSizeExceeded, `Database size exceeds limit: ${sizeLimit}MB`);
-        });
-
-        try {
-            openDatabase(validDatabase, sizeLimit);
-        } catch (e) {
-            console.log('exceeded size', e);
-            expect(e.name).toBe(DatabaseError.DataSizeExceeded);
-            expect(e.message).toContain(`Database size exceeds limit: ${sizeLimit}MB`);
-        }
+        expect(resultFn).toThrow(expectedError);
+        expect(databaseFn.database).not.toHaveBeenCalled();
     });
 });

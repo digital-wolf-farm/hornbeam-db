@@ -54,6 +54,16 @@ Performance on HDD:
     * ~10MB - 170ms/190ms
     * ~20MB - 250ms/290ms
 
+Performance on SDD:
+* Writing/reading file:
+    * ~1MB - 50ms/50ms
+    * ~5MB - 80ms/85ms    
+    * ~10MB - 117ms/125ms
+    * ~20MB - 200ms/215ms
+    * ~25MB - 240ms/260ms
+    * ~50MB - 440ms/480ms
+    * ~100MB - 1000ms/1150ms
+
 More in `tests/performance` directory.
 If you don't have such requirements apply own configuration.
 

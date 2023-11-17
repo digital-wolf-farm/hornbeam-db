@@ -1,77 +1,53 @@
 import { DatabaseError, DBMethod } from '../models/enums';
-import { Collection, DatabaseData, DatabaseAPI, DatabaseStats } from '../models/interfaces';
+import { Collection, HornbeamData, HornbeamAPI } from '../models/interfaces';
 import { HornbeamError, InternalError } from '../utils/errors';
-import { collectionValidators } from '../validators/collection-validators';
 import { dataValidators } from '../validators/data-validators';
-import { typesValidators } from '../validators/types-validators';
 import { collection } from './collection';
 
-export const database = (data: DatabaseData, dataSizeLimit?: number): DatabaseAPI => {
+export const database = (data: HornbeamData): HornbeamAPI => {
 
-    let db = data;
-
-    const calculateDataSize = (): string => {
-        return (Buffer.byteLength(JSON.stringify(db)) / (1024 * 1024)).toFixed(2);
-    };
-
-    const cleanUpDatabase = (): void => {
-        for (const collection in db) {
-            if (Object.prototype.hasOwnProperty.call(db, collection) && db[collection].length === 0) {
-                delete db[collection];
-            }
-        }
-    };
-
-    const getCollection = (name: string, indexes?: string[]): Collection => {
+    const getCollection = (name: string, uniqueField?: string): Collection => {
         try {
-            if (!typesValidators.isString(name)) {
+            if (typeof name !== 'string') {
                 throw new InternalError(DatabaseError.CollectionNameError, 'Collection name is not a string');
             }
 
-            if (indexes) {
-                collectionValidators.isCollectionIndexesListValid(indexes);
+            if (name.length > 16) {
+                throw new InternalError(DatabaseError.CollectionNameError, 'Collection name is longer than 16 characters');
             }
 
-            if (!db[name]) {
-                db[name] = [];
+            if (uniqueField && typeof uniqueField !== 'string') {
+                throw new InternalError(DatabaseError.CollectionOptionsError, 'Unique field is not a string');
             }
 
-            return collection(db[name], indexes);
+            if (!data[name]) {
+                data[name] = [];
+            }
+
+            return collection(data[name], uniqueField);
         } catch (e) {
             throw new HornbeamError(e.name, DBMethod.GetCollection, e.message);
         }
     };
 
-    const getStats = (): DatabaseStats => {
+    const exportData = (): HornbeamData => {
         try {
-            return {
-                sizeLimit: dataSizeLimit ? dataSizeLimit.toString() : '',
-                inUse: calculateDataSize()
-            };
-        } catch (e) {
-            throw new HornbeamError(e.name, DBMethod.StatDB, e.message);
-        }
-    };
-
-    const returnData = (): DatabaseData => {
-        try {
-            cleanUpDatabase();
-
-            if (dataSizeLimit) {
-                dataValidators.isDataSizeNotExceeded(db, dataSizeLimit);
+            for (const collection in data) {
+                if (Object.prototype.hasOwnProperty.call(data, collection) && data[collection].length === 0) {
+                    delete data[collection];
+                }
             }
 
-            dataValidators.isDataSchemaValid(db);
+            dataValidators.isDataSchemaValid(data);
 
-            return db;
+            return data;
         } catch (e) {
-            throw new HornbeamError(e.name, DBMethod.ReturnDB, e.message);
+            throw new HornbeamError(e.name, DBMethod.ExportData, e.message);
         }
     };
 
     return {
         getCollection,
-        getStats,
-        returnData
+        exportData
     };
 };

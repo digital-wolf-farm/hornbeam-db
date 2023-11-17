@@ -35,7 +35,7 @@ export const findResults = (foundEntries: Entry[]): FindMethods => {
         const field = sortingField.split(':')[0];
         const order = sortingField.split(':')[1];
 
-        result.sort((a, b) => utils.compareValuesOrder(a, b, field, order, languageCode));
+        result.sort((a, b) => utils.compareValuesOrder(a, b, field, order, languageCode ?? 'en'));
 
         return {
             results,

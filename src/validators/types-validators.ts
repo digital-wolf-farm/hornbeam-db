@@ -15,11 +15,11 @@ const isObject = (value: unknown): boolean => {
 };
 
 const isPositiveInteger = (value: unknown): boolean => {
-    return (Number.isInteger(value) && value > 0);
+    return (Number.isInteger(value) && (value as number) > 0);
 };
 
 const isNonNegativeInteger = (value: unknown): boolean => {
-    return (Number.isInteger(value) && value >= 0);
+    return (Number.isInteger(value) && (value as number) >= 0);
 };
 
 const isPrimitive = (value: unknown): boolean => {

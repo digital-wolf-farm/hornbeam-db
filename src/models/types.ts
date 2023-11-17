@@ -4,6 +4,7 @@ import { QueryExpression } from './interfaces';
 
 export type SortingField = `${string}:${'-1' | '+1'}`;
 
+// TODO: Fix to require on of operators (currently both are optional)
 export type Query = {
     [key in LogicalFilters]?: QueryExpression[];
 }

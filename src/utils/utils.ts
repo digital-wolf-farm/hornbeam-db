@@ -1,4 +1,5 @@
-import { CollectionIndexes, Entry, NewEntry } from '../models/interfaces';
+import { Entry } from '../models/interfaces';
+import { typesValidators } from '../validators/types-validators';
 
 const compareValuesOrder = (a: Entry, b: Entry, field: string, order: string, languageCode: string): number => {
     const valueA = getPropertyByPath(a, field);
@@ -11,49 +12,99 @@ const compareValuesOrder = (a: Entry, b: Entry, field: string, order: string, la
     }
 };
 
-const extractIndexes = (collection: Entry[], indexList: string[]): CollectionIndexes => {
-    // INFO: Args validation should be done before calling this function
-    const indexes: CollectionIndexes = {};
+const extractIndexes = (collection: Entry[], index: string): unknown[] => {
+    if (!index) {
+        return [];
+    }
 
-    indexList.forEach((index) => {
-        if (indexes[index]) {
-            return;
-        }
+    if (index === '_id') {
+        return [];
+    }
 
-        const indexValues: unknown[] = [];
+    const indexedValues: unknown[] = [];
 
-        collection.forEach((entry) => {
-            if (index !== '_id') {
-                const value = getPropertyByPath(entry, index);
+    collection.forEach((entry) => {
+        const value = getPropertyByPath(entry, index);
 
-                if (value) {
-                    indexValues.push(value);
-                }
-            }
-        });
-
-        if (indexValues.length > 0) {
-            indexes[index] = indexValues;
+        if (value && (typesValidators.isString(value) || typesValidators.isNumber(value))) {
+            indexedValues.push(value);
         }
     });
 
-    return indexes;
+    return indexedValues;
 };
 
-const getPropertyByPath = (object: Entry | NewEntry, field: string): unknown => {
-    // INFO: Args validation should be done before calling this function
+const getPropertyByPath = (data: unknown, field: string): unknown => {
+    // TODO: Add other special fields like: _size
 
     if (field === '_') {
-        return object;
+        return data;
     }
 
-    return field.split('.').reduce((obj, prop) => {
-        if (!obj || !Object.prototype.hasOwnProperty.call(obj, prop)) {
-            return undefined;
+    if (!data || !field) {
+        return undefined;
+    }
+
+    const fieldSteps = field.split('.');
+
+    if (typesValidators.isObject(data)) {
+        const value = data[fieldSteps[0]];
+
+        if (typesValidators.isObject(value) || Array.isArray(value)) {
+            if (fieldSteps.length > 1) {
+                return getPropertyByPath(value, fieldSteps.slice(1).join('.'));
+            } else {
+                return value;
+            }
         } else {
-            return obj[prop];
+            if (fieldSteps.length > 1) {
+                return undefined;
+            } else {
+                return value;
+            }
         }
-    }, object as any);
+    } else if (Array.isArray(data)) {
+        if (typesValidators.isNonNegativeInteger(Number(fieldSteps[0]))) {
+            if (fieldSteps.length === 1) {
+                return data[Number(fieldSteps[0])];
+            } else {
+                if (typesValidators.isPrimitive(data[Number(fieldSteps[0])])) {
+                    return undefined;
+                } else {
+                    return getPropertyByPath(data[Number(fieldSteps[0])], fieldSteps.slice(1).join('.'));
+                }
+            }
+        } else {
+            // INFO: Array requires all elements to be the same type: primitive, object or array
+            if (data.every((elem) => typesValidators.isPrimitive(elem))) {
+                return undefined;
+            } else {
+                let values: unknown[] = [];
+
+                data.forEach((elem) => {
+                    console.log('elem', elem, fieldSteps.join('.'));
+                    const value = getPropertyByPath(elem, fieldSteps.join('.'));
+
+                    if (value) {
+                        values.push(value);
+                    }
+                });
+
+                return values.length > 0 ? values : undefined;
+            }
+        }
+    } else {
+        return undefined;
+    }
+
+    // // TODO: Add traversing by array elements
+    // return field.split('.').reduce((obj, prop) => {
+    //     if (!obj || !Object.prototype.hasOwnProperty.call(obj, prop)) {
+    //         return undefined;
+    //     } else {
+    //         return obj[prop];
+    //     }
+    // }, object as any);
 };
 
 const getValueType = (value: unknown): string => {

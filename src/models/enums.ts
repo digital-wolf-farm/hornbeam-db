@@ -1,15 +1,13 @@
 export enum DBMethod {
-    OpenDB = 'OPEN_DATABASE',
-    ReturnDB = 'RETURN_DATABASE',
+    LoadData = 'LOAD_DATA',
+    ExportData = 'EXPORT_DATA',
     StatDB = 'STAT_DATABASE',
     GetCollection = 'GET_COLLECTION',
     InsertEntry = 'INSERT_ENTRY',
-    InsertEntries = 'INSERT_ENTRIES',
-    FindEntry = 'FIND_ENTRY',
+    GetEntry = 'GET_ENTRY',
     FindEntries = 'FIND_ENTRIES',
     ReplaceEntry = 'REPLACE_ENTRY',
-    RemoveEntry = 'REMOVE_ENTRY',
-    RemoveEntries = 'REMOVE_ENTRIES'
+    RemoveEntry = 'REMOVE_ENTRY'
 }
 
 export enum DatabaseError {

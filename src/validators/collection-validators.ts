@@ -2,38 +2,6 @@ import { DatabaseError, Filters, LogicalFilters } from '../models/enums';
 import { typesValidators } from './types-validators';
 import { InternalError } from '../utils/errors';
 
-const isCollectionIndexesListValid = (indexes: unknown): boolean => {
-    if (!typesValidators.isArray(indexes)) {
-        throw new InternalError(DatabaseError.CollectionOptionsError, 'Indexes argument is not an array');
-    }
-
-    if ((indexes as unknown[]).length === 0) {
-        throw new InternalError(DatabaseError.CollectionOptionsError, 'List of indexes is empty');
-    }
-
-    if (!(indexes as unknown[]).every((field) => typeof field === 'string')) {
-        throw new InternalError(DatabaseError.CollectionOptionsError, 'At least one of provided indexes is not a string');
-    }
-
-    return true;
-};
-
-const isIdsListValid = (entriesId: unknown): boolean => {
-    if (!typesValidators.isArray(entriesId)) {
-        throw new InternalError(DatabaseError.EntriesIdListError, 'List of ids is not an array');
-    }
-
-    if ((entriesId as unknown[]).length === 0) {
-        throw new InternalError(DatabaseError.EntriesIdListError, 'List of ids is empty');
-    }
-
-    if (!(entriesId as unknown[]).every((entryId) => typesValidators.isPositiveInteger(entryId))) {
-        throw new InternalError(DatabaseError.EntriesIdListError, 'At least one id is not a positive integer');
-    }
-
-    return true;
-};
-
 const isQueryValid = (query: unknown): boolean => {
     if (!typesValidators.isObject(query)) {
         throw new InternalError(DatabaseError.FindQueryError, 'Query is not an object');
@@ -97,7 +65,5 @@ const isQueryValid = (query: unknown): boolean => {
 }
 
 export const collectionValidators = {
-    isCollectionIndexesListValid,
-    isIdsListValid,
     isQueryValid
 };

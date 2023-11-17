@@ -9,34 +9,27 @@ const isDataSchemaValid = (db: unknown): void => {
         throw new InternalError(DatabaseError.DataSchemaMismatch, 'Data is not an object');
     }
 
-    // TODO: Check if this is necessary.
     try {
-        Object.keys(db).forEach((collectionName) => {
+        Object.keys((db as Record<string | number | symbol, unknown>)).forEach((collectionName) => {
             typesValidators.isString(collectionName);
         });
     } catch (e) {
         throw new InternalError(DatabaseError.DataSchemaMismatch, e.message);
     }
 
-    Object.values(db).forEach((collection) => {
+    Object.values((db as Record<string | number | symbol, unknown>)).forEach((collection) => {
         if (!typesValidators.isArray(collection)) {
             throw new InternalError(DatabaseError.DataSchemaMismatch, 'Collection is not an array');
         }
 
-        // TODO: Decide if should be left
-        if (collection.length === 0) {
-            throw new InternalError(DatabaseError.DataSchemaMismatch, 'Collection cannot be empty');
-        }
-
         try {
-            collection.forEach((entry: unknown) => {
-                entryValidators.isEntryValid(entry);
+            (collection as unknown[]).forEach((entry: unknown) => {
+                entryValidators.isEntryValid(entry, false);
             });
         } catch (e) {
             throw new InternalError(DatabaseError.DataSchemaMismatch, e.message);
         }
 
-        // TODO: Fix type
         const idsArray = (collection as Entry[]).map((entry) => entry['_id']);
 
         if (new Set(idsArray).size !== idsArray.length) {
@@ -45,34 +38,34 @@ const isDataSchemaValid = (db: unknown): void => {
     });
 };
 
-const isDataSizeNotExceeded = (data: unknown, sizeLimit: number): void => {
-    let size: number;
+// const isDataSizeNotExceeded = (data: unknown, sizeLimit: number): void => {
+//     let size: number;
 
-    if (typeof data === 'string') {
-        size = Buffer.byteLength(data);
-    } else {
-        size = Buffer.byteLength(JSON.stringify(data));
-    }
+//     if (typeof data === 'string') {
+//         size = Buffer.byteLength(data);
+//     } else {
+//         size = Buffer.byteLength(JSON.stringify(data));
+//     }
 
-    if ((size / (1024 * 1024)) >= sizeLimit) {
-        throw new InternalError(DatabaseError.DataSizeExceeded, `Database size exceeds limit: ${sizeLimit}MB`);
-    }
-};
+//     if ((size / (1024 * 1024)) >= sizeLimit) {
+//         throw new InternalError(DatabaseError.DataSizeExceeded, `Database size exceeds limit: ${sizeLimit}MB`);
+//     }
+// };
 
-const isSizeLimitValid = (size: unknown): boolean => {
-    if (typeof size !== 'number' || !typesValidators.isPositiveInteger(size)) {
-        throw new InternalError(DatabaseError.DataSizeLimitFormatError, 'Data size limit is not a positive integer');
-    }
+// const isSizeLimitValid = (size: unknown): boolean => {
+//     if (typeof size !== 'number' || !typesValidators.isPositiveInteger(size)) {
+//         throw new InternalError(DatabaseError.DataSizeLimitFormatError, 'Data size limit is not a positive integer');
+//     }
 
-    if (size > 1000) {
-        throw new InternalError(DatabaseError.DataSizeLimitFormatError, 'Data size limit exceeds 1000MB');
-    }
+//     if (size > 1000) {
+//         throw new InternalError(DatabaseError.DataSizeLimitFormatError, 'Data size limit exceeds 1000MB');
+//     }
 
-    return true;
-};
+//     return true;
+// };
 
 export const dataValidators = {
     isDataSchemaValid,
-    isDataSizeNotExceeded,
-    isSizeLimitValid
+    // isDataSizeNotExceeded,
+    // isSizeLimitValid
 };

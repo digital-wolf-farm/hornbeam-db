@@ -4,31 +4,30 @@ import { HornbeamError } from './utils/errors';
 import { dataValidators } from './validators/data-validators';
 import { Query } from './models/types';
 import {
-    DatabaseAPI, DatabaseData, DatabaseStats,
+    HornbeamAPI, HornbeamData,
     Collection,
     FindResults, LimitMethods, SortMethods, FindMethods,
-    NewEntry, Entry
+    InsertedEntry, Entry
 } from './models/interfaces';
 
-export const openDatabase = (data: DatabaseData, dataSizeLimit?: number): DatabaseAPI => {
+const loadData = (data: HornbeamData): HornbeamAPI => {
     try {
-        if (dataSizeLimit) {
-            dataValidators.isSizeLimitValid(dataSizeLimit);
-            dataValidators.isDataSizeNotExceeded(data, dataSizeLimit);
-        }
-
         dataValidators.isDataSchemaValid(data);
 
-        return database(data, dataSizeLimit);
+        return database(data);
     } catch (e) {
-        throw new HornbeamError(e.name, DBMethod.OpenDB, e.message);
+        throw new HornbeamError(e.name, DBMethod.LoadData, e.message);
     }
 };
 
+export const hornbeamDb = {
+    loadData
+};
+
 export {
-    DatabaseAPI, DatabaseData, DatabaseStats,
+    HornbeamAPI, HornbeamData,
     Collection,
     Query,
     FindResults, LimitMethods, SortMethods, FindMethods,
-    NewEntry, Entry
+    InsertedEntry, Entry
 }

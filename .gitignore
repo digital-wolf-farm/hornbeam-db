@@ -9,3 +9,6 @@ demo-app/db-files/*.json
 
 # Example files created by tests
 tests/**/*.json
+
+# Test coverage
+coverage/

@@ -2,9 +2,44 @@
 
 ## Concept
 
+## Definitions
+
+## First steps
+
 ## Features
 
-## Server duties
+## What library cannot do (your app responsibilities)
+
+## Errors
+
+### Error format
+
+```
+{
+    method: string
+    error: string
+    message: string
+}
+
+```
+Field `method` describes library API method which throws error. Field `error` indicates what type of error occured. `message` pass details about error.
+
+### List of errors
+
+* `COLLECTION_NAME_MISMATCH` - wrong name of collection
+* `COLLECTION_NOT_EXISTS` - attempt to read data from not existing collection
+* `DATABASE_NOT_OPEN` - attempt to access data before loading database
+* `DATABASE_SCHEMA_MISMATCH` - database data format is wrong
+* `DATABASE_SIZE_EXCEEDED` - database size exceeded configured limit
+* `FIELD_NOT_FOUND` - attempt to operate on not existing field
+* `FIELD_VALUE_NOT_UNIQUE` - attempt to add entry with duplicated value for field marked as containing only unique values
+* `FILE_NOT_FOUND` - cannot find file with database (error is not emitted as no file means that it's first run of database and creates empty database)
+* `FILE_READ_ERROR` - cannot read file (due to other reason than not found)
+* `FILE_WRITE_ERROR` - cannot write file
+* `FUNCTION_ARGUMENT_MISMATCH` - wrong type and/or content of passed argument
+* `SORT_DATA_TYPE_ERROR` - ?
+
+## Performance
 
 ## API
 
@@ -84,31 +119,3 @@
     * `DATABASE_NOT_OPEN`
     * `COLLECTION_NOT_EXISTS`
 
-## Errors
-
-### Error format
-
-```
-{
-    method: string
-    error: string
-    message: string
-}
-
-```
-Field `method` describes library API method which throws error. Field `error` indicates what type of error occured. `message` pass details about error.
-
-### List of errors
-
-* `COLLECTION_NAME_MISMATCH` - wrong name of collection
-* `COLLECTION_NOT_EXISTS` - attempt to read data from not existing collection
-* `DATABASE_NOT_OPEN` - attempt to access data before loading database
-* `DATABASE_SCHEMA_MISMATCH` - database data format is wrong
-* `DATABASE_SIZE_EXCEEDED` - database size exceeded configured limit
-* `FIELD_NOT_FOUND` - attempt to operate on not existing field
-* `FIELD_VALUE_NOT_UNIQUE` - attempt to add entry with duplicated value for field marked as containing only unique values
-* `FILE_NOT_FOUND` - cannot find file with database (error is not emitted as no file means that it's first run of database and creates empty database)
-* `FILE_READ_ERROR` - cannot read file (due to other reason than not found)
-* `FILE_WRITE_ERROR` - cannot write file
-* `FUNCTION_ARGUMENT_MISMATCH` - wrong type and/or content of passed argument
-* `SORT_DATA_TYPE_ERROR` - ?

@@ -1,5 +1,5 @@
 import { DatabaseError, DBMethod } from '../models/enums';
-import { Collection, Entry, FindMethods, NewEntry } from '../models/interfaces';
+import { Collection, Entry, FindMethods, InsertedEntry } from '../models/interfaces';
 import { HornbeamError, InternalError } from '../utils/errors';
 import { utils } from '../utils/utils';
 import { typesValidators } from '../validators/types-validators';
@@ -9,33 +9,38 @@ import { findResults } from './find-results';
 import { Query } from '../models/types';
 import { logicalFilters } from '../filters/logical-filters';
 
-export const collection = (collection: Entry[], indexes?: string[]): Collection => {
+export const collection = (collection: Entry[], index?: string): Collection => {
+    let indexedValues: unknown[];
 
-    const insert = (data: NewEntry): number => {
+    if (index) {
+        indexedValues = utils.extractIndexes(collection, index);
+    }
+
+    const insert = (entry: InsertedEntry): number => {
         try {
-            entryValidators.isNewEntryValid(data);
+            entryValidators.isEntryValid(entry, true);
 
             if (collection.length === 0) {
-                collection.push({ _id: 1, ...data });
+                collection.push({ _id: 1, ...entry });
 
                 return 1;
             }
 
-            if (indexes) {
-                const indexedValues = utils.extractIndexes(collection, indexes);
-
-                Object.keys(indexedValues).forEach((index) => {
-                    const value = utils.getPropertyByPath(data, index);
-
-                    if (indexedValues[index].includes(value)) {
-                        throw new InternalError(DatabaseError.FieldValueNotUnique, `Added entry contains non-unique value for field: ${index}`);
-                    }
-                });
+            if (index && indexedValues.length > 0) {
+                const value = utils.getPropertyByPath(entry, index);
+            
+                if (indexedValues[index].includes(value)) {
+                    throw new InternalError(DatabaseError.FieldValueNotUnique, `Inserted entry contains non-unique value for field: ${index}`);
+                }
             }
 
             const id = collection[collection.length - 1]['_id'] + 1;
 
-            collection.push({ _id: id, ...data });
+            collection.push({ _id: id, ...entry });
+
+            if (index) {
+                indexedValues = utils.extractIndexes(collection, index);
+            }
 
             return id;
         } catch (e) {
@@ -61,7 +66,7 @@ export const collection = (collection: Entry[], indexes?: string[]): Collection 
 
             return JSON.parse(JSON.stringify(collection[index]));
         } catch (e) {
-            throw new HornbeamError(e.name, DBMethod.FindEntry, e.message);
+            throw new HornbeamError(e.name, DBMethod.GetEntry, e.message);
         }
     };
 
@@ -82,41 +87,38 @@ export const collection = (collection: Entry[], indexes?: string[]): Collection 
         }
     };
 
-    const replace = (data: Entry): number | undefined => {
+    const replace = (entry: Entry): number | undefined => {
         try {
-            entryValidators.isEntryValid(data);
+            entryValidators.isEntryValid(entry, false);
 
             if (collection.length === 0) {
                 return undefined;
             }
 
-            const index = collection.findIndex((entry) => entry['_id'] === data['_id']);
+            const entryIndex = collection.findIndex((storedEntry) => storedEntry['_id'] === entry['_id']);
 
-            if (index === -1) {
+            if (entryIndex === -1) {
                 return undefined;
             }
 
-            const oldEntry = collection.splice(index, 1)[0];
+            const oldEntry = collection[entryIndex];
 
-            if (indexes) {
-                const indexedValues = utils.extractIndexes(collection, indexes);
-
-                Object.keys(indexedValues).forEach((index) => {
-                    const value = utils.getPropertyByPath(data, index);
-
-                    if (indexedValues[index].includes(value)) {
-                        collection.push({ ...oldEntry });
-                        collection.sort((entryA, entryB) => entryA['_id'] - entryB['_id']);
-
-                        throw new InternalError(DatabaseError.FieldValueNotUnique, `Replacing entry must contain unique value for field: ${index}`);
-                    }
-                })
+            if (index && indexedValues.length > 0) {
+                const valueOld = utils.getPropertyByPath(oldEntry, index);
+                const valueNew = utils.getPropertyByPath(entry, index);
+            
+                if (valueOld !== valueNew && indexedValues.includes(valueNew)) {
+                    throw new InternalError(DatabaseError.FieldValueNotUnique, `Replacing entry contains non-unique value for field: ${index}`);
+                }
             }
 
-            collection.push(data);
-            collection.sort((entryA, entryB) => entryA['_id'] - entryB['_id']);
+            collection[entryIndex] = entry;
 
-            return oldEntry['_id'];
+            if (index) {
+                indexedValues = utils.extractIndexes(collection, index);
+            }
+
+            return entry['_id'];
         } catch (e) {
             throw new HornbeamError(e.name, DBMethod.ReplaceEntry, e.message);
         }
@@ -132,13 +134,19 @@ export const collection = (collection: Entry[], indexes?: string[]): Collection 
                 return undefined;
             }
 
-            const index = collection.findIndex((entry) => entry['_id'] === entryId);
+            const entryIndex = collection.findIndex((entry) => entry['_id'] === entryId);
 
-            if (index === -1) {
+            if (entryIndex === -1) {
                 return undefined;
             }
 
-            return collection.splice(index, 1)[0]['_id'];
+            collection.splice(entryIndex, 1);
+
+            if (index) {
+                indexedValues = utils.extractIndexes(collection, index);
+            }
+
+            return entryId;
         } catch (e) {
             throw new HornbeamError(e.name, DBMethod.RemoveEntry, e.message);
         }

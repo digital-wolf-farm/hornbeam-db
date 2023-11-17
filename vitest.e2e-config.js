@@ -3,8 +3,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
     test: {
         include: [
-            './src/index.spec.ts',
-            './src/**/*.spec.ts'
+            './e2e/**/*.spec.ts'
         ],
         coverage: {
             clean: true,
@@ -12,4 +11,4 @@ export default defineConfig({
         },
         environment: 'node'
     }
-})
+});

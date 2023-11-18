@@ -2,7 +2,7 @@
 
 ## Concept
 
-Lightweight alternative to NoSQL databases. Initially developed as persistent data storage in Electron app. Evolved to library handling data stored in JSON format working in all environments (browser, server, desktop).
+Lightweight alternative to NoSQL databases. Initially developed as persistent data storage in Electron app. Evolved to library handling data stored in format compatible with JSON, working in all environments (browser, server, desktop).
 
 Database in library is a set of collections. Collection is a list of entries. Every entry contains fields with their values.
 
@@ -60,6 +60,8 @@ Database in library is a set of collections. Collection is a list of entries. Ev
 - Reading/writing files with data.
 - Security stuff (eg. sanitization of inputs).
 - Check size of databases, collections, entries to keep proper performance.
+- Backup data.
+- Drop database.
 
 ## Errors
 
@@ -94,50 +96,81 @@ Field `method` describes library API method which throws error. Field `error` in
 
 ## API
 
+### Interfaces
+
+```js
+interface HornbeamAPI {
+    getCollection(name: string, uniqueField?: string): Collection;
+    exportData(): HornbeamData;
+}
+```
+
+```js
+interface HornbeamData {
+    [collectionName: string]: Entry[];
+}
+```
+
+```js
+interface InsertedEntry {
+    _id?: never;
+    [field: string]: unknown;
+}
+
+interface Entry {
+    _id: number;
+    [field: string]: unknown;
+}
+```
+
+```js
+interface Collection {
+    insert(entry: InsertedEntry): number;
+    get(id: number): Entry | undefined;
+    find(query?: Query): FindMethods;
+    replace(entry: Entry): number | undefined;
+    remove(id: number): number | undefined;
+}
+```
+
+### Initializing database
+
+1. Loading database
+
+    Starting point of library. Requires data wrapped into object, where keys are collections names. Each collection is a list of entries. Return database API.
+
+    ```js
+    loadData(data: HornbeamData): HornbeamAPI
+    ```
+    
+    Possible errors:
+    * `DATABASE_SCHEMA_MISMATCH` - loaded database schema is not valid
+
 ### Database operation methods
 
-1. Open (load from file) database
+1. Getting collection
+
+    When database is loaded, it is required to operate on selected collection. If there is no stored collection with given name, new empty is created.
 
     ```js
-    async open(path: string): Promise<void>
-    ```
-    Possible errors:
-    * `FUNCTION_ARGUMENT_MISMATCH`
-    * `FILE_READ_ERROR`
-    * `DATABASE_SCHEMA_MISMATCH`
-    * `DATABASE_SIZE_EXCEEDED`
-
-
-2. Close database (clear in-memory-database without updating file)
-
-    ```js
-    close(): <void>
+    getCollection(name: string, uniqueField?: string): Collection
     ```
     Possible errors:  
-        *no errors*
+    * `COLLECTION_NAME_ERROR` - provided collection name is not a string
+    * `COLLECTION_OPTIONS_ERROR` - provided unique field name is not a string
 
 
-3. Save database (update database file without clearing in-memory-database)
+2. Exporting data
 
-    ```js
-    async save(): Promise<void>
-    ```
-    Possible errors:
-    * `DATABASE_NOT_OPEN`
-    * `DATABASE_SCHEMA_MISMATCH`
-    * `DATABASE_SIZE_EXCEEDED`
-    * `FILE_WRITE_ERROR`
-
-
-3. Get stats of database (return usage of available space for data)
+    After finishing modifying data, this methods allows to get updated date to store in in file system. Before returning all empty collections are removed and schema is validated.
 
     ```js
-    stats(): string
+    exportData(): HornbeamData
     ```
     Possible errors:
-    * `DATABASE_NOT_OPEN`
+    * `DATABASE_SCHEMA_MISMATCH` - modified database schema is not valid
 
-### Data manipulation methods
+### Collection methods
 
 1. Insert new entry
 

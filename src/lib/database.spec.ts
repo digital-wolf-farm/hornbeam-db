@@ -37,15 +37,6 @@ describe('database', () => {
             expect(collectionFn.collection).not.toHaveBeenCalled();
         });
     
-        it('throws error when getting collection with name longer than 16 chars', () => {
-            const expectedError = new HornbeamError(DatabaseError.CollectionNameError, DBMethod.GetCollection, 'Collection name is longer than 16 characters')
-            
-            const resultFn = () => { db.getCollection('veryLongCollectionName') };
-    
-            expect(resultFn).toThrow(expectedError);
-            expect(collectionFn.collection).not.toHaveBeenCalled();
-        });
-    
         it('throws error when getting collection with proper name but uniqueField property is not a string', () => {
             const expectedError = new HornbeamError(DatabaseError.CollectionOptionsError, DBMethod.GetCollection, 'Unique field is not a string')
             

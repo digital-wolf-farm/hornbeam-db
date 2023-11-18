@@ -12,10 +12,6 @@ export const database = (data: HornbeamData): HornbeamAPI => {
                 throw new InternalError(DatabaseError.CollectionNameError, 'Collection name is not a string');
             }
 
-            if (name.length > 16) {
-                throw new InternalError(DatabaseError.CollectionNameError, 'Collection name is longer than 16 characters');
-            }
-
             if (uniqueField && typeof uniqueField !== 'string') {
                 throw new InternalError(DatabaseError.CollectionOptionsError, 'Unique field is not a string');
             }

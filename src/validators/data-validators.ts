@@ -11,14 +11,14 @@ const isDataSchemaValid = (db: unknown): void => {
 
     try {
         Object.keys((db as Record<string | number | symbol, unknown>)).forEach((collectionName) => {
-            typesValidators.isString(collectionName);
+            typeof collectionName === 'string';
         });
     } catch (e) {
         throw new InternalError(DatabaseError.DataSchemaMismatch, e.message);
     }
 
     Object.values((db as Record<string | number | symbol, unknown>)).forEach((collection) => {
-        if (!typesValidators.isArray(collection)) {
+        if (!Array.isArray(collection)) {
             throw new InternalError(DatabaseError.DataSchemaMismatch, 'Collection is not an array');
         }
 

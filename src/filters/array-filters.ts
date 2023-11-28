@@ -2,11 +2,11 @@ import { ArrayFiltersList } from '../models/types';
 import { typesValidators } from '../validators/types-validators';
 
 const isArrayOfStringsOrNumbers = (value: unknown): boolean => {
-    if (!typesValidators.isArray(value)) {
+    if (!Array.isArray(value)) {
         return false;
     }
 
-    if (!(value as Array<unknown>).every((elem) => typesValidators.isNumber(elem) || typesValidators.isString(elem))) {
+    if (!(value as Array<unknown>).every((elem) => typeof elem === 'number' || typeof elem === 'string')) {
         return false;
     }
 
@@ -30,7 +30,7 @@ const part = (entryValue: unknown, reference: unknown): boolean => {
 };
 
 const size = (entryValue: unknown, reference: unknown): boolean => {
-    if (!typesValidators.isArray(entryValue)) {
+    if (!Array.isArray(entryValue)) {
         return false;
     }
 

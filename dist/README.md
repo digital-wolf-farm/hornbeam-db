@@ -10,7 +10,7 @@ Database in library is a set of collections. Collection is a list of entries. Ev
 
 1. Install library
 
-```js
+```bash
     npm install @dwf/hornbeam-db
 ```
 
@@ -46,6 +46,8 @@ Database in library is a set of collections. Collection is a list of entries. Ev
     const dataToSave = db.exportData();
 ```
 
+All methods explained in API section
+
 ## What library do (features)
 
 - Validation schema of imported/exported databases.
@@ -61,7 +63,7 @@ Database in library is a set of collections. Collection is a list of entries. Ev
 - Security stuff (eg. sanitization of inputs).
 - Check size of databases, collections, entries to keep proper performance.
 - Backup data.
-- Drop database.
+- Drop database/remove files.
 
 ## Errors
 

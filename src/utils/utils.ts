@@ -26,7 +26,7 @@ const extractIndexes = (collection: Entry[], index: string): unknown[] => {
     collection.forEach((entry) => {
         const value = getPropertyByPath(entry, index);
 
-        if (value && (typesValidators.isString(value) || typesValidators.isNumber(value))) {
+        if (value && (typeof value === 'string' || typeof value === 'number')) {
             indexedValues.push(value);
         }
     });

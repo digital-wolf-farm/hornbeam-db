@@ -2,10 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HornbeamAPI } from '../models/interfaces';
 import { database } from './database';
 import * as collectionFn from './collection';
-import { HornbeamError } from '../utils/errors';
+import { HornbeamError, InternalError } from '../utils/errors';
 import { DBMethod, DatabaseError } from '../models/enums';
+import { dataValidators } from '../validators/data-validators';
 
-describe('database', () => {
+describe('Database', () => {
     const data = {
         users: [{ _id: 1, name: 'Adam' }],
         devices: [
@@ -65,7 +66,30 @@ describe('database', () => {
         });
     });
 
-    // describe('export data', () => {
-        
-    // });
+    describe('export data', () => {
+        it('returns database raw data with removed empty collections when schema is valid', () => {
+            vi.spyOn(dataValidators, 'isDataSchemaValid').mockImplementation(() => {});
+
+            const exportedData = db.exportData();
+
+            expect(exportedData).toEqual({
+                users: [{ _id: 1, name: 'Adam' }],
+                devices: [
+                    { _id: 1, label: 'TV set' },
+                    { _id: 3, label: 'Walkie-talkie' }
+                ]
+            });
+        });
+
+        it('throws error when data schema is invalid', () => {
+            const expectedError = new HornbeamError(DatabaseError.DataSchemaMismatch, DBMethod.ExportData, 'Entry _id is not unique')
+            vi.spyOn(dataValidators, 'isDataSchemaValid').mockImplementation(() => {
+                throw new InternalError(DatabaseError.DataSchemaMismatch, 'Entry _id is not unique');
+            });
+    
+            const resultFn = () => { db.exportData() };
+    
+            expect(resultFn).toThrow(expectedError);
+        });
+    });
 });

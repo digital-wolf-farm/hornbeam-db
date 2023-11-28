@@ -17,7 +17,7 @@ const isQueryValid = (query: unknown): boolean => {
         throw new InternalError(DatabaseError.FindQueryError, 'Query contains invalid logical operators');
     }
 
-    if (!typesValidators.isArray(query[keys[0]])) {
+    if (!Array.isArray(query[keys[0]])) {
         throw new InternalError(DatabaseError.FindQueryError, 'Expressions list is not an array');
     }
 
@@ -36,7 +36,7 @@ const isQueryValid = (query: unknown): boolean => {
             throw new InternalError(DatabaseError.FindQueryError, 'Expression has other number than one field');
         }
 
-        if (!typesValidators.isString(keys[0])) {
+        if (typeof keys[0] !== 'string') {
             throw new InternalError(DatabaseError.FindQueryError, 'Expression field is not a string');
         }
 

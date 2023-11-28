@@ -28,7 +28,7 @@ export const findResults = (foundEntries: Entry[]): FindMethods => {
     const sort = (sortingField: SortingField, languageCode?: string): SortMethods => {
         findResultsValidators.isSortingFieldValid(sortingField);
 
-        if (languageCode && !typesValidators.isString(languageCode)) {
+        if (languageCode && typeof languageCode !== 'string') {
             throw new InternalError(DatabaseError.SortArgumentsError, 'Language code argument is not a string');
         }
 

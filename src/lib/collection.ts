@@ -26,10 +26,10 @@ export const collection = (collection: Entry[], index?: string): Collection => {
                 return 1;
             }
 
-            if (index && indexedValues.length > 0) {
+            if (index && indexedValues?.length > 0) {
                 const value = utils.getPropertyByPath(entry, index);
             
-                if (indexedValues[index].includes(value)) {
+                if (value && indexedValues.includes(value)) {
                     throw new InternalError(DatabaseError.FieldValueNotUnique, `Inserted entry contains non-unique value for field: ${index}`);
                 }
             }
@@ -50,8 +50,8 @@ export const collection = (collection: Entry[], index?: string): Collection => {
 
     const get = (entryId: number): Entry | undefined => {
         try {
-            if (!typesValidators.isPositiveInteger(entryId)) {
-                throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a positive integer');
+            if (!typesValidators.isNonNegativeInteger(entryId)) {
+                throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a non-negative integer');
             }
 
             if (collection.length === 0) {
@@ -103,7 +103,7 @@ export const collection = (collection: Entry[], index?: string): Collection => {
 
             const oldEntry = collection[entryIndex];
 
-            if (index && indexedValues.length > 0) {
+            if (index && indexedValues?.length > 0) {
                 const valueOld = utils.getPropertyByPath(oldEntry, index);
                 const valueNew = utils.getPropertyByPath(entry, index);
             
@@ -126,7 +126,7 @@ export const collection = (collection: Entry[], index?: string): Collection => {
 
     const remove = (entryId: number): number | undefined => {
         try {
-            if (!typesValidators.isPositiveInteger(entryId)) {
+            if (!typesValidators.isNonNegativeInteger(entryId)) {
                 throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a positive integer');
             }
 

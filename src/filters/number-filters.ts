@@ -1,12 +1,11 @@
 import { NumberFiltersList } from '../models/types';
-import { typesValidators } from '../validators/types-validators';
 
-const getNumberOfValue = (value: unknown): number => {
-    if (typesValidators.isNumber(value)) {
+const getNumberOfValue = (value: unknown): number | undefined => {
+    if (typeof value === 'number') {
         return value as number;
     }
 
-    if (typesValidators.isString(value) && !isNaN(Number(value))) {
+    if (typeof value === 'string' && !isNaN(Number(value))) {
         return Number(value);
     }
 

@@ -1,9 +1,8 @@
 import { DatabaseError } from '../models/enums';
-import { typesValidators } from './types-validators';
 import { InternalError } from '../utils/errors';
 
 const isSortingFieldValid = (sortingField: unknown): boolean => {
-    if (!typesValidators.isString(sortingField)) {
+    if (typeof sortingField !== 'string') {
         throw new InternalError(DatabaseError.SortArgumentsError, 'Sorting field argument is not a string');
     }
 

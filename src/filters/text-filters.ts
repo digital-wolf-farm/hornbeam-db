@@ -10,23 +10,23 @@ const text = (entryValue: unknown, reference: unknown): boolean => {
         return false;
     }
     
-    if (!typesValidators.isString(reference) || reference === '') {
+    if (typeof reference !== 'string' || reference === '') {
         return false;
     }
 
-    if (typesValidators.isBoolean(entryValue)) {
+    if (typeof entryValue === 'boolean') {
         return false;
     }
 
-    if (typesValidators.isString(entryValue)) {
+    if (typeof entryValue === 'string') {
         return (entryValue as string).toLowerCase().includes((reference as string).toLowerCase());
     }
 
-    if (typesValidators.isNumber(entryValue)) {
+    if (typeof entryValue === 'number') {
         return (entryValue as number).toString().includes(reference as string);
     }
 
-    if (typesValidators.isArray(entryValue)) {
+    if (Array.isArray(entryValue)) {
         let isFound = false;
 
         (entryValue as Array<unknown>).forEach((elem) => {

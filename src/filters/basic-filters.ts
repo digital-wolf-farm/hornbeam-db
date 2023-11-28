@@ -1,8 +1,7 @@
 import { BasicFiltersList } from '../models/types';
-import { typesValidators } from '../validators/types-validators';
 
 const exist = (entryValue: unknown, reference: unknown): boolean => {
-    if (!typesValidators.isBoolean(reference)) {
+    if (typeof reference !== 'boolean') {
         return false;
     }
 
@@ -11,8 +10,8 @@ const exist = (entryValue: unknown, reference: unknown): boolean => {
 
 const eq = (entryValue: unknown, reference: unknown): boolean => {
     if (
-        (typesValidators.isNumber(entryValue) && typesValidators.isString(reference)) ||
-        (typesValidators.isString(entryValue) && typesValidators.isNumber(reference))
+        (typeof entryValue === 'number' && typeof reference === 'string') ||
+        (typeof entryValue === 'string' && typeof reference === 'number')
     ) {
         return String(entryValue) === String(reference);
     }
@@ -21,7 +20,7 @@ const eq = (entryValue: unknown, reference: unknown): boolean => {
 };
 
 const eqi = (entryValue: unknown, reference: unknown): boolean => {
-    if (typesValidators.isString(entryValue) && typesValidators.isString(reference)) {
+    if (typeof entryValue === 'string' && typeof reference === 'string') {
         return eq((entryValue as string).toLowerCase(), (reference as string).toLowerCase());
     }
 
@@ -33,7 +32,7 @@ const neq = (entryValue: unknown, reference: unknown): boolean => {
 };
 
 const neqi = (entryValue: unknown, reference: unknown): boolean => {
-    if (typesValidators.isString(entryValue) && typesValidators.isString(reference)) {
+    if (typeof entryValue === 'string' && typeof reference === 'string') {
         return neq((entryValue as string).toLowerCase(), (reference as string).toLowerCase());
     }
 

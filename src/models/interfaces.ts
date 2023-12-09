@@ -20,16 +20,16 @@ export interface Collection {
 
 // TODO: Make interfaces DRY
 export interface LimitMethods {
-    results(): FindResults;
+    fetch(): FindResults;
 }
 
 export interface SortMethods {
-    results(): FindResults;
+    fetch(): FindResults;
     limit(resultsSize: number, skippedEntries: number): LimitMethods;
 }
 
 export interface FindMethods {
-    results(): FindResults;
+    fetch(): FindResults;
     sort(param: SortingField, languageCode?: string): SortMethods;
     limit(resultsSize: number, skippedEntries: number): LimitMethods;
 }

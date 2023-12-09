@@ -12,7 +12,7 @@ describe('HornbeamDB', () => {
     vi.spyOn(databaseFn, 'database');
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     it('opens database when valid data is loaded', () => {

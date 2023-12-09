@@ -5,7 +5,7 @@ import { utils } from '../utils/utils';
 import { typesValidators } from '../validators/types-validators';
 import { collectionValidators } from '../validators/collection-validators';
 import { entryValidators } from '../validators/entry-validators';
-import { findResults } from './find-results';
+import { results } from './results';
 import { Query } from '../models/types';
 import { logicalFilters } from '../filters/logical-filters';
 
@@ -73,7 +73,7 @@ export const collection = (collection: Entry[], index?: string): Collection => {
     const find = (query?: Query): FindMethods => {
         try {
             if (!query) {
-                return findResults(collection);
+                return results(collection);
             }
 
             collectionValidators.isQueryValid(query);
@@ -81,7 +81,7 @@ export const collection = (collection: Entry[], index?: string): Collection => {
             const logicalOperator = Object.keys(query)[0];
             const queryExpressions = query[logicalOperator];
 
-            return findResults(collection.filter((entry) => logicalFilters[logicalOperator](entry, queryExpressions)));
+            return results(collection.filter((entry) => logicalFilters[logicalOperator](entry, queryExpressions)));
         } catch (e) {
             throw new HornbeamError(e.name, DBMethod.FindEntries, e.message);
         }
@@ -127,7 +127,7 @@ export const collection = (collection: Entry[], index?: string): Collection => {
     const remove = (entryId: number): number | undefined => {
         try {
             if (!typesValidators.isNonNegativeInteger(entryId)) {
-                throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a positive integer');
+                throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a non-negative integer');
             }
 
             if (collection.length === 0) {

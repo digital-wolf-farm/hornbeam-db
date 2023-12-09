@@ -25,7 +25,7 @@ describe('Database', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('get collection', () => {

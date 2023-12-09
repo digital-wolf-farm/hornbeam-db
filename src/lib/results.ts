@@ -6,13 +6,13 @@ import { utils } from '../utils/utils';
 import { findResultsValidators } from '../validators/find-results-validators';
 import { typesValidators } from '../validators/types-validators';
 
-export const findResults = (foundEntries: Entry[]): FindMethods => {
+export const results = (foundEntries: Entry[]): FindMethods => {
 
     let result: Entry[] = JSON.parse(JSON.stringify(foundEntries));
     let skippedEntriesNumber: number;
     let returnedEntriesSize: number;
 
-    const results = (): FindResults => {
+    const fetch = (): FindResults => {
         return {
             data: result,
             ...(skippedEntriesNumber && returnedEntriesSize) && {
@@ -38,7 +38,7 @@ export const findResults = (foundEntries: Entry[]): FindMethods => {
         result.sort((a, b) => utils.compareValuesOrder(a, b, field, order, languageCode ?? 'en'));
 
         return {
-            results,
+            fetch,
             limit
         };
     };
@@ -58,12 +58,12 @@ export const findResults = (foundEntries: Entry[]): FindMethods => {
         returnedEntriesSize = resultsSize;
 
         return {
-            results
+            fetch
         };
     };
 
     return {
-        results,
+        fetch,
         sort,
         limit
     };

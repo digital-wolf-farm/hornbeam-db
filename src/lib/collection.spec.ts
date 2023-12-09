@@ -110,9 +110,7 @@ describe('Collection', () => {
     describe('Get', () => {
         it('throws error when passed id is not non-negative integer', () => {
             const expectedError = new HornbeamError(DatabaseError.EntryIdError, DBMethod.GetEntry, 'Provided entry id is not a non-negative integer');
-            vi.spyOn(typesValidators, 'isNonNegativeInteger').mockImplementation(() => {
-                throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a non-negative integer');
-            });
+            vi.spyOn(typesValidators, 'isNonNegativeInteger').mockImplementation(() => false);
             const chosenCollection = collection(exampleCollection);
 
             const resultFn = () => { chosenCollection.get(-1); };
@@ -302,9 +300,7 @@ describe('Collection', () => {
     describe('Remove', () => {
         it('throws error when passed id is not non-negative integer', () => {
             const expectedError = new HornbeamError(DatabaseError.EntryIdError, DBMethod.RemoveEntry, 'Provided entry id is not a non-negative integer');
-            vi.spyOn(typesValidators, 'isNonNegativeInteger').mockImplementation(() => {
-                throw new InternalError(DatabaseError.EntryIdError, 'Provided entry id is not a non-negative integer');
-            });
+            vi.spyOn(typesValidators, 'isNonNegativeInteger').mockImplementation(() => false);
             const chosenCollection = collection(exampleCollection, 'login');
 
             const resultFn = () => { chosenCollection.remove(-1); };
